@@ -14,10 +14,9 @@
 
 cmake_minimum_required(VERSION 3.27.7)
 
-project(cppbtree VERSION 1.0.1 LANGUAGES CXX)
+project(cppbtree VERSION 1.1.0 LANGUAGES CXX)
 
 option(build_tests "Build B-tree tests" OFF)
-set(build_tests ON)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

@@ -12,27 +12,75 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.27.7)
 
-project(cppbtree CXX)
+project(cppbtree VERSION 1.0.1 LANGUAGES CXX)
 
 option(build_tests "Build B-tree tests" OFF)
-add_definitions(-std=c++11)
-set(CMAKE_CXX_FLAGS "-g -O2")
+set(build_tests ON)
 
-# CMake doesn't have a way to pure template library, 
-# add_library(cppbtree btree.h btree_map.h btree_set.h 
-#             safe_btree.h safe_btree_map.h safe_btree_set.h)
-# set_target_properties(cppbtree PROPERTIES LINKER_LANGUAGE CXX)
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+add_library(cppbtree INTERFACE)
+add_library(cppbtree::cppbtree ALIAS cppbtree)
+
+target_compile_features(cppbtree INTERFACE cxx_std_11)
+target_include_directories(cppbtree INTERFACE
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cppbtree>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+
+install(TARGETS cppbtree
+  EXPORT cppbtreeTargets
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(
+  DIRECTORY
+    ${CMAKE_CURRENT_SOURCE_DIR}/cppbtree
+  DESTINATION
+    ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(EXPORT cppbtreeTargets
+  FILE cppbtreeTargets.cmake
+  NAMESPACE cppbtree::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cppbtree
+)
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/cppbtreeConfig.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cppbtree"
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/cppbtreeConfigVersion.cmake"
+  VERSION "${PROJECT_VERSION}"
+  COMPATIBILITY AnyNewerVersion
+)
+
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/cppbtreeConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/cppbtreeConfigVersion.cmake
+  DESTINATION
+    ${CMAKE_INSTALL_LIBDIR}/cmake/cppbtree
+)
+
+export(EXPORT cppbtreeTargets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/cppbtreeTargets.cmake"
+  NAMESPACE cppbtree::
+)
 
 if(build_tests)
   enable_testing()
-  include_directories($ENV{GTEST_ROOT}/include)
-  link_directories($ENV{GTEST_ROOT})
-  add_executable(btree_test btree_test.cc btree_test_flags.cc)
-  add_executable(safe_btree_test safe_btree_test.cc btree_test_flags.cc)
-  add_executable(btree_bench btree_bench.cc btree_test_flags.cc)
-  target_link_libraries(btree_test gtest_main gtest gflags)
-  target_link_libraries(safe_btree_test gtest_main gtest gflags)
-  target_link_libraries(btree_bench gflags gtest)
+
+  find_package(GTest REQUIRED)
+  find_package(gflags REQUIRED)
+
+  add_subdirectory(test)
+  add_subdirectory(benchmark)
 endif()

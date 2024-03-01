@@ -1,20 +1,33 @@
-This library is a C++ template library and, as such, there is no
-library to build and install.  Copy the .h files and use them!
+# cpp-btree
 
-See http://code.google.com/p/cpp-btree/wiki/UsageInstructions for
-details.
+cpp-btree is an implementation of B-tree which have the same interface as the standard C++ containers, so it is relatively simple to replace `map` with `btree_map`, `set` with `btree_set`, `multimap` with `btree_multimap` and `multiset` with `btree_multiset`.
 
-----
+## Installation
+### CMake (recommended)
+You only have to add the following codes to your `CMakeLists.txt`.
 
-To build and run the provided tests, however, you will need to install
-CMake, the Google C++ Test framework, and the Google flags package.
+```cmake
+find_package(cppbtree CONFIG)
 
-Download and install CMake from http://www.cmake.org
+# replace 'foo' and 'main.cpp' with your programs.
+add_executable(foo main.cpp)
+target_link_libraries(foo cppbtree::cppbtree)
+```
 
-Download and build the GoogleTest framework from http://code.google.com/p/googletest
+### Source
+We recommend using CMake, but you can also use by downloading source codes.
+In this case, you copy the `cppbtree` directory in the uncompressed directory to your source directory.
 
-Download and install gflags from https://code.google.com/p/gflags
+## How to use
+See [Google's usage instructions](http://code.google.com/p/cpp-btree/wiki/UsageInstructions).
 
-export GTEST_ROOT=/path/for/gtest-x.y
+## Test
+If you want to test, Download and install the following libraries.
 
-cmake . -Dbuild_tests=ON
+- [googletest](https://github.com/google/googletest)
+- [gflags](https://github.com/google/googletest)
+
+Then, run `cmake . -Dbuild_tests=ON`.
+
+## License
+cpp-btree is licensed under [Apache License, Version 2.0](COPYING).

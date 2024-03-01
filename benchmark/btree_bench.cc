@@ -24,9 +24,9 @@
 #include <vector>
 
 #include "gflags/gflags.h"
-#include "btree_map.h"
-#include "btree_set.h"
-#include "btree_test.h"
+#include "cppbtree/btree_map.h"
+#include "cppbtree/btree_set.h"
+#include "cppbtree/btree_test.h"
 
 DEFINE_int32(test_random_seed, 123456789, "Seed for srand()");
 DEFINE_int32(benchmark_max_iters, 10000000, "Maximum test iterations");

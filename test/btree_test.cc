@@ -15,7 +15,7 @@
 #include "gtest/gtest.h"
 #include "cppbtree/btree_map.h"
 #include "cppbtree/btree_set.h"
-#include "cppbtree/btree_test.h"
+#include "btree_test.h"
 
 namespace btree {
 namespace {

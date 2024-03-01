@@ -22,7 +22,7 @@
 #include <utility>
 
 #include "gtest/gtest.h"
-#include "cppbtree/btree_test.h"
+#include "btree_test.h"
 #include "cppbtree/safe_btree_map.h"
 #include "cppbtree/safe_btree_set.h"
 

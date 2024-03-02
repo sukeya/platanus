@@ -16,7 +16,7 @@ target_link_libraries(foo cppbtree::cppbtree)
 
 ### Source
 We recommend using CMake, but you can also use by downloading source codes.
-In this case, you copy the `cppbtree` directory in the uncompressed directory to your source directory.
+In this case, copy the `cppbtree` directory in the uncompressed directory to your source directory.
 
 ## How to use
 See [Google's usage instructions](http://code.google.com/p/cpp-btree/wiki/UsageInstructions).

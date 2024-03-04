@@ -47,14 +47,14 @@ template <
     int TargetNodeSize = 256>
 class safe_btree_set : public btree_unique_container<
                            safe_btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
-  typedef safe_btree_set<Key, Compare, Alloc, TargetNodeSize>   self_type;
-  typedef btree_set_params<Key, Compare, Alloc, TargetNodeSize> params_type;
-  typedef safe_btree<params_type>                               btree_type;
-  typedef btree_unique_container<btree_type>                    super_type;
+  using self_type   = safe_btree_set<Key, Compare, Alloc, TargetNodeSize>;
+  using params_type = btree_set_params<Key, Compare, Alloc, TargetNodeSize>;
+  using btree_type  = safe_btree<params_type>;
+  using super_type  = btree_unique_container<btree_type>;
 
  public:
-  typedef typename btree_type::key_compare    key_compare;
-  typedef typename btree_type::allocator_type allocator_type;
+  using key_compare    = typename btree_type::key_compare;
+  using allocator_type = typename btree_type::allocator_type;
 
  public:
   // Default constructor.

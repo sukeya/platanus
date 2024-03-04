@@ -55,7 +55,7 @@ bool operator==(const std::pair<T, U>& x, const std::pair<V, W>& y) {
 // std::pair.
 template <typename T, typename U>
 struct remove_const<pair<T, U> > {
-  typedef pair<typename remove_const<T>::type, typename remove_const<U>::type> type;
+  using type = pair<typename remove_const<T>::type, typename remove_const<U>::type>;
 };
 
 }  // namespace std
@@ -72,7 +72,7 @@ struct select1st : public std::unary_function<_Pair, typename _Pair::first_type>
 // behavior is to treat the value as a pair and return the first element.
 template <typename K, typename V>
 struct KeyOfValue {
-  typedef select1st<V> type;
+  using type = select1st<V>;
 };
 
 template <typename T>
@@ -84,7 +84,7 @@ struct identity {
 // the same type such as in set<> and btree_set<>.
 template <typename K>
 struct KeyOfValue<K, K> {
-  typedef identity<K> type;
+  using type = identity<K>;
 };
 
 // Counts the number of occurances of "c" in a buffer.
@@ -113,22 +113,22 @@ inline ptrdiff_t strcount(const std::string& buf, char c) {
 // CheckerType is expected to be {set,map,multiset,multimap}.
 template <typename TreeType, typename CheckerType>
 class base_checker {
-  typedef base_checker<TreeType, CheckerType> self_type;
+  using self_type = base_checker<TreeType, CheckerType>;
 
  public:
-  typedef typename TreeType::key_type               key_type;
-  typedef typename TreeType::value_type             value_type;
-  typedef typename TreeType::key_compare            key_compare;
-  typedef typename TreeType::pointer                pointer;
-  typedef typename TreeType::const_pointer          const_pointer;
-  typedef typename TreeType::reference              reference;
-  typedef typename TreeType::const_reference        const_reference;
-  typedef typename TreeType::size_type              size_type;
-  typedef typename TreeType::difference_type        difference_type;
-  typedef typename TreeType::iterator               iterator;
-  typedef typename TreeType::const_iterator         const_iterator;
-  typedef typename TreeType::reverse_iterator       reverse_iterator;
-  typedef typename TreeType::const_reverse_iterator const_reverse_iterator;
+  using key_type               = typename TreeType::key_type;
+  using value_type             = typename TreeType::value_type;
+  using key_compare            = typename TreeType::key_compare;
+  using pointer                = typename TreeType::pointer;
+  using const_pointer          = typename TreeType::const_pointer;
+  using reference              = typename TreeType::reference;
+  using const_reference        = typename TreeType::const_reference;
+  using size_type              = typename TreeType::size_type;
+  using difference_type        = typename TreeType::difference_type;
+  using iterator               = typename TreeType::iterator;
+  using const_iterator         = typename TreeType::const_iterator;
+  using reverse_iterator       = typename TreeType::reverse_iterator;
+  using const_reverse_iterator = typename TreeType::const_reverse_iterator;
 
  public:
   // Default constructor.
@@ -361,12 +361,12 @@ class base_checker {
 // be btree_{set,map} and CheckerType is expected to be {set,map}.
 template <typename TreeType, typename CheckerType>
 class unique_checker : public base_checker<TreeType, CheckerType> {
-  typedef base_checker<TreeType, CheckerType>   super_type;
-  typedef unique_checker<TreeType, CheckerType> self_type;
+  using super_type = base_checker<TreeType, CheckerType>;
+  using self_type  = unique_checker<TreeType, CheckerType>;
 
  public:
-  typedef typename super_type::iterator   iterator;
-  typedef typename super_type::value_type value_type;
+  using iterator   = typename super_type::iterator;
+  using value_type = typename super_type::value_type;
 
  public:
   // Default constructor.
@@ -410,12 +410,12 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
 // {multiset,multimap}.
 template <typename TreeType, typename CheckerType>
 class multi_checker : public base_checker<TreeType, CheckerType> {
-  typedef base_checker<TreeType, CheckerType>  super_type;
-  typedef multi_checker<TreeType, CheckerType> self_type;
+  using super_type = base_checker<TreeType, CheckerType>;
+  using self_type  = multi_checker<TreeType, CheckerType>;
 
  public:
-  typedef typename super_type::iterator   iterator;
-  typedef typename super_type::value_type value_type;
+  using iterator   = typename super_type::iterator;
+  using value_type = typename super_type::value_type;
 
  public:
   // Default constructor.
@@ -687,7 +687,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
 
 template <typename T>
 void ConstTest() {
-  typedef typename T::value_type                              value_type;
+  using value_type = typename T::value_type;
   typename KeyOfValue<typename T::key_type, value_type>::type key_of_value;
 
   T        mutable_b;
@@ -745,7 +745,7 @@ template <typename T, typename C>
 void BtreeTest() {
   ConstTest<T>();
 
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V                      = typename std::remove_const<typename T::value_type>::type;
   std::vector<V> random_values = GenerateValues<V>(FLAGS_test_values);
 
   unique_checker<T, C> container;
@@ -767,7 +767,7 @@ template <typename T, typename C>
 void BtreeMultiTest() {
   ConstTest<T>();
 
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V                             = typename std::remove_const<typename T::value_type>::type;
   const std::vector<V>& random_values = GenerateValues<V>(FLAGS_test_values);
 
   multi_checker<T, C> container;
@@ -798,8 +798,8 @@ void BtreeMultiTest() {
 template <typename T, typename Alloc = std::allocator<T> >
 class TestAllocator : public Alloc {
  public:
-  typedef typename Alloc::pointer   pointer;
-  typedef typename Alloc::size_type size_type;
+  using pointer   = typename Alloc::pointer;
+  using size_type = typename Alloc::size_type;
 
   TestAllocator() : bytes_used_(NULL) {}
   TestAllocator(int64_t* bytes_used) : bytes_used_(bytes_used) {}
@@ -823,7 +823,7 @@ class TestAllocator : public Alloc {
   // Rebind allows an allocator<T> to be used for a different type
   template <class U>
   struct rebind {
-    typedef TestAllocator<U, typename Alloc::template rebind<U>::other> other;
+    using other = TestAllocator<U, typename Alloc::template rebind<U>::other>;
   };
 
   int64_t* bytes_used() const { return bytes_used_; }
@@ -834,7 +834,7 @@ class TestAllocator : public Alloc {
 
 template <typename T>
 void BtreeAllocatorTest() {
-  typedef typename T::value_type value_type;
+  using value_type = typename T::value_type;
 
   int64_t alloc1 = 0;
   int64_t alloc2 = 0;
@@ -855,8 +855,8 @@ void BtreeAllocatorTest() {
 
 template <typename T>
 void BtreeMapTest() {
-  typedef typename T::value_type  value_type;
-  typedef typename T::mapped_type mapped_type;
+  using value_type  = typename T::value_type;
+  using mapped_type = typename T::mapped_type;
 
   mapped_type m = Generator<mapped_type>(0)(0);
   (void)m;
@@ -881,8 +881,8 @@ void BtreeMapTest() {
 
 template <typename T>
 void BtreeMultiMapTest() {
-  typedef typename T::mapped_type mapped_type;
-  mapped_type                     m = Generator<mapped_type>(0)(0);
+  using mapped_type = typename T::mapped_type;
+  mapped_type m     = Generator<mapped_type>(0)(0);
   (void)m;
 }
 

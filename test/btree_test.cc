@@ -22,7 +22,7 @@ namespace {
 
 template <typename K, int N>
 void SetTest() {
-  typedef TestAllocator<K> TestAlloc;
+  using TestAlloc = TestAllocator<K>;
   ASSERT_EQ(sizeof(btree_set<K>), sizeof(void*));
   BtreeTest<btree_set<K, std::less<K>, std::allocator<K>, N>, std::set<K> >();
   BtreeAllocatorTest<btree_set<K, std::less<K>, TestAlloc, N> >();
@@ -30,7 +30,7 @@ void SetTest() {
 
 template <typename K, int N>
 void MapTest() {
-  typedef TestAllocator<K> TestAlloc;
+  using TestAlloc = TestAllocator<K>;
   ASSERT_EQ(sizeof(btree_map<K, K>), sizeof(void*));
   BtreeTest<btree_map<K, K, std::less<K>, std::allocator<K>, N>, std::map<K, K> >();
   BtreeAllocatorTest<btree_map<K, K, std::less<K>, TestAlloc, N> >();
@@ -70,7 +70,7 @@ TEST(Btree, set_string_4096) { SetTest<std::string, 4096>(); }
 
 template <typename K, int N>
 void MultiSetTest() {
-  typedef TestAllocator<K> TestAlloc;
+  using TestAlloc = TestAllocator<K>;
   ASSERT_EQ(sizeof(btree_multiset<K>), sizeof(void*));
   BtreeMultiTest<btree_multiset<K, std::less<K>, std::allocator<K>, N>, std::multiset<K> >();
   BtreeAllocatorTest<btree_multiset<K, std::less<K>, TestAlloc, N> >();
@@ -78,7 +78,7 @@ void MultiSetTest() {
 
 template <typename K, int N>
 void MultiMapTest() {
-  typedef TestAllocator<K> TestAlloc;
+  using TestAlloc = TestAllocator<K>;
   ASSERT_EQ(sizeof(btree_multimap<K, K>), sizeof(void*));
   BtreeMultiTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N>, std::multimap<K, K> >();
   BtreeMultiMapTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N> >();
@@ -121,7 +121,7 @@ struct SubstringLess {
 };
 
 TEST(Btree, SwapKeyCompare) {
-  typedef btree_set<std::string, SubstringLess> SubstringSet;
+  using SubstringSet = btree_set<std::string, SubstringLess>;
   SubstringSet s1(SubstringLess(1), SubstringSet::allocator_type());
   SubstringSet s2(SubstringLess(2), SubstringSet::allocator_type());
 
@@ -145,8 +145,8 @@ TEST(Btree, SwapKeyCompare) {
 TEST(Btree, UpperBoundRegression) {
   // Regress a bug where upper_bound would default-construct a new key_compare
   // instead of copying the existing one.
-  typedef btree_set<std::string, SubstringLess> SubstringSet;
-  SubstringSet                                  my_set(SubstringLess(3));
+  using SubstringSet = btree_set<std::string, SubstringLess>;
+  SubstringSet my_set(SubstringLess(3));
   my_set.insert("aab");
   my_set.insert("abb");
   // We call upper_bound("aaa").  If this correctly uses the length 3
@@ -240,11 +240,11 @@ TEST(Btree, Comparison) {
 }
 
 TEST(Btree, RangeCtorSanity) {
-  typedef btree_set<int, std::less<int>, std::allocator<int>, 256>           test_set;
-  typedef btree_map<int, int, std::less<int>, std::allocator<int>, 256>      test_map;
-  typedef btree_multiset<int, std::less<int>, std::allocator<int>, 256>      test_mset;
-  typedef btree_multimap<int, int, std::less<int>, std::allocator<int>, 256> test_mmap;
-  std::vector<int>                                                           ivec;
+  using test_set  = btree_set<int, std::less<int>, std::allocator<int>, 256>;
+  using test_map  = btree_map<int, int, std::less<int>, std::allocator<int>, 256>;
+  using test_mset = btree_multiset<int, std::less<int>, std::allocator<int>, 256>;
+  using test_mmap = btree_multimap<int, int, std::less<int>, std::allocator<int>, 256>;
+  std::vector<int> ivec;
   ivec.push_back(1);
   std::map<int, int> imap;
   imap.insert(std::make_pair(1, 2));

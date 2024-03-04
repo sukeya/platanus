@@ -48,7 +48,7 @@ namespace btree {
 namespace {
 
 struct RandGen {
-  typedef ptrdiff_t result_type;
+  using result_type = ptrdiff_t;
   RandGen(result_type seed) { srand(seed); }
   result_type operator()(result_type l) { return rand() % l; }
 };
@@ -150,8 +150,8 @@ void sink(const T& t0) {
 // Benchmark insertion of values into a container.
 template <typename T>
 void BM_Insert(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
-  typename KeyOfValue<typename T::key_type, V>::type               key_of_value;
+  using V = typename std::remove_const<typename T::value_type>::type;
+  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -187,8 +187,8 @@ void BM_Insert(int n) {
 // Benchmark lookup of values in a container.
 template <typename T>
 void BM_Lookup(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
-  typename KeyOfValue<typename T::key_type, V>::type               key_of_value;
+  using V = typename std::remove_const<typename T::value_type>::type;
+  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -219,8 +219,8 @@ void BM_Lookup(int n) {
 // yields a full tree.
 template <typename T>
 void BM_FullLookup(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
-  typename KeyOfValue<typename T::key_type, V>::type               key_of_value;
+  using V = typename std::remove_const<typename T::value_type>::type;
+  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -251,8 +251,8 @@ void BM_FullLookup(int n) {
 // Benchmark deletion of values from a container.
 template <typename T>
 void BM_Delete(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
-  typename KeyOfValue<typename T::key_type, V>::type               key_of_value;
+  using V = typename std::remove_const<typename T::value_type>::type;
+  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -293,8 +293,8 @@ void BM_Delete(int n) {
 // value constructors.
 template <typename T>
 void BM_QueueAddRem(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
-  typename KeyOfValue<typename T::key_type, V>::type               key_of_value;
+  using V = typename std::remove_const<typename T::value_type>::type;
+  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -353,8 +353,8 @@ void BM_QueueAddRem(int n) {
 // Mixed insertion and deletion in the same range using pre-constructed values.
 template <typename T>
 void BM_MixedAddRem(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
-  typename KeyOfValue<typename T::key_type, V>::type               key_of_value;
+  using V = typename std::remove_const<typename T::value_type>::type;
+  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -405,7 +405,7 @@ void BM_MixedAddRem(int n) {
 // counts two value constructors.
 template <typename T>
 void BM_Fifo(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -430,7 +430,7 @@ void BM_Fifo(int n) {
 // Iteration (forward) through the tree
 template <typename T>
 void BM_FwdIter(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -463,30 +463,30 @@ void BM_FwdIter(int n) {
   sink(r);  // Keep compiler from optimizing away r.
 }
 
-typedef set<int32_t> stl_set_int32;
-typedef set<int64_t> stl_set_int64;
-typedef set<string>  stl_set_string;
+using stl_set_int32  = set<int32_t>;
+using stl_set_int64  = set<int64_t>;
+using stl_set_string = set<string>;
 
-typedef map<int32_t, intptr_t> stl_map_int32;
-typedef map<int64_t, intptr_t> stl_map_int64;
-typedef map<string, intptr_t>  stl_map_string;
+using stl_map_int32  = map<int32_t, intptr_t>;
+using stl_map_int64  = map<int64_t, intptr_t>;
+using stl_map_string = map<string, intptr_t>;
 
-typedef multiset<int32_t> stl_multiset_int32;
-typedef multiset<int64_t> stl_multiset_int64;
-typedef multiset<string>  stl_multiset_string;
+using stl_multiset_int32  = multiset<int32_t>;
+using stl_multiset_int64  = multiset<int64_t>;
+using stl_multiset_string = multiset<string>;
 
-typedef multimap<int32_t, intptr_t> stl_multimap_int32;
-typedef multimap<int64_t, intptr_t> stl_multimap_int64;
-typedef multimap<string, intptr_t>  stl_multimap_string;
+using stl_multimap_int32  = multimap<int32_t, intptr_t>;
+using stl_multimap_int64  = multimap<int64_t, intptr_t>;
+using stl_multimap_string = multimap<string, intptr_t>;
 
 #define MY_BENCHMARK_TYPES2(value, name, size)                                                 \
-  typedef btree##_set<value, less<value>, allocator<value>, size> btree##_##size##_set_##name; \
-  typedef btree##_map<value, int, less<value>, allocator<value>, size>                         \
-      btree##_##size##_map_##name;                                                             \
-  typedef btree##_multiset<value, less<value>, allocator<value>, size>                         \
-      btree##_##size##_multiset_##name;                                                        \
-  typedef btree##_multimap<value, int, less<value>, allocator<value>, size>                    \
-      btree##_##size##_multimap_##name
+  using btree##_##size##_set_##name = btree##_set<value, less<value>, allocator<value>, size>; \
+  using btree##_##size##_map_##name =                                                          \
+      btree##_map<value, int, less<value>, allocator<value>, size>;                            \
+  using btree##_##size##_multiset_##name =                                                     \
+      btree##_multiset<value, less<value>, allocator<value>, size>;                            \
+  using btree##_##size##_multimap_##name =                                                     \
+      btree##_multimap<value, int, less<value>, allocator<value>, size>;
 
 #define MY_BENCHMARK_TYPES(value, name)   \
   MY_BENCHMARK_TYPES2(value, name, 128);  \

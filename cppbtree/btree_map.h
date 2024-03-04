@@ -42,14 +42,14 @@ template <
     int TargetNodeSize = 256>
 class btree_map : public btree_map_container<
                       btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
-  typedef btree_map<Key, Value, Compare, Alloc, TargetNodeSize>        self_type;
-  typedef btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> params_type;
-  typedef btree<params_type>                                           btree_type;
-  typedef btree_map_container<btree_type>                              super_type;
+  using self_type   = btree_map<Key, Value, Compare, Alloc, TargetNodeSize>;
+  using params_type = btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize>;
+  using btree_type  = btree<params_type>;
+  using super_type  = btree_map_container<btree_type>;
 
  public:
-  typedef typename btree_type::key_compare    key_compare;
-  typedef typename btree_type::allocator_type allocator_type;
+  using key_compare    = typename btree_type::key_compare;
+  using allocator_type = typename btree_type::allocator_type;
 
  public:
   // Default constructor.
@@ -84,16 +84,16 @@ template <
     int TargetNodeSize = 256>
 class btree_multimap : public btree_multi_container<
                            btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
-  typedef btree_multimap<Key, Value, Compare, Alloc, TargetNodeSize>   self_type;
-  typedef btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> params_type;
-  typedef btree<params_type>                                           btree_type;
-  typedef btree_multi_container<btree_type>                            super_type;
+  using self_type   = btree_multimap<Key, Value, Compare, Alloc, TargetNodeSize>;
+  using params_type = btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize>;
+  using btree_type  = btree<params_type>;
+  using super_type  = btree_multi_container<btree_type>;
 
  public:
-  typedef typename btree_type::key_compare    key_compare;
-  typedef typename btree_type::allocator_type allocator_type;
-  typedef typename btree_type::data_type      data_type;
-  typedef typename btree_type::mapped_type    mapped_type;
+  using key_compare    = typename btree_type::key_compare;
+  using allocator_type = typename btree_type::allocator_type;
+  using data_type      = typename btree_type::data_type;
+  using mapped_type    = typename btree_type::mapped_type;
 
  public:
   // Default constructor.

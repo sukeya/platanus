@@ -137,16 +137,16 @@ inline void btree_swap_helper(T& a, T& b) {
 // A template helper used to select A or B based on a condition.
 template <bool cond, typename A, typename B>
 struct if_ {
-  typedef A type;
+  using type = A;
 };
 
 template <typename A, typename B>
 struct if_<false, A, B> {
-  typedef B type;
+  using type = B;
 };
 
 // Types small_ and big_ are promise that sizeof(small_) < sizeof(big_)
-typedef char small_;
+using small_ = char;
 
 struct big_ {
   char dummy[2];
@@ -156,7 +156,8 @@ struct big_ {
 template <bool>
 struct CompileAssert {};
 
-#define COMPILE_ASSERT(expr, msg) typedef CompileAssert<(bool(expr))> msg[bool(expr) ? 1 : -1]
+#define COMPILE_ASSERT(expr, msg) \
+  typedef CompileAssert<(bool(expr))> msg[bool(expr) ? 1 : -1]
 
 // A helper type used to indicate that a key-compare-to functor has been
 // provided. A user can specify a key-compare-to functor by doing:
@@ -240,7 +241,7 @@ struct btree_key_comparer<Key, Compare, true> {
 // whether Compare is derived from btree_key_compare_to_tag).
 template <typename Key, typename Compare>
 static bool btree_compare_keys(const Compare& comp, const Key& x, const Key& y) {
-  typedef btree_key_comparer<Key, Compare, btree_is_key_compare_to<Compare>::value> key_comparer;
+  using key_comparer = btree_key_comparer<Key, Compare, btree_is_key_compare_to<Compare>::value>;
   return key_comparer::bool_compare(comp, x, y);
 }
 
@@ -249,18 +250,18 @@ struct btree_common_params {
   // If Compare is derived from btree_key_compare_to_tag then use it as the
   // key_compare type. Otherwise, use btree_key_compare_to_adapter<> which will
   // fall-back to Compare if we don't have an appropriate specialization.
-  typedef typename if_<
+  using key_compare = typename if_<
       btree_is_key_compare_to<Compare>::value,
       Compare,
-      btree_key_compare_to_adapter<Compare> >::type key_compare;
+      btree_key_compare_to_adapter<Compare> >::type;
   // A type which indicates if we have a key-compare-to functor or a plain old
   // key-compare functor.
-  typedef btree_is_key_compare_to<key_compare> is_key_compare_to;
+  using is_key_compare_to = btree_is_key_compare_to<key_compare>;
 
-  typedef Alloc     allocator_type;
-  typedef Key       key_type;
-  typedef ssize_t   size_type;
-  typedef ptrdiff_t difference_type;
+  using allocator_type  = Alloc;
+  using key_type        = Key;
+  using size_type       = ssize_t;
+  using difference_type = ptrdiff_t;
 
   enum {
     kTargetNodeSize = TargetNodeSize,
@@ -280,14 +281,14 @@ struct btree_common_params {
 template <typename Key, typename Data, typename Compare, typename Alloc, int TargetNodeSize>
 struct btree_map_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key) + sizeof(Data)> {
-  typedef Data                            data_type;
-  typedef Data                            mapped_type;
-  typedef std::pair<const Key, data_type> value_type;
-  typedef std::pair<Key, data_type>       mutable_value_type;
-  typedef value_type*                     pointer;
-  typedef const value_type*               const_pointer;
-  typedef value_type&                     reference;
-  typedef const value_type&               const_reference;
+  using data_type          = Data;
+  using mapped_type        = Data;
+  using value_type         = std::pair<const Key, data_type>;
+  using mutable_value_type = std::pair<Key, data_type>;
+  using pointer            = value_type*;
+  using const_pointer      = const value_type*;
+  using reference          = value_type&;
+  using const_reference    = const value_type&;
 
   enum {
     kValueSize = sizeof(Key) + sizeof(data_type),
@@ -305,14 +306,14 @@ struct btree_map_params
 template <typename Key, typename Compare, typename Alloc, int TargetNodeSize>
 struct btree_set_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key)> {
-  typedef std::false_type   data_type;
-  typedef std::false_type   mapped_type;
-  typedef Key               value_type;
-  typedef value_type        mutable_value_type;
-  typedef value_type*       pointer;
-  typedef const value_type* const_pointer;
-  typedef value_type&       reference;
-  typedef const value_type& const_reference;
+  using data_type          = std::false_type;
+  using mapped_type        = std::false_type;
+  using value_type         = Key;
+  using mutable_value_type = value_type;
+  using pointer            = value_type*;
+  using const_pointer      = const value_type*;
+  using reference          = value_type&;
+  using const_reference    = const value_type&;
 
   enum {
     kValueSize = sizeof(Key),
@@ -349,7 +350,7 @@ struct btree_linear_search_plain_compare {
     return n.linear_search_plain_compare(k, 0, n.count(), comp);
   }
   static int upper_bound(const K& k, const N& n, Compare comp) {
-    typedef btree_upper_bound_adapter<K, Compare> upper_compare;
+    using upper_compare = btree_upper_bound_adapter<K, Compare>;
     return n.linear_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
 };
@@ -361,7 +362,7 @@ struct btree_linear_search_compare_to {
     return n.linear_search_compare_to(k, 0, n.count(), comp);
   }
   static int upper_bound(const K& k, const N& n, CompareTo comp) {
-    typedef btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true> > upper_compare;
+    using upper_compare = btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true> >;
     return n.linear_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
 };
@@ -373,7 +374,7 @@ struct btree_binary_search_plain_compare {
     return n.binary_search_plain_compare(k, 0, n.count(), comp);
   }
   static int upper_bound(const K& k, const N& n, Compare comp) {
-    typedef btree_upper_bound_adapter<K, Compare> upper_compare;
+    using upper_compare = btree_upper_bound_adapter<K, Compare>;
     return n.binary_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
 };
@@ -385,7 +386,7 @@ struct btree_binary_search_compare_to {
     return n.binary_search_compare_to(k, 0, n.count(), CompareTo());
   }
   static int upper_bound(const K& k, const N& n, CompareTo comp) {
-    typedef btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true> > upper_compare;
+    using upper_compare = btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true> >;
     return n.linear_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
 };
@@ -396,50 +397,50 @@ struct btree_binary_search_compare_to {
 template <typename Params>
 class btree_node {
  public:
-  typedef Params                              params_type;
-  typedef btree_node<Params>                  self_type;
-  typedef typename Params::key_type           key_type;
-  typedef typename Params::data_type          data_type;
-  typedef typename Params::value_type         value_type;
-  typedef typename Params::mutable_value_type mutable_value_type;
-  typedef typename Params::pointer            pointer;
-  typedef typename Params::const_pointer      const_pointer;
-  typedef typename Params::reference          reference;
-  typedef typename Params::const_reference    const_reference;
-  typedef typename Params::key_compare        key_compare;
-  typedef typename Params::size_type          size_type;
-  typedef typename Params::difference_type    difference_type;
+  using params_type        = Params;
+  using self_type          = btree_node<Params>;
+  using key_type           = typename Params::key_type;
+  using data_type          = typename Params::data_type;
+  using value_type         = typename Params::value_type;
+  using mutable_value_type = typename Params::mutable_value_type;
+  using pointer            = typename Params::pointer;
+  using const_pointer      = typename Params::const_pointer;
+  using reference          = typename Params::reference;
+  using const_reference    = typename Params::const_reference;
+  using key_compare        = typename Params::key_compare;
+  using size_type          = typename Params::size_type;
+  using difference_type    = typename Params::difference_type;
   // Typedefs for the various types of node searches.
-  typedef btree_linear_search_plain_compare<key_type, self_type, key_compare>
-      linear_search_plain_compare_type;
-  typedef btree_linear_search_compare_to<key_type, self_type, key_compare>
-      linear_search_compare_to_type;
-  typedef btree_binary_search_plain_compare<key_type, self_type, key_compare>
-      binary_search_plain_compare_type;
-  typedef btree_binary_search_compare_to<key_type, self_type, key_compare>
-      binary_search_compare_to_type;
+  using linear_search_plain_compare_type =
+      btree_linear_search_plain_compare<key_type, self_type, key_compare>;
+  using linear_search_compare_to_type =
+      btree_linear_search_compare_to<key_type, self_type, key_compare>;
+  using binary_search_plain_compare_type =
+      btree_binary_search_plain_compare<key_type, self_type, key_compare>;
+  using binary_search_compare_to_type =
+      btree_binary_search_compare_to<key_type, self_type, key_compare>;
   // If we have a valid key-compare-to type, use linear_search_compare_to,
   // otherwise use linear_search_plain_compare.
-  typedef typename if_<
+  using linear_search_type = typename if_<
       Params::is_key_compare_to::value,
       linear_search_compare_to_type,
-      linear_search_plain_compare_type>::type linear_search_type;
+      linear_search_plain_compare_type>::type;
   // If we have a valid key-compare-to type, use binary_search_compare_to,
   // otherwise use binary_search_plain_compare.
-  typedef typename if_<
+  using binary_search_type = typename if_<
       Params::is_key_compare_to::value,
       binary_search_compare_to_type,
-      binary_search_plain_compare_type>::type binary_search_type;
+      binary_search_plain_compare_type>::type;
   // If the key is an integral or floating point type, use linear search which
   // is faster than binary search for such types. Might be wise to also
   // configure linear search based on node-size.
-  typedef typename if_<
+  using search_type = typename if_<
       std::is_integral<key_type>::value || std::is_floating_point<key_type>::value,
       linear_search_type,
-      binary_search_type>::type search_type;
+      binary_search_type>::type;
 
   struct base_fields {
-    typedef typename Params::node_count_type field_type;
+    using field_type = typename Params::node_count_type;
 
     // A boolean indicating whether the node is a leaf or not.
     bool leaf;
@@ -689,27 +690,27 @@ class btree_node {
 
 template <typename Node, typename Reference, typename Pointer>
 struct btree_iterator {
-  typedef typename Node::key_type        key_type;
-  typedef typename Node::size_type       size_type;
-  typedef typename Node::difference_type difference_type;
-  typedef typename Node::params_type     params_type;
+  using key_type        = typename Node::key_type;
+  using size_type       = typename Node::size_type;
+  using difference_type = typename Node::difference_type;
+  using params_type     = typename Node::params_type;
 
-  typedef Node                                   node_type;
-  typedef typename std::remove_const<Node>::type normal_node;
-  typedef const Node                             const_node;
-  typedef typename params_type::value_type       value_type;
-  typedef typename params_type::pointer          normal_pointer;
-  typedef typename params_type::reference        normal_reference;
-  typedef typename params_type::const_pointer    const_pointer;
-  typedef typename params_type::const_reference  const_reference;
+  using node_type        = Node;
+  using normal_node      = typename std::remove_const<Node>::type;
+  using const_node       = const Node;
+  using value_type       = typename params_type::value_type;
+  using normal_pointer   = typename params_type::pointer;
+  using normal_reference = typename params_type::reference;
+  using const_pointer    = typename params_type::const_pointer;
+  using const_reference  = typename params_type::const_reference;
 
-  typedef Pointer                         pointer;
-  typedef Reference                       reference;
-  typedef std::bidirectional_iterator_tag iterator_category;
+  using pointer           = Pointer;
+  using reference         = Reference;
+  using iterator_category = std::bidirectional_iterator_tag;
 
-  typedef btree_iterator<normal_node, normal_reference, normal_pointer> iterator;
-  typedef btree_iterator<const_node, const_reference, const_pointer>    const_iterator;
-  typedef btree_iterator<Node, Reference, Pointer>                      self_type;
+  using iterator       = btree_iterator<normal_node, normal_reference, normal_pointer>;
+  using const_iterator = btree_iterator<const_node, const_reference, const_pointer>;
+  using self_type      = btree_iterator<Node, Reference, Pointer>;
 
   btree_iterator() : node(NULL), position(-1) {}
   btree_iterator(Node* n, int p) : node(n), position(p) {}
@@ -788,20 +789,20 @@ struct btree_internal_locate_compare_to {
 
 template <typename Params>
 class btree : public Params::key_compare {
-  typedef btree<Params>                       self_type;
-  typedef btree_node<Params>                  node_type;
-  typedef typename node_type::base_fields     base_fields;
-  typedef typename node_type::leaf_fields     leaf_fields;
-  typedef typename node_type::internal_fields internal_fields;
-  typedef typename node_type::root_fields     root_fields;
-  typedef typename Params::is_key_compare_to  is_key_compare_to;
+  using self_type         = btree<Params>;
+  using node_type         = btree_node<Params>;
+  using base_fields       = typename node_type::base_fields;
+  using leaf_fields       = typename node_type::leaf_fields;
+  using internal_fields   = typename node_type::internal_fields;
+  using root_fields       = typename node_type::root_fields;
+  using is_key_compare_to = typename Params::is_key_compare_to;
 
   friend class btree_internal_locate_plain_compare;
   friend class btree_internal_locate_compare_to;
-  typedef typename if_<
+  using internal_locate_type = typename if_<
       is_key_compare_to::value,
       btree_internal_locate_compare_to,
-      btree_internal_locate_plain_compare>::type internal_locate_type;
+      btree_internal_locate_plain_compare>::type;
 
   enum {
     kNodeValues    = node_type::kNodeValues,
@@ -837,25 +838,25 @@ class btree : public Params::key_compare {
   };
 
  public:
-  typedef Params                                        params_type;
-  typedef typename Params::key_type                     key_type;
-  typedef typename Params::data_type                    data_type;
-  typedef typename Params::mapped_type                  mapped_type;
-  typedef typename Params::value_type                   value_type;
-  typedef typename Params::key_compare                  key_compare;
-  typedef typename Params::pointer                      pointer;
-  typedef typename Params::const_pointer                const_pointer;
-  typedef typename Params::reference                    reference;
-  typedef typename Params::const_reference              const_reference;
-  typedef typename Params::size_type                    size_type;
-  typedef typename Params::difference_type              difference_type;
-  typedef btree_iterator<node_type, reference, pointer> iterator;
-  typedef typename iterator::const_iterator             const_iterator;
-  typedef std::reverse_iterator<const_iterator>         const_reverse_iterator;
-  typedef std::reverse_iterator<iterator>               reverse_iterator;
+  using params_type            = Params;
+  using key_type               = typename Params::key_type;
+  using data_type              = typename Params::data_type;
+  using mapped_type            = typename Params::mapped_type;
+  using value_type             = typename Params::value_type;
+  using key_compare            = typename Params::key_compare;
+  using pointer                = typename Params::pointer;
+  using const_pointer          = typename Params::const_pointer;
+  using reference              = typename Params::reference;
+  using const_reference        = typename Params::const_reference;
+  using size_type              = typename Params::size_type;
+  using difference_type        = typename Params::difference_type;
+  using iterator               = btree_iterator<node_type, reference, pointer>;
+  using const_iterator         = typename iterator::const_iterator;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using reverse_iterator       = std::reverse_iterator<iterator>;
 
-  typedef typename Params::allocator_type                       allocator_type;
-  typedef typename allocator_type::template rebind<char>::other internal_allocator_type;
+  using allocator_type          = typename Params::allocator_type;
+  using internal_allocator_type = typename allocator_type::template rebind<char>::other;
 
  public:
   // Default constructor.

@@ -39,18 +39,18 @@ namespace btree {
 template <typename Tree, typename Iterator>
 class safe_btree_iterator {
  public:
-  typedef typename Iterator::key_type          key_type;
-  typedef typename Iterator::value_type        value_type;
-  typedef typename Iterator::size_type         size_type;
-  typedef typename Iterator::difference_type   difference_type;
-  typedef typename Iterator::pointer           pointer;
-  typedef typename Iterator::reference         reference;
-  typedef typename Iterator::const_pointer     const_pointer;
-  typedef typename Iterator::const_reference   const_reference;
-  typedef typename Iterator::iterator_category iterator_category;
-  typedef typename Tree::iterator              iterator;
-  typedef typename Tree::const_iterator        const_iterator;
-  typedef safe_btree_iterator<Tree, Iterator>  self_type;
+  using key_type          = typename Iterator::key_type;
+  using value_type        = typename Iterator::value_type;
+  using size_type         = typename Iterator::size_type;
+  using difference_type   = typename Iterator::difference_type;
+  using pointer           = typename Iterator::pointer;
+  using reference         = typename Iterator::reference;
+  using const_pointer     = typename Iterator::const_pointer;
+  using const_reference   = typename Iterator::const_reference;
+  using iterator_category = typename Iterator::iterator_category;
+  using iterator          = typename Tree::iterator;
+  using const_iterator    = typename Tree::const_iterator;
+  using self_type         = safe_btree_iterator<Tree, Iterator>;
 
   void update() const {
     if (iter_ != tree_->internal_btree()->end()) {
@@ -147,30 +147,30 @@ class safe_btree_iterator {
 
 template <typename Params>
 class safe_btree {
-  typedef safe_btree<Params> self_type;
+  using self_type = safe_btree<Params>;
 
-  typedef btree<Params>                       btree_type;
-  typedef typename btree_type::iterator       tree_iterator;
-  typedef typename btree_type::const_iterator tree_const_iterator;
+  using btree_type          = btree<Params>;
+  using tree_iterator       = typename btree_type::iterator;
+  using tree_const_iterator = typename btree_type::const_iterator;
 
  public:
-  typedef typename btree_type::params_type                          params_type;
-  typedef typename btree_type::key_type                             key_type;
-  typedef typename btree_type::data_type                            data_type;
-  typedef typename btree_type::mapped_type                          mapped_type;
-  typedef typename btree_type::value_type                           value_type;
-  typedef typename btree_type::key_compare                          key_compare;
-  typedef typename btree_type::allocator_type                       allocator_type;
-  typedef typename btree_type::pointer                              pointer;
-  typedef typename btree_type::const_pointer                        const_pointer;
-  typedef typename btree_type::reference                            reference;
-  typedef typename btree_type::const_reference                      const_reference;
-  typedef typename btree_type::size_type                            size_type;
-  typedef typename btree_type::difference_type                      difference_type;
-  typedef safe_btree_iterator<self_type, tree_iterator>             iterator;
-  typedef safe_btree_iterator<const self_type, tree_const_iterator> const_iterator;
-  typedef std::reverse_iterator<const_iterator>                     const_reverse_iterator;
-  typedef std::reverse_iterator<iterator>                           reverse_iterator;
+  using params_type            = typename btree_type::params_type;
+  using key_type               = typename btree_type::key_type;
+  using data_type              = typename btree_type::data_type;
+  using mapped_type            = typename btree_type::mapped_type;
+  using value_type             = typename btree_type::value_type;
+  using key_compare            = typename btree_type::key_compare;
+  using allocator_type         = typename btree_type::allocator_type;
+  using pointer                = typename btree_type::pointer;
+  using const_pointer          = typename btree_type::const_pointer;
+  using reference              = typename btree_type::reference;
+  using const_reference        = typename btree_type::const_reference;
+  using size_type              = typename btree_type::size_type;
+  using difference_type        = typename btree_type::difference_type;
+  using iterator               = safe_btree_iterator<self_type, tree_iterator>;
+  using const_iterator         = safe_btree_iterator<const self_type, tree_const_iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using reverse_iterator       = std::reverse_iterator<iterator>;
 
  public:
   // Default constructor.

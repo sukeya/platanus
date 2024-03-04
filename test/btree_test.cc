@@ -37,43 +37,42 @@ void MapTest() {
   BtreeMapTest<btree_map<K, K, std::less<K>, std::allocator<K>, N> >();
 }
 
-TEST(Btree, set_int32_32)   { SetTest<int32_t, 32>(); }
-TEST(Btree, set_int32_64)   { SetTest<int32_t, 64>(); }
-TEST(Btree, set_int32_128)  { SetTest<int32_t, 128>(); }
-TEST(Btree, set_int32_256)  { SetTest<int32_t, 256>(); }
-TEST(Btree, set_int64_256)  { SetTest<int64_t, 256>(); }
+TEST(Btree, set_int32_32) { SetTest<int32_t, 32>(); }
+TEST(Btree, set_int32_64) { SetTest<int32_t, 64>(); }
+TEST(Btree, set_int32_128) { SetTest<int32_t, 128>(); }
+TEST(Btree, set_int32_256) { SetTest<int32_t, 256>(); }
+TEST(Btree, set_int64_256) { SetTest<int64_t, 256>(); }
 TEST(Btree, set_string_256) { SetTest<std::string, 256>(); }
-TEST(Btree, set_pair_256)   { SetTest<std::pair<int, int>, 256>(); }
-TEST(Btree, map_int32_256)  { MapTest<int32_t, 256>(); }
-TEST(Btree, map_int64_256)  { MapTest<int64_t, 256>(); }
+TEST(Btree, set_pair_256) { SetTest<std::pair<int, int>, 256>(); }
+TEST(Btree, map_int32_256) { MapTest<int32_t, 256>(); }
+TEST(Btree, map_int64_256) { MapTest<int64_t, 256>(); }
 TEST(Btree, map_string_256) { MapTest<std::string, 256>(); }
-TEST(Btree, map_pair_256)   { MapTest<std::pair<int, int>, 256>(); }
+TEST(Btree, map_pair_256) { MapTest<std::pair<int, int>, 256>(); }
 
 // Large-node tests
-TEST(Btree, map_int32_1024)   { MapTest<int32_t, 1024>(); }
-TEST(Btree, map_int32_1032)   { MapTest<int32_t, 1032>(); }
-TEST(Btree, map_int32_1040)   { MapTest<int32_t, 1040>(); }
-TEST(Btree, map_int32_1048)   { MapTest<int32_t, 1048>(); }
-TEST(Btree, map_int32_1056)   { MapTest<int32_t, 1056>(); }
+TEST(Btree, map_int32_1024) { MapTest<int32_t, 1024>(); }
+TEST(Btree, map_int32_1032) { MapTest<int32_t, 1032>(); }
+TEST(Btree, map_int32_1040) { MapTest<int32_t, 1040>(); }
+TEST(Btree, map_int32_1048) { MapTest<int32_t, 1048>(); }
+TEST(Btree, map_int32_1056) { MapTest<int32_t, 1056>(); }
 
-TEST(Btree, map_int32_2048)   { MapTest<int32_t, 2048>(); }
-TEST(Btree, map_int32_4096)   { MapTest<int32_t, 4096>(); }
-TEST(Btree, set_int32_1024)   { SetTest<int32_t, 1024>(); }
-TEST(Btree, set_int32_2048)   { SetTest<int32_t, 2048>(); }
-TEST(Btree, set_int32_4096)   { SetTest<int32_t, 4096>(); }
-TEST(Btree, map_string_1024)   { MapTest<std::string, 1024>(); }
-TEST(Btree, map_string_2048)   { MapTest<std::string, 2048>(); }
-TEST(Btree, map_string_4096)   { MapTest<std::string, 4096>(); }
-TEST(Btree, set_string_1024)   { SetTest<std::string, 1024>(); }
-TEST(Btree, set_string_2048)   { SetTest<std::string, 2048>(); }
-TEST(Btree, set_string_4096)   { SetTest<std::string, 4096>(); }
+TEST(Btree, map_int32_2048) { MapTest<int32_t, 2048>(); }
+TEST(Btree, map_int32_4096) { MapTest<int32_t, 4096>(); }
+TEST(Btree, set_int32_1024) { SetTest<int32_t, 1024>(); }
+TEST(Btree, set_int32_2048) { SetTest<int32_t, 2048>(); }
+TEST(Btree, set_int32_4096) { SetTest<int32_t, 4096>(); }
+TEST(Btree, map_string_1024) { MapTest<std::string, 1024>(); }
+TEST(Btree, map_string_2048) { MapTest<std::string, 2048>(); }
+TEST(Btree, map_string_4096) { MapTest<std::string, 4096>(); }
+TEST(Btree, set_string_1024) { SetTest<std::string, 1024>(); }
+TEST(Btree, set_string_2048) { SetTest<std::string, 2048>(); }
+TEST(Btree, set_string_4096) { SetTest<std::string, 4096>(); }
 
 template <typename K, int N>
 void MultiSetTest() {
   typedef TestAllocator<K> TestAlloc;
   ASSERT_EQ(sizeof(btree_multiset<K>), sizeof(void*));
-  BtreeMultiTest<btree_multiset<K, std::less<K>, std::allocator<K>, N>,
-      std::multiset<K> >();
+  BtreeMultiTest<btree_multiset<K, std::less<K>, std::allocator<K>, N>, std::multiset<K> >();
   BtreeAllocatorTest<btree_multiset<K, std::less<K>, TestAlloc, N> >();
 }
 
@@ -81,42 +80,39 @@ template <typename K, int N>
 void MultiMapTest() {
   typedef TestAllocator<K> TestAlloc;
   ASSERT_EQ(sizeof(btree_multimap<K, K>), sizeof(void*));
-  BtreeMultiTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N>,
-      std::multimap<K, K> >();
+  BtreeMultiTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N>, std::multimap<K, K> >();
   BtreeMultiMapTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N> >();
   BtreeAllocatorTest<btree_multimap<K, K, std::less<K>, TestAlloc, N> >();
 }
 
-TEST(Btree, multiset_int32_256)  { MultiSetTest<int32_t, 256>(); }
-TEST(Btree, multiset_int64_256)  { MultiSetTest<int64_t, 256>(); }
+TEST(Btree, multiset_int32_256) { MultiSetTest<int32_t, 256>(); }
+TEST(Btree, multiset_int64_256) { MultiSetTest<int64_t, 256>(); }
 TEST(Btree, multiset_string_256) { MultiSetTest<std::string, 256>(); }
-TEST(Btree, multiset_pair_256)   { MultiSetTest<std::pair<int, int>, 256>(); }
-TEST(Btree, multimap_int32_256)  { MultiMapTest<int32_t, 256>(); }
-TEST(Btree, multimap_int64_256)  { MultiMapTest<int64_t, 256>(); }
+TEST(Btree, multiset_pair_256) { MultiSetTest<std::pair<int, int>, 256>(); }
+TEST(Btree, multimap_int32_256) { MultiMapTest<int32_t, 256>(); }
+TEST(Btree, multimap_int64_256) { MultiMapTest<int64_t, 256>(); }
 TEST(Btree, multimap_string_256) { MultiMapTest<std::string, 256>(); }
-TEST(Btree, multimap_pair_256)   { MultiMapTest<std::pair<int, int>, 256>(); }
+TEST(Btree, multimap_pair_256) { MultiMapTest<std::pair<int, int>, 256>(); }
 
 // Large-node tests
-TEST(Btree, multimap_int32_1024)   { MultiMapTest<int32_t, 1024>(); }
-TEST(Btree, multimap_int32_2048)   { MultiMapTest<int32_t, 2048>(); }
-TEST(Btree, multimap_int32_4096)   { MultiMapTest<int32_t, 4096>(); }
-TEST(Btree, multiset_int32_1024)   { MultiSetTest<int32_t, 1024>(); }
-TEST(Btree, multiset_int32_2048)   { MultiSetTest<int32_t, 2048>(); }
-TEST(Btree, multiset_int32_4096)   { MultiSetTest<int32_t, 4096>(); }
-TEST(Btree, multimap_string_1024)   { MultiMapTest<std::string, 1024>(); }
-TEST(Btree, multimap_string_2048)   { MultiMapTest<std::string, 2048>(); }
-TEST(Btree, multimap_string_4096)   { MultiMapTest<std::string, 4096>(); }
-TEST(Btree, multiset_string_1024)   { MultiSetTest<std::string, 1024>(); }
-TEST(Btree, multiset_string_2048)   { MultiSetTest<std::string, 2048>(); }
-TEST(Btree, multiset_string_4096)   { MultiSetTest<std::string, 4096>(); }
+TEST(Btree, multimap_int32_1024) { MultiMapTest<int32_t, 1024>(); }
+TEST(Btree, multimap_int32_2048) { MultiMapTest<int32_t, 2048>(); }
+TEST(Btree, multimap_int32_4096) { MultiMapTest<int32_t, 4096>(); }
+TEST(Btree, multiset_int32_1024) { MultiSetTest<int32_t, 1024>(); }
+TEST(Btree, multiset_int32_2048) { MultiSetTest<int32_t, 2048>(); }
+TEST(Btree, multiset_int32_4096) { MultiSetTest<int32_t, 4096>(); }
+TEST(Btree, multimap_string_1024) { MultiMapTest<std::string, 1024>(); }
+TEST(Btree, multimap_string_2048) { MultiMapTest<std::string, 2048>(); }
+TEST(Btree, multimap_string_4096) { MultiMapTest<std::string, 4096>(); }
+TEST(Btree, multiset_string_1024) { MultiSetTest<std::string, 1024>(); }
+TEST(Btree, multiset_string_2048) { MultiSetTest<std::string, 2048>(); }
+TEST(Btree, multiset_string_4096) { MultiSetTest<std::string, 4096>(); }
 
 // Verify that swapping btrees swaps the key comparision functors.
 struct SubstringLess {
   SubstringLess() : n(2) {}
-  SubstringLess(size_t length)
-      : n(length) {
-  }
-  bool operator()(const std::string &a, const std::string &b) const {
+  SubstringLess(size_t length) : n(length) {}
+  bool operator()(const std::string& a, const std::string& b) const {
     std::string as(a.data(), std::min(n, a.size()));
     std::string bs(b.data(), std::min(n, b.size()));
     return as < bs;
@@ -150,7 +146,7 @@ TEST(Btree, UpperBoundRegression) {
   // Regress a bug where upper_bound would default-construct a new key_compare
   // instead of copying the existing one.
   typedef btree_set<std::string, SubstringLess> SubstringSet;
-  SubstringSet my_set(SubstringLess(3));
+  SubstringSet                                  my_set(SubstringLess(3));
   my_set.insert("aab");
   my_set.insert("abb");
   // We call upper_bound("aaa").  If this correctly uses the length 3
@@ -162,10 +158,9 @@ TEST(Btree, UpperBoundRegression) {
   EXPECT_EQ("aab", *it);
 }
 
-
 TEST(Btree, IteratorIncrementBy) {
   // Test that increment_by returns the same position as increment.
-  const int kSetSize = 2341;
+  const int          kSetSize = 2341;
   btree_set<int32_t> my_set;
   for (int i = 0; i < kSetSize; ++i) {
     my_set.insert(i);
@@ -191,7 +186,7 @@ TEST(Btree, IteratorIncrementBy) {
 }
 
 TEST(Btree, Comparison) {
-  const int kSetSize = 1201;
+  const int          kSetSize = 1201;
   btree_set<int64_t> my_set;
   for (int i = 0; i < kSetSize; ++i) {
     my_set.insert(i);
@@ -230,7 +225,7 @@ TEST(Btree, Comparison) {
   EXPECT_TRUE(my_map_copy != my_map);
   EXPECT_TRUE(my_map != my_map_copy);
 
-  my_map_copy = my_map;
+  my_map_copy     = my_map;
   my_map["hello"] = kSetSize;
   EXPECT_FALSE(my_map_copy == my_map);
   EXPECT_FALSE(my_map == my_map_copy);
@@ -245,26 +240,23 @@ TEST(Btree, Comparison) {
 }
 
 TEST(Btree, RangeCtorSanity) {
-  typedef btree_set<int, std::less<int>, std::allocator<int>, 256> test_set;
-  typedef btree_map<int, int, std::less<int>, std::allocator<int>, 256> 
-      test_map;
-  typedef btree_multiset<int, std::less<int>, std::allocator<int>, 256> 
-      test_mset;
-  typedef btree_multimap<int, int, std::less<int>, std::allocator<int>, 256> 
-      test_mmap;
-  std::vector<int> ivec;
+  typedef btree_set<int, std::less<int>, std::allocator<int>, 256>           test_set;
+  typedef btree_map<int, int, std::less<int>, std::allocator<int>, 256>      test_map;
+  typedef btree_multiset<int, std::less<int>, std::allocator<int>, 256>      test_mset;
+  typedef btree_multimap<int, int, std::less<int>, std::allocator<int>, 256> test_mmap;
+  std::vector<int>                                                           ivec;
   ivec.push_back(1);
   std::map<int, int> imap;
   imap.insert(std::make_pair(1, 2));
   test_mset tmset(ivec.begin(), ivec.end());
   test_mmap tmmap(imap.begin(), imap.end());
-  test_set tset(ivec.begin(), ivec.end());
-  test_map tmap(imap.begin(), imap.end());
+  test_set  tset(ivec.begin(), ivec.end());
+  test_map  tmap(imap.begin(), imap.end());
   EXPECT_EQ(1, tmset.size());
   EXPECT_EQ(1, tmmap.size());
   EXPECT_EQ(1, tset.size());
   EXPECT_EQ(1, tmap.size());
 }
 
-} // namespace
-} // namespace btree
+}  // namespace
+}  // namespace btree

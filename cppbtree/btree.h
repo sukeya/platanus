@@ -245,13 +245,14 @@ struct btree_common_params {
   using size_type       = ssize_t;
   using difference_type = ptrdiff_t;
 
-  enum {
-    kTargetNodeSize = TargetNodeSize,
+  static constexpr int kTargetNodeSize = TargetNodeSize;
 
     // Available space for values.  This is largest for leaf nodes,
     // which has overhead no fewer than two pointers.
-    kNodeValueSpace = TargetNodeSize - 2 * sizeof(void*),
-  };
+    static_assert(
+      TargetNodeSize >= 2 * sizeof(void*), "ValueSize must be no less than 2 * sizeof(void*)"
+  );
+  static constexpr int kNodeValueSpace = TargetNodeSize - 2 * sizeof(void*);
 
   // This is an integral type large enough to hold as many
   // ValueSize-values as will fit a node of TargetNodeSize bytes.
@@ -272,9 +273,11 @@ struct btree_map_params
   using reference          = value_type&;
   using const_reference    = const value_type&;
 
-  enum {
-    kValueSize = sizeof(Key) + sizeof(data_type),
-  };
+  static_assert(
+      sizeof(Key) + sizeof(data_type) <= std::numeric_limits<int>::max(),
+      "The total size of Key and data_type must be less than the max of int."
+  );
+  static constexpr int kValueSize = sizeof(Key) + sizeof(data_type);
 
   static const Key& key(const value_type& x) { return x.first; }
   static const Key& key(const mutable_value_type& x) { return x.first; }
@@ -297,9 +300,11 @@ struct btree_set_params
   using reference          = value_type&;
   using const_reference    = const value_type&;
 
-  enum {
-    kValueSize = sizeof(Key),
-  };
+  static_assert(
+      sizeof(Key) <= std::numeric_limits<int>::max(),
+      "The size of Key must be less than the max of int."
+  );
+  static constexpr std::size_t kValueSize = sizeof(Key);
 
   static const Key& key(const value_type& x) { return x; }
   static void       swap(mutable_value_type* a, mutable_value_type* b) {
@@ -436,20 +441,22 @@ class btree_node {
     btree_node* parent;
   };
 
-  enum {
-    kValueSize      = params_type::kValueSize,
-    kTargetNodeSize = params_type::kTargetNodeSize,
+  static constexpr int kValueSize      = params_type::kValueSize;
+  static constexpr int kTargetNodeSize = params_type::kTargetNodeSize;
 
     // Compute how many values we can fit onto a leaf node.
-    kNodeTargetValues = (kTargetNodeSize - sizeof(base_fields)) / kValueSize,
+    static_assert(kTargetNodeSize >= sizeof(base_fields), "target node size too small.");
+  static constexpr int kNodeTargetValues = (kTargetNodeSize - sizeof(base_fields)) / kValueSize;
     // We need a minimum of 3 values per internal node in order to perform
     // splitting (1 value for the two nodes involved in the split and 1 value
     // propagated to the parent as the delimiter for the split).
-    kNodeValues = kNodeTargetValues >= 3 ? kNodeTargetValues : 3,
+    static constexpr int kNodeValues = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
 
-    kExactMatch = 1 << 30,
-    kMatchMask  = kExactMatch - 1,
-  };
+  static_assert(
+      std::numeric_limits<int>::digits >= 31, "This program requires int to have 32 bit at least."
+  );
+  static constexpr int kExactMatch = 1 << 30;
+  static constexpr int kMatchMask  = kExactMatch - 1;
 
   struct leaf_fields : public base_fields {
     // The array of values. Only the first count of these values have been
@@ -786,13 +793,11 @@ class btree : public Params::key_compare {
       btree_internal_locate_compare_to,
       btree_internal_locate_plain_compare>;
 
-  enum {
-    kNodeValues    = node_type::kNodeValues,
-    kMinNodeValues = kNodeValues / 2,
-    kValueSize     = node_type::kValueSize,
-    kExactMatch    = node_type::kExactMatch,
-    kMatchMask     = node_type::kMatchMask,
-  };
+  static constexpr int kNodeValues    = node_type::kNodeValues;
+  static constexpr int kMinNodeValues = kNodeValues / 2;
+  static constexpr int kValueSize     = node_type::kValueSize;
+  static constexpr int kExactMatch    = node_type::kExactMatch;
+  static constexpr int kMatchMask     = node_type::kMatchMask;
 
   // A helper class to get the empty base class optimization for 0-size
   // allocators. Base is internal_allocator_type.

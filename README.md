@@ -27,7 +27,7 @@ If you want to test, Download and install the following libraries.
 - [googletest](https://github.com/google/googletest)
 - [gflags](https://github.com/google/googletest)
 
-Then, run `cmake . -Dbuild_tests=ON`.
+Then, run `cmake -S . -B build -Dbuild_tests=ON`.
 
 ## License
 cpp-btree is licensed under [Apache License, Version 2.0](COPYING).

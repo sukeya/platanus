@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <iosfwd>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
@@ -798,7 +799,7 @@ void BtreeMultiTest() {
 template <typename T, typename Alloc = std::allocator<T> >
 class TestAllocator : public Alloc {
  public:
-  using pointer   = typename Alloc::pointer;
+  using pointer   = T*;
   using size_type = typename Alloc::size_type;
 
   TestAllocator() : bytes_used_(nullptr) {}
@@ -808,10 +809,10 @@ class TestAllocator : public Alloc {
   template <class U>
   TestAllocator(const TestAllocator<U>& x) : Alloc(x), bytes_used_(x.bytes_used()) {}
 
-  pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {
+  pointer allocate(size_type n) {
     EXPECT_TRUE(bytes_used_ != nullptr);
     *bytes_used_ += n * sizeof(T);
-    return Alloc::allocate(n, hint);
+    return Alloc::allocate(n);
   }
 
   void deallocate(pointer p, size_type n) {
@@ -823,7 +824,7 @@ class TestAllocator : public Alloc {
   // Rebind allows an allocator<T> to be used for a different type
   template <class U>
   struct rebind {
-    using other = TestAllocator<U, typename Alloc::template rebind<U>::other>;
+    using other = TestAllocator<U, typename std::allocator_traits<Alloc>::template rebind_alloc<U>>;
   };
 
   int64_t* bytes_used() const { return bytes_used_; }

@@ -24,7 +24,7 @@ include(CMakePackageConfigHelpers)
 add_library(cppbtree INTERFACE)
 add_library(cppbtree::cppbtree ALIAS cppbtree)
 
-target_compile_features(cppbtree INTERFACE cxx_std_11)
+target_compile_features(cppbtree INTERFACE cxx_std_20)
 target_include_directories(cppbtree INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/cppbtree>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

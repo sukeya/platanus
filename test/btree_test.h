@@ -55,7 +55,7 @@ bool operator==(const std::pair<T, U>& x, const std::pair<V, W>& y) {
 // Partial specialization of remove_const that propagates the removal through
 // std::pair.
 template <typename T, typename U>
-struct remove_const<pair<T, U> > {
+struct remove_const<pair<T, U>> {
   using type = pair<typename remove_const<T>::type, typename remove_const<U>::type>;
 };
 
@@ -487,7 +487,7 @@ struct Generator<std::string> {
 };
 
 template <typename T, typename U>
-struct Generator<std::pair<T, U> > {
+struct Generator<std::pair<T, U>> {
   Generator<typename std::remove_const<T>::type> tgen;
   Generator<typename std::remove_const<U>::type> ugen;
 
@@ -796,7 +796,7 @@ void BtreeMultiTest() {
   DoTest("identical: ", &container, identical_values);
 }
 
-template <typename T, typename Alloc = std::allocator<T> >
+template <typename T, typename Alloc = std::allocator<T>>
 class TestAllocator : public Alloc {
  public:
   using pointer   = T*;

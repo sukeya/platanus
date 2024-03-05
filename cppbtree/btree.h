@@ -100,19 +100,20 @@
 #ifndef UTIL_BTREE_BTREE_H__
 #define UTIL_BTREE_BTREE_H__
 
-#include <assert.h>
-#include <stddef.h>
-#include <string.h>
-#include <sys/types.h>
 #include <algorithm>
+#include <assert.h>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <functional>
 #include <iostream>
 #include <iterator>
 #include <limits>
-#include <type_traits>
 #include <new>
 #include <ostream>
 #include <string>
+#include <sys/types.h>
+#include <type_traits>
 #include <utility>
 
 #ifndef NDEBUG
@@ -170,24 +171,41 @@ struct btree_is_key_compare_to : public std::is_convertible<Compare, btree_key_c
 // with common comparison functors.
 template <typename Compare>
 struct btree_key_compare_to_adapter : Compare {
-  btree_key_compare_to_adapter() {}
+  btree_key_compare_to_adapter()                                               = default;
+  btree_key_compare_to_adapter(const btree_key_compare_to_adapter&)            = default;
+  btree_key_compare_to_adapter(btree_key_compare_to_adapter&&)                 = default;
+  btree_key_compare_to_adapter& operator=(const btree_key_compare_to_adapter&) = default;
+  btree_key_compare_to_adapter& operator=(btree_key_compare_to_adapter&&)      = default;
+  ~btree_key_compare_to_adapter()                                              = default;
+
   btree_key_compare_to_adapter(const Compare& c) : Compare(c) {}
-  btree_key_compare_to_adapter(const btree_key_compare_to_adapter<Compare>& c) : Compare(c) {}
 };
 
 template <>
-struct btree_key_compare_to_adapter<std::less<std::string> > : public btree_key_compare_to_tag {
-  btree_key_compare_to_adapter() {}
+struct btree_key_compare_to_adapter<std::less<std::string>> : public btree_key_compare_to_tag {
+  btree_key_compare_to_adapter()                                               = default;
+  btree_key_compare_to_adapter(const btree_key_compare_to_adapter&)            = default;
+  btree_key_compare_to_adapter(btree_key_compare_to_adapter&&)                 = default;
+  btree_key_compare_to_adapter& operator=(const btree_key_compare_to_adapter&) = default;
+  btree_key_compare_to_adapter& operator=(btree_key_compare_to_adapter&&)      = default;
+  ~btree_key_compare_to_adapter()                                              = default;
+
   btree_key_compare_to_adapter(const std::less<std::string>&) {}
-  btree_key_compare_to_adapter(const btree_key_compare_to_adapter<std::less<std::string> >&) {}
+
   int operator()(const std::string& a, const std::string& b) const { return a.compare(b); }
 };
 
 template <>
-struct btree_key_compare_to_adapter<std::greater<std::string> > : public btree_key_compare_to_tag {
-  btree_key_compare_to_adapter() {}
+struct btree_key_compare_to_adapter<std::greater<std::string>> : public btree_key_compare_to_tag {
+  btree_key_compare_to_adapter()                                               = default;
+  btree_key_compare_to_adapter(const btree_key_compare_to_adapter&)            = default;
+  btree_key_compare_to_adapter(btree_key_compare_to_adapter&&)                 = default;
+  btree_key_compare_to_adapter& operator=(const btree_key_compare_to_adapter&) = default;
+  btree_key_compare_to_adapter& operator=(btree_key_compare_to_adapter&&)      = default;
+  ~btree_key_compare_to_adapter()                                              = default;
+
   btree_key_compare_to_adapter(const std::greater<std::string>&) {}
-  btree_key_compare_to_adapter(const btree_key_compare_to_adapter<std::greater<std::string> >&) {}
+
   int operator()(const std::string& a, const std::string& b) const { return b.compare(a); }
 };
 
@@ -196,7 +214,13 @@ struct btree_key_compare_to_adapter<std::greater<std::string> > : public btree_k
 // compare-to functor.
 template <typename Key, typename Compare, bool HaveCompareTo>
 struct btree_key_comparer {
-  btree_key_comparer() {}
+  btree_key_comparer()                                     = default;
+  btree_key_comparer(const btree_key_comparer&)            = default;
+  btree_key_comparer(btree_key_comparer&&)                 = default;
+  btree_key_comparer& operator=(const btree_key_comparer&) = default;
+  btree_key_comparer& operator=(btree_key_comparer&&)      = default;
+  ~btree_key_comparer()                                    = default;
+
   btree_key_comparer(Compare c) : comp(c) {}
   static bool bool_compare(const Compare& comp, const Key& x, const Key& y) { return comp(x, y); }
   bool        operator()(const Key& x, const Key& y) const { return bool_compare(comp, x, y); }
@@ -208,7 +232,13 @@ struct btree_key_comparer {
 // code, such as insert-with-hint.
 template <typename Key, typename Compare>
 struct btree_key_comparer<Key, Compare, true> {
-  btree_key_comparer() {}
+  btree_key_comparer()                                     = default;
+  btree_key_comparer(const btree_key_comparer&)            = default;
+  btree_key_comparer(btree_key_comparer&&)                 = default;
+  btree_key_comparer& operator=(const btree_key_comparer&) = default;
+  btree_key_comparer& operator=(btree_key_comparer&&)      = default;
+  ~btree_key_comparer()                                    = default;
+
   btree_key_comparer(Compare c) : comp(c) {}
   static bool bool_compare(const Compare& comp, const Key& x, const Key& y) {
     return comp(x, y) < 0;
@@ -243,21 +273,27 @@ struct btree_common_params {
   using allocator_type  = Alloc;
   using key_type        = Key;
   using size_type       = ssize_t;
-  using difference_type = ptrdiff_t;
+  using difference_type = std::ptrdiff_t;
 
   static constexpr int kTargetNodeSize = TargetNodeSize;
 
-    // Available space for values.  This is largest for leaf nodes,
-    // which has overhead no fewer than two pointers.
-    static_assert(
+  // Available space for values.  This is largest for leaf nodes,
+  // which has overhead no fewer than two pointers.
+  static_assert(
       TargetNodeSize >= 2 * sizeof(void*), "ValueSize must be no less than 2 * sizeof(void*)"
   );
   static constexpr int kNodeValueSpace = TargetNodeSize - 2 * sizeof(void*);
 
   // This is an integral type large enough to hold as many
   // ValueSize-values as will fit a node of TargetNodeSize bytes.
-  using node_count_type =
-      typename std::conditional_t<(kNodeValueSpace / ValueSize) >= 256, uint16_t, uint8_t>;
+  static_assert(
+      kNodeValueSpace / ValueSize <= std::numeric_limits<std::uint_fast16_t>::max(),
+      "The total of nodes exceeds supported size (max of uint16_t)."
+  );
+  using node_count_type = typename std::conditional<
+      (kNodeValueSpace / ValueSize) >= 256,
+      std::uint_least16_t,
+      std::uint_least8_t>::type;
 };
 
 // A parameters structure for holding the type parameters for a btree_map.
@@ -316,6 +352,13 @@ struct btree_set_params
 // compare.
 template <typename Key, typename Compare>
 struct btree_upper_bound_adapter : public Compare {
+  btree_upper_bound_adapter()                                            = default;
+  btree_upper_bound_adapter(const btree_upper_bound_adapter&)            = default;
+  btree_upper_bound_adapter(btree_upper_bound_adapter&&)                 = default;
+  btree_upper_bound_adapter& operator=(const btree_upper_bound_adapter&) = default;
+  btree_upper_bound_adapter& operator=(btree_upper_bound_adapter&&)      = default;
+  ~btree_upper_bound_adapter()                                           = default;
+
   btree_upper_bound_adapter(Compare c) : Compare(c) {}
   bool operator()(const Key& a, const Key& b) const {
     return !static_cast<const Compare&>(*this)(b, a);
@@ -324,6 +367,14 @@ struct btree_upper_bound_adapter : public Compare {
 
 template <typename Key, typename CompareTo>
 struct btree_upper_bound_compare_to_adapter : public CompareTo {
+  btree_upper_bound_compare_to_adapter()                                            = default;
+  btree_upper_bound_compare_to_adapter(const btree_upper_bound_compare_to_adapter&) = default;
+  btree_upper_bound_compare_to_adapter(btree_upper_bound_compare_to_adapter&&)      = default;
+  btree_upper_bound_compare_to_adapter& operator=(const btree_upper_bound_compare_to_adapter&) =
+      default;
+  btree_upper_bound_compare_to_adapter& operator=(btree_upper_bound_compare_to_adapter&&) = default;
+  ~btree_upper_bound_compare_to_adapter()                                                 = default;
+
   btree_upper_bound_compare_to_adapter(CompareTo c) : CompareTo(c) {}
   int operator()(const Key& a, const Key& b) const {
     return static_cast<const CompareTo&>(*this)(b, a);
@@ -349,7 +400,7 @@ struct btree_linear_search_compare_to {
     return n.linear_search_compare_to(k, 0, n.count(), comp);
   }
   static int upper_bound(const K& k, const N& n, CompareTo comp) {
-    using upper_compare = btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true> >;
+    using upper_compare = btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true>>;
     return n.linear_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
 };
@@ -373,7 +424,7 @@ struct btree_binary_search_compare_to {
     return n.binary_search_compare_to(k, 0, n.count(), CompareTo());
   }
   static int upper_bound(const K& k, const N& n, CompareTo comp) {
-    using upper_compare = btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true> >;
+    using upper_compare = btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true>>;
     return n.linear_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
 };
@@ -422,7 +473,7 @@ class btree_node {
   // is faster than binary search for such types. Might be wise to also
   // configure linear search based on node-size.
   using search_type = typename std::conditional_t<
-      std::is_integral<key_type>::value || std::is_floating_point<key_type>::value,
+      std::is_integral_v<key_type> || std::is_floating_point_v<key_type>,
       linear_search_type,
       binary_search_type>;
 
@@ -444,13 +495,13 @@ class btree_node {
   static constexpr int kValueSize      = params_type::kValueSize;
   static constexpr int kTargetNodeSize = params_type::kTargetNodeSize;
 
-    // Compute how many values we can fit onto a leaf node.
-    static_assert(kTargetNodeSize >= sizeof(base_fields), "target node size too small.");
+  // Compute how many values we can fit onto a leaf node.
+  static_assert(kTargetNodeSize >= sizeof(base_fields), "target node size too small.");
   static constexpr int kNodeTargetValues = (kTargetNodeSize - sizeof(base_fields)) / kValueSize;
-    // We need a minimum of 3 values per internal node in order to perform
-    // splitting (1 value for the two nodes involved in the split and 1 value
-    // propagated to the parent as the delimiter for the split).
-    static constexpr int kNodeValues = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
+  // We need a minimum of 3 values per internal node in order to perform
+  // splitting (1 value for the two nodes involved in the split and 1 value
+  // propagated to the parent as the delimiter for the split).
+  static constexpr int kNodeValues = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
 
   static_assert(
       std::numeric_limits<int>::digits >= 31, "This program requires int to have 32 bit at least."
@@ -477,6 +528,14 @@ class btree_node {
   };
 
  public:
+  btree_node()                        = default;
+  btree_node(btree_node&&)            = default;
+  btree_node& operator=(btree_node&&) = default;
+  ~btree_node()                       = default;
+
+  btree_node(const btree_node&)     = delete;
+  void operator=(const btree_node&) = delete;
+
   // Getter/setter for whether this is a leaf node or not. This value doesn't
   // change after the node is created.
   bool leaf() const { return fields_.leaf; }
@@ -640,7 +699,7 @@ class btree_node {
     f->count      = 0;
     f->parent     = parent;
     if (!NDEBUG) {
-      memset(&f->values, 0, max_count * sizeof(value_type));
+      std::memset(&f->values, 0, max_count * sizeof(value_type));
     }
     return n;
   }
@@ -648,7 +707,7 @@ class btree_node {
     btree_node* n = init_leaf(f, parent, kNodeValues);
     f->leaf       = false;
     if (!NDEBUG) {
-      memset(f->children, 0, sizeof(f->children));
+      std::memset(f->children, 0, sizeof(f->children));
     }
     return n;
   }
@@ -671,10 +730,6 @@ class btree_node {
 
  private:
   root_fields fields_;
-
- private:
-  btree_node(const btree_node&);
-  void operator=(const btree_node&);
 };
 
 template <typename Node, typename Reference, typename Pointer>
@@ -842,7 +897,7 @@ class btree : public Params::key_compare {
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using reverse_iterator       = std::reverse_iterator<iterator>;
 
-  using allocator_type          = typename Params::allocator_type;
+  using allocator_type = typename Params::allocator_type;
   using internal_allocator_type =
       typename std::allocator_traits<allocator_type>::template rebind_alloc<char>;
 
@@ -1251,9 +1306,11 @@ class btree : public Params::key_compare {
   // key-compare-to functor or if R is bool and small_ otherwise.
   template <typename R>
   static typename std::conditional_t<
-      std::conditional_t<is_key_compare_to::value, std::is_same<R, int>, std::is_same<R, bool> >::value,
+      std::conditional_t<is_key_compare_to::value, std::is_same<R, int>, std::is_same<R, bool>>::
+          value,
       big_,
-      small_> key_compare_checker(R);
+      small_>
+      key_compare_checker(R);
 
   // A never instantiated helper function that returns the key comparison
   // functor.

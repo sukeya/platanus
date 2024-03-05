@@ -634,7 +634,7 @@ class btree_node {
   // Node allocation/deletion routines.
   static btree_node* init_leaf(leaf_fields* f, btree_node* parent, int max_count) {
     btree_node* n = reinterpret_cast<btree_node*>(f);
-    f->leaf       = 1;
+    f->leaf       = true;
     f->position   = 0;
     f->max_count  = max_count;
     f->count      = 0;
@@ -646,7 +646,7 @@ class btree_node {
   }
   static btree_node* init_internal(internal_fields* f, btree_node* parent) {
     btree_node* n = init_leaf(f, parent, kNodeValues);
-    f->leaf       = 0;
+    f->leaf       = false;
     if (!NDEBUG) {
       memset(f->children, 0, sizeof(f->children));
     }

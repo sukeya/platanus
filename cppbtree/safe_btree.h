@@ -64,7 +64,7 @@ class safe_btree_iterator {
   }
 
  public:
-  safe_btree_iterator() : generation_(0), key_(), iter_(), tree_(NULL) {}
+  safe_btree_iterator() : generation_(0), key_(), iter_(), tree_(nullptr) {}
   safe_btree_iterator(const iterator& x)
       : generation_(x.generation()), key_(x.key()), iter_(x.iter()), tree_(x.tree()) {}
   safe_btree_iterator(Tree* tree, const Iterator& iter)

@@ -44,7 +44,7 @@ using std::set;
 using std::string;
 using std::vector;
 
-namespace btree {
+namespace cppbtree {
 namespace {
 
 struct RandGen {
@@ -569,9 +569,9 @@ MY_BENCHMARK(multiset_string);
 MY_BENCHMARK(multimap_string);
 
 }  // namespace
-}  // namespace btree
+}  // namespace cppbtree
 
 int main(int argc, char** argv) {
-  btree::RunBenchmarks();
+  cppbtree::RunBenchmarks();
   return 0;
 }

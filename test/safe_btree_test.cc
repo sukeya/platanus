@@ -28,7 +28,7 @@
 
 class UnsafeArena;
 
-namespace btree {
+namespace cppbtree {
 namespace {
 
 template <typename K, int N>
@@ -113,4 +113,4 @@ TEST(SafeBtree, Comparison) {
 }
 
 }  // namespace
-}  // namespace btree
+}  // namespace cppbtree

@@ -25,8 +25,8 @@
 // See the incorrect usage examples mentioned in safe_btree_set.h and
 // safe_btree_map.h.
 
-#ifndef UTIL_BTREE_SAFE_BTREE_H__
-#define UTIL_BTREE_SAFE_BTREE_H__
+#ifndef CPPBTREE_SAFE_BTREE_H__
+#define CPPBTREE_SAFE_BTREE_H__
 
 #include <stddef.h>
 #include <iosfwd>
@@ -34,7 +34,7 @@
 
 #include "btree.h"
 
-namespace btree {
+namespace cppbtree {
 
 template <typename Tree, typename Iterator>
 class safe_btree_iterator {
@@ -326,6 +326,6 @@ class safe_btree {
   int64_t    generation_;
 };
 
-}  // namespace btree
+}  // namespace cppbtree
 
-#endif  // UTIL_BTREE_SAFE_BTREE_H__
+#endif  // CPPBTREE_SAFE_BTREE_H__

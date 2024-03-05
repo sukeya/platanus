@@ -97,8 +97,8 @@
 // BM_map_string_fifo          398      596  -49.75%  <256>    [72.0, 44.0]
 // BM_map_string_fwditer       243      113  +53.50%  <256>    [72.0, 55.8]
 
-#ifndef UTIL_BTREE_BTREE_H__
-#define UTIL_BTREE_BTREE_H__
+#ifndef CPPBTREE_BTREE_H__
+#define CPPBTREE_BTREE_H__
 
 #include <algorithm>
 #include <assert.h>
@@ -120,7 +120,7 @@
 #define NDEBUG 1
 #endif
 
-namespace btree {
+namespace cppbtree {
 
 // Inside a btree method, if we just call swap(), it will choose the
 // btree::swap method, which we don't want. And we can't say ::swap
@@ -2308,6 +2308,6 @@ int btree<P>::internal_verify(const node_type* node, const key_type* lo, const k
   return count;
 }
 
-}  // namespace btree
+}  // namespace cppbtree
 
-#endif  // UTIL_BTREE_BTREE_H__
+#endif  // CPPBTREE_BTREE_H__

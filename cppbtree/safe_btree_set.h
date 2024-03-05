@@ -27,8 +27,8 @@
 //   }
 // END INCORRECT EXAMPLE
 
-#ifndef UTIL_BTREE_SAFE_BTREE_SET_H__
-#define UTIL_BTREE_SAFE_BTREE_SET_H__
+#ifndef CPPBTREE_SAFE_BTREE_SET_H__
+#define CPPBTREE_SAFE_BTREE_SET_H__
 
 #include <functional>
 #include <memory>
@@ -37,7 +37,7 @@
 #include "btree_set.h"
 #include "safe_btree.h"
 
-namespace btree {
+namespace cppbtree {
 
 // The safe_btree_set class is needed mainly for its constructors.
 template <
@@ -82,6 +82,6 @@ inline void swap(safe_btree_set<K, C, A, N>& x, safe_btree_set<K, C, A, N>& y) {
   x.swap(y);
 }
 
-}  // namespace btree
+}  // namespace cppbtree
 
-#endif  // UTIL_BTREE_SAFE_BTREE_SET_H__
+#endif  // CPPBTREE_SAFE_BTREE_SET_H__

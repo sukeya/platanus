@@ -17,7 +17,7 @@
 #include "cppbtree/btree_set.h"
 #include "btree_test.h"
 
-namespace btree {
+namespace cppbtree {
 namespace {
 
 template <typename K, int N>
@@ -259,4 +259,4 @@ TEST(Btree, RangeCtorSanity) {
 }
 
 }  // namespace
-}  // namespace btree
+}  // namespace cppbtree

@@ -19,8 +19,8 @@
 // multimap<>) using a btree. See btree.h for details of the btree
 // implementation and caveats.
 
-#ifndef UTIL_BTREE_BTREE_MAP_H__
-#define UTIL_BTREE_BTREE_MAP_H__
+#ifndef CPPBTREE_BTREE_MAP_H__
+#define CPPBTREE_BTREE_MAP_H__
 
 #include <algorithm>
 #include <functional>
@@ -31,7 +31,7 @@
 #include "btree.h"
 #include "btree_container.h"
 
-namespace btree {
+namespace cppbtree {
 
 // The btree_map class is needed mainly for its constructors.
 template <
@@ -121,6 +121,6 @@ inline void swap(btree_multimap<K, V, C, A, N>& x, btree_multimap<K, V, C, A, N>
   x.swap(y);
 }
 
-}  // namespace btree
+}  // namespace cppbtree
 
-#endif  // UTIL_BTREE_BTREE_MAP_H__
+#endif  // CPPBTREE_BTREE_MAP_H__

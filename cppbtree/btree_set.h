@@ -17,8 +17,8 @@
 // multiple sorted associative container interface (a.k.a multiset<>) using a
 // btree. See btree.h for details of the btree implementation and caveats.
 
-#ifndef UTIL_BTREE_BTREE_SET_H__
-#define UTIL_BTREE_BTREE_SET_H__
+#ifndef CPPBTREE_BTREE_SET_H__
+#define CPPBTREE_BTREE_SET_H__
 
 #include <functional>
 #include <memory>
@@ -27,7 +27,7 @@
 #include "btree.h"
 #include "btree_container.h"
 
-namespace btree {
+namespace cppbtree {
 
 // The btree_set class is needed mainly for its constructors.
 template <
@@ -113,6 +113,6 @@ inline void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y) {
   x.swap(y);
 }
 
-}  // namespace btree
+}  // namespace cppbtree
 
-#endif  // UTIL_BTREE_BTREE_SET_H__
+#endif  // CPPBTREE_BTREE_SET_H__

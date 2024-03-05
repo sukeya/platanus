@@ -26,8 +26,8 @@
 //     [code that modifies safe_map and uses value];
 //   }
 // END INCORRECT EXAMPLE
-#ifndef UTIL_BTREE_SAFE_BTREE_MAP_H__
-#define UTIL_BTREE_SAFE_BTREE_MAP_H__
+#ifndef CPPBTREE_SAFE_BTREE_MAP_H__
+#define CPPBTREE_SAFE_BTREE_MAP_H__
 
 #include <functional>
 #include <memory>
@@ -37,7 +37,7 @@
 #include "btree_map.h"
 #include "safe_btree.h"
 
-namespace btree {
+namespace cppbtree {
 
 // The safe_btree_map class is needed mainly for its constructors.
 template <
@@ -84,6 +84,6 @@ inline void swap(safe_btree_map<K, V, C, A, N>& x, safe_btree_map<K, V, C, A, N>
   x.swap(y);
 }
 
-}  // namespace btree
+}  // namespace cppbtree
 
-#endif  // UTIL_BTREE_SAFE_BTREE_MAP_H__
+#endif  // CPPBTREE_SAFE_BTREE_MAP_H__

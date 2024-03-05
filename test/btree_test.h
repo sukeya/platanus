@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef UTIL_BTREE_BTREE_TEST_H__
-#define UTIL_BTREE_BTREE_TEST_H__
+#ifndef CPPBTREE_BTREE_TEST_H__
+#define CPPBTREE_BTREE_TEST_H__
 
 #include <stdio.h>
 #include <algorithm>
@@ -61,7 +61,7 @@ struct remove_const<pair<T, U>> {
 
 }  // namespace std
 
-namespace btree {
+namespace cppbtree {
 
 // Select the first member of a pair.
 template <class _Pair>
@@ -887,6 +887,6 @@ void BtreeMultiMapTest() {
   (void)m;
 }
 
-}  // namespace btree
+}  // namespace cppbtree
 
-#endif  // UTIL_BTREE_BTREE_TEST_H__
+#endif  // CPPBTREE_BTREE_TEST_H__

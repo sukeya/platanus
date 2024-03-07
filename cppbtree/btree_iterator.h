@@ -66,9 +66,7 @@ struct btree_iterator {
   bool operator==(const const_iterator& x) const noexcept {
     return node == x.node && position == x.position;
   }
-  bool operator!=(const const_iterator& x) const noexcept {
-    return !(operator==(x));
-  }
+  bool operator!=(const const_iterator& x) const noexcept { return !(operator==(x)); }
 
   // Accessors for the key/value the iterator is pointing at.
   const key_type& key() const { return node->key(position); }
@@ -172,6 +170,6 @@ void btree_iterator<N, R, P>::decrement_slow() noexcept {
   }
 }
 
-} // namespace cppbtree
+}  // namespace cppbtree
 
-#endif // CPPBTREE_BTREE_ITERATOR_H_
+#endif  // CPPBTREE_BTREE_ITERATOR_H_

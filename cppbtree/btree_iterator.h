@@ -15,8 +15,6 @@
 #ifndef CPPBTREE_BTREE_ITERATOR_H_
 #define CPPBTREE_BTREE_ITERATOR_H_
 
-#include "btree_node.h"
-
 namespace cppbtree {
 
 template <typename Node, typename Reference, typename Pointer>
@@ -109,17 +107,20 @@ void btree_iterator<N, R, P>::increment_slow() {
   if (node->leaf()) {
     assert(position >= node->count());
     self_type save(*this);
+    // Climb the tree.
     while (position == node->count() && !node->is_root()) {
       assert(node->parent()->child(node->position()) == node);
       position = node->position();
       node     = node->parent();
     }
+    // If node is the root, this tree is fully iterated, so set this to the saved end() position.
     if (position == node->count()) {
       *this = save;
     }
   } else {
     assert(position < node->count());
     node = node->child(position + 1);
+    // Descend to the leaf node.
     while (!node->leaf()) {
       node = node->child(0);
     }
@@ -135,6 +136,7 @@ void btree_iterator<N, R, P>::increment_by(int count) {
       position += std::min(rest, count);
       count = count - rest;
       if (position < node->count()) {
+        // In this case, count is less than rest, so we are done.
         return;
       }
     } else {
@@ -149,17 +151,20 @@ void btree_iterator<N, R, P>::decrement_slow() {
   if (node->leaf()) {
     assert(position <= -1);
     self_type save(*this);
+    // Climb the tree while updating the position to the left sibling of this in its parent node.
     while (position < 0 && !node->is_root()) {
       assert(node->parent()->child(node->position()) == node);
       position = node->position() - 1;
       node     = node->parent();
     }
+    // If node is the root, this is the rend() position, so set this to the saved rend() position.
     if (position < 0) {
       *this = save;
     }
   } else {
     assert(position >= 0);
     node = node->child(position);
+    // Descend to the leaf node.
     while (!node->leaf()) {
       node = node->child(node->count());
     }

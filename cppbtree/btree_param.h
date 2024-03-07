@@ -40,7 +40,7 @@ struct btree_common_params {
   // key-compare functor.
   using is_key_compare_to = btree_is_key_compare_to<key_compare>;
 
-  using value_compare   = std::false_type;
+  using value_compare = std::false_type;
 
   using allocator_type  = Alloc;
   using key_type        = Key;
@@ -77,13 +77,18 @@ struct btree_map_params
   using mapped_type        = Data;
   using value_type         = std::pair<const Key, mapped_type>;
   using mutable_value_type = std::pair<Key, mapped_type>;
-  using key_compare        = typename btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key) + sizeof(Data)>::key_compare;
+  using key_compare        = typename btree_common_params<
+      Key,
+      Compare,
+      Alloc,
+      TargetNodeSize,
+      sizeof(Key) + sizeof(Data)>::key_compare;
   // TODO
-  using value_compare      = std::false_type;
-  using pointer            = value_type*;
-  using const_pointer      = const value_type*;
-  using reference          = value_type&;
-  using const_reference    = const value_type&;
+  using value_compare   = std::false_type;
+  using pointer         = value_type*;
+  using const_pointer   = const value_type*;
+  using reference       = value_type&;
+  using const_reference = const value_type&;
 
   static_assert(
       sizeof(Key) + sizeof(mapped_type) <= std::numeric_limits<int>::max(),
@@ -108,12 +113,13 @@ struct btree_set_params
   using mapped_type        = std::false_type;
   using value_type         = Key;
   using mutable_value_type = value_type;
-  using key_compare        = typename btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key)>::key_compare;
-  using value_compare      = key_compare;
-  using pointer            = value_type*;
-  using const_pointer      = const value_type*;
-  using reference          = value_type&;
-  using const_reference    = const value_type&;
+  using key_compare =
+      typename btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key)>::key_compare;
+  using value_compare   = key_compare;
+  using pointer         = value_type*;
+  using const_pointer   = const value_type*;
+  using reference       = value_type&;
+  using const_reference = const value_type&;
 
   static_assert(
       sizeof(Key) <= std::numeric_limits<int>::max(),
@@ -127,6 +133,6 @@ struct btree_set_params
   }
 };
 
-} // namespace cppbtree
+}  // namespace cppbtree
 
 #endif  // CPPBTREE_BTREE_PARAM_H_

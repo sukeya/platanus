@@ -161,6 +161,7 @@ class safe_btree {
   using mapped_type            = typename btree_type::mapped_type;
   using value_type             = typename btree_type::value_type;
   using key_compare            = typename btree_type::key_compare;
+  using value_compare          = typename btree_type::value_compare;
   using allocator_type         = typename btree_type::allocator_type;
   using pointer                = typename btree_type::pointer;
   using const_pointer          = typename btree_type::const_pointer;

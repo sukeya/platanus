@@ -50,6 +50,7 @@ class btree_node {
   using reference          = typename Params::reference;
   using const_reference    = typename Params::const_reference;
   using key_compare        = typename Params::key_compare;
+  using value_compare      = typename Params::value_compare;
   using size_type          = typename Params::size_type;
   using difference_type    = typename Params::difference_type;
   // Typedefs for the various types of node searches.

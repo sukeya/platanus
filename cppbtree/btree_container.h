@@ -33,6 +33,7 @@ class btree_container {
   using key_type               = typename Tree::key_type;
   using value_type             = typename Tree::value_type;
   using key_compare            = typename Tree::key_compare;
+  using value_compare          = typename Tree::value_compare;
   using allocator_type         = typename Tree::allocator_type;
   using pointer                = typename Tree::pointer;
   using const_pointer          = typename Tree::const_pointer;
@@ -126,6 +127,7 @@ class btree_unique_container : public btree_container<Tree> {
   using value_type     = typename Tree::value_type;
   using size_type      = typename Tree::size_type;
   using key_compare    = typename Tree::key_compare;
+  using value_compare  = typename Tree::value_compare;
   using allocator_type = typename Tree::allocator_type;
   using iterator       = typename Tree::iterator;
   using const_iterator = typename Tree::const_iterator;
@@ -189,6 +191,7 @@ class btree_map_container : public btree_unique_container<Tree> {
   using value_type     = typename Tree::value_type;
   using mapped_type    = typename Tree::mapped_type;
   using key_compare    = typename Tree::key_compare;
+  using value_compare  = typename Tree::value_compare;
   using allocator_type = typename Tree::allocator_type;
 
  private:
@@ -238,6 +241,7 @@ class btree_multi_container : public btree_container<Tree> {
   using value_type     = typename Tree::value_type;
   using size_type      = typename Tree::size_type;
   using key_compare    = typename Tree::key_compare;
+  using value_compare  = typename Tree::value_compare;
   using allocator_type = typename Tree::allocator_type;
   using iterator       = typename Tree::iterator;
   using const_iterator = typename Tree::const_iterator;

@@ -180,6 +180,7 @@ class btree : public Params::key_compare {
   using mapped_type            = typename Params::mapped_type;
   using value_type             = typename Params::value_type;
   using key_compare            = typename Params::key_compare;
+  using value_compare          = typename Params::value_compare;
   using pointer                = typename Params::pointer;
   using const_pointer          = typename Params::const_pointer;
   using reference              = typename Params::reference;

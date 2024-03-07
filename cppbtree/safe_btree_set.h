@@ -54,6 +54,7 @@ class safe_btree_set : public btree_unique_container<
 
  public:
   using key_compare    = typename btree_type::key_compare;
+  using value_compare  = typename btree_type::value_compare;
   using allocator_type = typename btree_type::allocator_type;
 
  public:

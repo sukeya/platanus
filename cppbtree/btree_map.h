@@ -91,6 +91,7 @@ class btree_multimap : public btree_multi_container<
 
  public:
   using key_compare    = typename btree_type::key_compare;
+  using value_compare  = typename btree_type::value_compare;
   using allocator_type = typename btree_type::allocator_type;
   // Deprecated: use mapped_type instead.
   using data_type      = typename btree_type::data_type;

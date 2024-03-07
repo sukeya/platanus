@@ -41,9 +41,9 @@ struct btree_iterator {
   using const_iterator = btree_iterator<const_node, const_reference, const_pointer>;
   using self_type      = btree_iterator<Node, Reference, Pointer>;
 
-  btree_iterator() : node(nullptr), position(-1) {}
-  btree_iterator(Node* n, int p) : node(n), position(p) {}
-  btree_iterator(const iterator& x) : node(x.node), position(x.position) {}
+  btree_iterator() noexcept : node(nullptr), position(-1) {}
+  btree_iterator(Node* n, int p) noexcept : node(n), position(p) {}
+  btree_iterator(const iterator& x) noexcept : node(x.node), position(x.position) {}
 
   // Increment/decrement the iterator.
   void increment() {

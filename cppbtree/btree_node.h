@@ -155,53 +155,53 @@ class btree_node {
 
   // Getter/setter for whether this is a leaf node or not. This value doesn't
   // change after the node is created.
-  bool leaf() const { return fields_.leaf; }
+  bool leaf() const noexcept { return fields_.leaf; }
 
   // Getter for the position of this node in its parent.
-  int  position() const { return fields_.position; }
-  void set_position(int v) { fields_.position = v; }
+  int  position() const noexcept { return fields_.position; }
+  void set_position(int v) noexcept { fields_.position = v; }
 
   // Getter/setter for the number of values stored in this node.
-  int  count() const { return fields_.count; }
-  void set_count(int v) { fields_.count = v; }
-  int  max_count() const { return fields_.max_count; }
+  int  count() const noexcept { return fields_.count; }
+  void set_count(int v) noexcept { fields_.count = v; }
+  int  max_count() const noexcept { return fields_.max_count; }
 
   // Getter for the parent of this node.
-  btree_node* parent() const { return fields_.parent; }
+  btree_node* parent() const noexcept { return fields_.parent; }
   // Getter for whether the node is the root of the tree. The parent of the
   // root of the tree is the leftmost node in the tree which is guaranteed to
   // be a leaf.
-  bool is_root() const { return parent()->leaf(); }
-  void make_root() {
+  bool is_root() const noexcept { return parent()->leaf(); }
+  void make_root() noexcept {
     assert(parent()->is_root());
     fields_.parent = fields_.parent->parent();
   }
 
   // Getter for the rightmost root node field. Only valid on the root node.
-  btree_node*  rightmost() const { return fields_.rightmost; }
-  btree_node** mutable_rightmost() { return &fields_.rightmost; }
+  btree_node*  rightmost() const noexcept { return fields_.rightmost; }
+  btree_node** mutable_rightmost() noexcept { return &fields_.rightmost; }
 
   // Getter for the size root node field. Only valid on the root node.
-  size_type  size() const { return fields_.size; }
-  size_type* mutable_size() { return &fields_.size; }
+  size_type  size() const noexcept { return fields_.size; }
+  size_type* mutable_size() noexcept { return &fields_.size; }
 
   // Getters for the key/value at position i in the node.
-  const key_type& key(int i) const { return params_type::key(fields_.values[i]); }
-  reference       value(int i) { return reinterpret_cast<reference>(fields_.values[i]); }
-  const_reference value(int i) const {
+  const key_type& key(int i) const noexcept { return params_type::key(fields_.values[i]); }
+  reference       value(int i) noexcept { return reinterpret_cast<reference>(fields_.values[i]); }
+  const_reference value(int i) const noexcept {
     return reinterpret_cast<const_reference>(fields_.values[i]);
   }
-  mutable_value_type* mutable_value(int i) { return &fields_.values[i]; }
+  mutable_value_type* mutable_value(int i) noexcept { return &fields_.values[i]; }
 
   // Swap value i in this node with value j in node x.
-  void value_swap(int i, btree_node* x, int j) {
+  void value_swap(int i, btree_node* x, int j) noexcept(noexcept(params_type::swap(std::declval<mutable_value_type*>(), std::declval<mutable_value_type*>()))) {
     params_type::swap(mutable_value(i), x->mutable_value(j));
   }
 
   // Getters/setter for the child at position i in the node.
-  btree_node*  child(int i) const { return fields_.children[i]; }
-  btree_node** mutable_child(int i) { return &fields_.children[i]; }
-  void         set_child(int i, btree_node* c) {
+  btree_node*  child(int i) const noexcept { return fields_.children[i]; }
+  btree_node** mutable_child(int i) noexcept { return &fields_.children[i]; }
+  void         set_child(int i, btree_node* c) noexcept {
             *mutable_child(i)   = c;
             c->fields_.parent   = this;
             c->fields_.position = i;
@@ -209,19 +209,19 @@ class btree_node {
 
   // Returns the position of the first value whose key is not less than k.
   template <typename Compare>
-  int lower_bound(const key_type& k, const Compare& comp) const {
+  int lower_bound(const key_type& k, const Compare& comp) const noexcept(noexcept(search_type::lower_bound(std::declval<const key_type&>(), std::declval<const self_type&>(), std::declval<const Compare&>()))) {
     return search_type::lower_bound(k, *this, comp);
   }
   // Returns the position of the first value whose key is greater than k.
   template <typename Compare>
-  int upper_bound(const key_type& k, const Compare& comp) const {
+  int upper_bound(const key_type& k, const Compare& comp) const noexcept(noexcept(search_type::upper_bound(std::declval<const key_type&>(), std::declval<const self_type&>(), std::declval<const Compare&>()))) {
     return search_type::upper_bound(k, *this, comp);
   }
 
   // Returns the position of the first value whose key is not less than k using
   // linear search performed using plain compare.
   template <typename Compare>
-  int linear_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const {
+  int linear_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const noexcept(noexcept(btree_compare_keys(std::declval<const Compare&>(), std::declval<const key_type&>(), std::declval<const key_type&>()))) {
     while (s < e) {
       if (!btree_compare_keys(comp, key(s), k)) {
         break;
@@ -234,7 +234,7 @@ class btree_node {
   // Returns the position of the first value whose key is not less than k using
   // linear search performed using compare-to.
   template <typename Compare>
-  int linear_search_compare_to(const key_type& k, int s, int e, const Compare& comp) const {
+  int linear_search_compare_to(const key_type& k, int s, int e, const Compare& comp) const noexcept(noexcept(comp(std::declval<const key_type&>(), std::declval<const key_type&>()))) {
     while (s < e) {
       int c = comp(key(s), k);
       if (c == 0) {
@@ -250,7 +250,7 @@ class btree_node {
   // Returns the position of the first value whose key is not less than k using
   // binary search performed using plain compare.
   template <typename Compare>
-  int binary_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const {
+  int binary_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const noexcept(noexcept(btree_compare_keys(std::declval<const Compare&>(), std::declval<const key_type&>(), std::declval<const key_type&>()))) {
     while (s != e) {
       int mid = (s + e) / 2;
       if (btree_compare_keys(comp, key(mid), k)) {
@@ -265,7 +265,7 @@ class btree_node {
   // Returns the position of the first value whose key is not less than k using
   // binary search performed using compare-to.
   template <typename CompareTo>
-  int binary_search_compare_to(const key_type& k, int s, int e, const CompareTo& comp) const {
+  int binary_search_compare_to(const key_type& k, int s, int e, const CompareTo& comp) const noexcept(noexcept(comp(std::declval<const key_type&>(), std::declval<const key_type&>()))) {
     while (s != e) {
       int mid = (s + e) / 2;
       int c   = comp(key(mid), k);
@@ -286,28 +286,28 @@ class btree_node {
   }
 
   // Returns the pointer to the front of the values array.
-  values_iterator begin_values() { return fields_.values.begin(); }
+  values_iterator begin_values() noexcept { return fields_.values.begin(); }
 
   // Returns the pointer to the back of the values array.
-  values_iterator end_values() { return std::next(begin_values(), count()); }
+  values_iterator end_values() noexcept(noexcept(std::next(std::declval<values_iterator>(), std::declval<int>()))) { return std::next(begin_values(), count()); }
 
-  values_reverse_iterator rbegin_values() { return std::next(fields_.values.rbegin(), max_values_count() - values_count()); }
-  values_reverse_iterator rend_values() { return fields_.values.rend(); }
+  values_reverse_iterator rbegin_values() noexcept(noexcept(std::next(std::declval<values_reverse_iterator>(), std::declval<int>()))) { return std::next(fields_.values.rbegin(), max_values_count() - values_count()); }
+  values_reverse_iterator rend_values() noexcept { return fields_.values.rend(); }
 
   // Returns the pointer to the front of the children array.
-  children_iterator begin_children() { return fields_.children.begin(); }
+  children_iterator begin_children() noexcept { return fields_.children.begin(); }
 
   // Returns the pointer to the back of the children array.
-  children_iterator end_children() { return std::next(begin_children(), count() + 1); }
+  children_iterator end_children() noexcept(noexcept(std::next(std::declval<children_iterator>(), std::declval<int>()))) { return std::next(begin_children(), count() + 1); }
 
-  children_reverse_iterator rbegin_children() { return std::next(fields_.children.rbegin(), max_children_count() - children_count()); }
-  children_reverse_iterator rend_children() { return fields_.children.rend(); }
+  children_reverse_iterator rbegin_children() noexcept(noexcept(std::next(std::declval<children_reverse_iterator>(), std::declval<int>()))) { return std::next(fields_.children.rbegin(), max_children_count() - children_count()); }
+  children_reverse_iterator rend_children() noexcept { return fields_.children.rend(); }
 
-  int values_count() const { return count(); }
-  int children_count() const { return count() + 1; }
+  int values_count() const noexcept { return count(); }
+  int children_count() const noexcept { return count() + 1; }
 
-  constexpr int max_values_count() const { return kNodeValues; }
-  constexpr int max_children_count() const { return kNodeValues + 1; }
+  constexpr int max_values_count() const noexcept { return kNodeValues; }
+  constexpr int max_children_count() const noexcept { return kNodeValues + 1; }
 
   // Rotate the values in the range [first, last) to the left.
   // As a result, the value pointed by middle will now be the first value and

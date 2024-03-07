@@ -46,28 +46,28 @@ struct btree_iterator {
   btree_iterator(const iterator& x) noexcept : node(x.node), position(x.position) {}
 
   // Increment/decrement the iterator.
-  void increment() {
+  void increment() noexcept {
     if (node->leaf() && ++position < node->count()) {
       return;
     }
     increment_slow();
   }
-  void increment_by(int count);
-  void increment_slow();
+  void increment_by(int count) noexcept;
+  void increment_slow() noexcept;
 
-  void decrement() {
+  void decrement() noexcept {
     if (node->leaf() && --position >= 0) {
       return;
     }
     decrement_slow();
   }
-  void decrement_slow();
+  void decrement_slow() noexcept;
 
-  bool operator==(const const_iterator& x) const {
+  bool operator==(const const_iterator& x) const noexcept {
     return node == x.node && position == x.position;
   }
-  bool operator!=(const const_iterator& x) const {
-    return node != x.node || position != x.position;
+  bool operator!=(const const_iterator& x) const noexcept {
+    return !(operator==(x));
   }
 
   // Accessors for the key/value the iterator is pointing at.
@@ -75,20 +75,20 @@ struct btree_iterator {
   reference       operator*() const { return node->value(position); }
   pointer         operator->() const { return &node->value(position); }
 
-  self_type& operator++() {
+  self_type& operator++() noexcept {
     increment();
     return *this;
   }
-  self_type& operator--() {
+  self_type& operator--() noexcept {
     decrement();
     return *this;
   }
-  self_type operator++(int) {
+  self_type operator++(int) noexcept {
     self_type tmp = *this;
     ++*this;
     return tmp;
   }
-  self_type operator--(int) {
+  self_type operator--(int) noexcept {
     self_type tmp = *this;
     --*this;
     return tmp;
@@ -103,7 +103,7 @@ struct btree_iterator {
 ////
 // btree_iterator methods
 template <typename N, typename R, typename P>
-void btree_iterator<N, R, P>::increment_slow() {
+void btree_iterator<N, R, P>::increment_slow() noexcept {
   if (node->leaf()) {
     assert(position >= node->count());
     self_type save(*this);
@@ -129,7 +129,7 @@ void btree_iterator<N, R, P>::increment_slow() {
 }
 
 template <typename N, typename R, typename P>
-void btree_iterator<N, R, P>::increment_by(int count) {
+void btree_iterator<N, R, P>::increment_by(int count) noexcept {
   while (count > 0) {
     if (node->leaf()) {
       int rest = node->count() - position;
@@ -147,7 +147,7 @@ void btree_iterator<N, R, P>::increment_by(int count) {
 }
 
 template <typename N, typename R, typename P>
-void btree_iterator<N, R, P>::decrement_slow() {
+void btree_iterator<N, R, P>::decrement_slow() noexcept {
   if (node->leaf()) {
     assert(position <= -1);
     self_type save(*this);

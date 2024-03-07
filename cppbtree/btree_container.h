@@ -57,13 +57,17 @@ class btree_container {
 
   // Iterator routines.
   iterator               begin() { return tree_.begin(); }
-  const_iterator         begin() const { return tree_.begin(); }
+  const_iterator         begin() const { return cbegin(); }
+  const_iterator         cbegin() const { return tree_.cbegin(); }
   iterator               end() { return tree_.end(); }
-  const_iterator         end() const { return tree_.end(); }
+  const_iterator         end() const { return cend(); }
+  const_iterator         cend() const { return tree_.cend(); }
   reverse_iterator       rbegin() { return tree_.rbegin(); }
-  const_reverse_iterator rbegin() const { return tree_.rbegin(); }
+  const_reverse_iterator rbegin() const { return crbegin(); }
+  const_reverse_iterator crbegin() const { return tree_.crbegin(); }
   reverse_iterator       rend() { return tree_.rend(); }
-  const_reverse_iterator rend() const { return tree_.rend(); }
+  const_reverse_iterator rend() const { return crend(); }
+  const_reverse_iterator crend() const { return tree_.crend(); }
 
   // Lookup routines.
   iterator       lower_bound(const key_type& key) { return tree_.lower_bound(key); }

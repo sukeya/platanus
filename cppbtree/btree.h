@@ -210,15 +210,19 @@ class btree : public Params::key_compare {
 
   // Iterator routines.
   iterator       begin() { return iterator(leftmost(), 0); }
-  const_iterator begin() const { return const_iterator(leftmost(), 0); }
+  const_iterator begin() const { return cbegin(); }
+  const_iterator cbegin() const { return const_iterator(leftmost(), 0); }
   iterator       end() { return iterator(rightmost(), rightmost() ? rightmost()->count() : 0); }
-  const_iterator end() const {
+  const_iterator end() const { return cend(); }
+  const_iterator cend() const {
     return const_iterator(rightmost(), rightmost() ? rightmost()->count() : 0);
   }
   reverse_iterator       rbegin() { return reverse_iterator(end()); }
-  const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+  const_reverse_iterator rbegin() const { return crbegin(); }
+  const_reverse_iterator crbegin() const { return const_reverse_iterator(end()); }
   reverse_iterator       rend() { return reverse_iterator(begin()); }
-  const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
+  const_reverse_iterator rend() const { return crend(); }
+  const_reverse_iterator crend() const { return const_reverse_iterator(begin()); }
 
   // Finds the first element whose key is not less than key.
   iterator lower_bound(const key_type& key) {

@@ -37,9 +37,9 @@ namespace cppbtree {
 template <typename Params>
 class btree_node {
  public:
-  using params_type        = Params;
-  using self_type          = btree_node<Params>;
-  using key_type           = typename Params::key_type;
+  using params_type = Params;
+  using self_type   = btree_node<Params>;
+  using key_type    = typename Params::key_type;
   // Deprecated: use mapped_type instead.
   using data_type          = typename Params::data_type;
   using mapped_type        = typename Params::mapped_type;
@@ -121,9 +121,9 @@ class btree_node {
     values_type values;
   };
 
-  using values_iterator = typename leaf_fields::values_type::iterator;
-  using values_const_iterator = typename leaf_fields::values_type::const_iterator;
-  using values_reverse_iterator = typename leaf_fields::values_type::reverse_iterator;
+  using values_iterator               = typename leaf_fields::values_type::iterator;
+  using values_const_iterator         = typename leaf_fields::values_type::const_iterator;
+  using values_reverse_iterator       = typename leaf_fields::values_type::reverse_iterator;
   using values_const_reverse_iterator = typename leaf_fields::values_type::const_reverse_iterator;
 
   struct internal_fields : public leaf_fields {
@@ -134,10 +134,11 @@ class btree_node {
     children_type children;
   };
 
-  using children_iterator = typename internal_fields::children_type::iterator;
-  using children_const_iterator = typename internal_fields::children_type::const_iterator;
+  using children_iterator         = typename internal_fields::children_type::iterator;
+  using children_const_iterator   = typename internal_fields::children_type::const_iterator;
   using children_reverse_iterator = typename internal_fields::children_type::reverse_iterator;
-  using children_const_reverse_iterator = typename internal_fields::children_type::const_reverse_iterator;
+  using children_const_reverse_iterator =
+      typename internal_fields::children_type::const_reverse_iterator;
 
   struct root_fields : public internal_fields {
     btree_node* rightmost;
@@ -194,7 +195,9 @@ class btree_node {
   mutable_value_type* mutable_value(int i) noexcept { return &fields_.values[i]; }
 
   // Swap value i in this node with value j in node x.
-  void value_swap(int i, btree_node* x, int j) noexcept(noexcept(params_type::swap(std::declval<mutable_value_type*>(), std::declval<mutable_value_type*>()))) {
+  void value_swap(int i, btree_node* x, int j) noexcept(noexcept(
+      params_type::swap(std::declval<mutable_value_type*>(), std::declval<mutable_value_type*>())
+  )) {
     params_type::swap(mutable_value(i), x->mutable_value(j));
   }
 
@@ -209,19 +212,34 @@ class btree_node {
 
   // Returns the position of the first value whose key is not less than k.
   template <typename Compare>
-  int lower_bound(const key_type& k, const Compare& comp) const noexcept(noexcept(search_type::lower_bound(std::declval<const key_type&>(), std::declval<const self_type&>(), std::declval<const Compare&>()))) {
+  int lower_bound(const key_type& k, const Compare& comp) const
+      noexcept(noexcept(search_type::lower_bound(
+          std::declval<const key_type&>(),
+          std::declval<const self_type&>(),
+          std::declval<const Compare&>()
+      ))) {
     return search_type::lower_bound(k, *this, comp);
   }
   // Returns the position of the first value whose key is greater than k.
   template <typename Compare>
-  int upper_bound(const key_type& k, const Compare& comp) const noexcept(noexcept(search_type::upper_bound(std::declval<const key_type&>(), std::declval<const self_type&>(), std::declval<const Compare&>()))) {
+  int upper_bound(const key_type& k, const Compare& comp) const
+      noexcept(noexcept(search_type::upper_bound(
+          std::declval<const key_type&>(),
+          std::declval<const self_type&>(),
+          std::declval<const Compare&>()
+      ))) {
     return search_type::upper_bound(k, *this, comp);
   }
 
   // Returns the position of the first value whose key is not less than k using
   // linear search performed using plain compare.
   template <typename Compare>
-  int linear_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const noexcept(noexcept(btree_compare_keys(std::declval<const Compare&>(), std::declval<const key_type&>(), std::declval<const key_type&>()))) {
+  int linear_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const
+      noexcept(noexcept(btree_compare_keys(
+          std::declval<const Compare&>(),
+          std::declval<const key_type&>(),
+          std::declval<const key_type&>()
+      ))) {
     while (s < e) {
       if (!btree_compare_keys(comp, key(s), k)) {
         break;
@@ -234,7 +252,8 @@ class btree_node {
   // Returns the position of the first value whose key is not less than k using
   // linear search performed using compare-to.
   template <typename Compare>
-  int linear_search_compare_to(const key_type& k, int s, int e, const Compare& comp) const noexcept(noexcept(comp(std::declval<const key_type&>(), std::declval<const key_type&>()))) {
+  int linear_search_compare_to(const key_type& k, int s, int e, const Compare& comp) const
+      noexcept(noexcept(comp(std::declval<const key_type&>(), std::declval<const key_type&>()))) {
     while (s < e) {
       int c = comp(key(s), k);
       if (c == 0) {
@@ -250,7 +269,12 @@ class btree_node {
   // Returns the position of the first value whose key is not less than k using
   // binary search performed using plain compare.
   template <typename Compare>
-  int binary_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const noexcept(noexcept(btree_compare_keys(std::declval<const Compare&>(), std::declval<const key_type&>(), std::declval<const key_type&>()))) {
+  int binary_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const
+      noexcept(noexcept(btree_compare_keys(
+          std::declval<const Compare&>(),
+          std::declval<const key_type&>(),
+          std::declval<const key_type&>()
+      ))) {
     while (s != e) {
       int mid = (s + e) / 2;
       if (btree_compare_keys(comp, key(mid), k)) {
@@ -265,7 +289,8 @@ class btree_node {
   // Returns the position of the first value whose key is not less than k using
   // binary search performed using compare-to.
   template <typename CompareTo>
-  int binary_search_compare_to(const key_type& k, int s, int e, const CompareTo& comp) const noexcept(noexcept(comp(std::declval<const key_type&>(), std::declval<const key_type&>()))) {
+  int binary_search_compare_to(const key_type& k, int s, int e, const CompareTo& comp) const
+      noexcept(noexcept(comp(std::declval<const key_type&>(), std::declval<const key_type&>()))) {
     while (s != e) {
       int mid = (s + e) / 2;
       int c   = comp(key(mid), k);
@@ -289,18 +314,30 @@ class btree_node {
   values_iterator begin_values() noexcept { return fields_.values.begin(); }
 
   // Returns the pointer to the back of the values array.
-  values_iterator end_values() noexcept(noexcept(std::next(std::declval<values_iterator>(), std::declval<int>()))) { return std::next(begin_values(), count()); }
+  values_iterator end_values(
+  ) noexcept(noexcept(std::next(std::declval<values_iterator>(), std::declval<int>()))) {
+    return std::next(begin_values(), count());
+  }
 
-  values_reverse_iterator rbegin_values() noexcept(noexcept(std::next(std::declval<values_reverse_iterator>(), std::declval<int>()))) { return std::next(fields_.values.rbegin(), max_values_count() - values_count()); }
+  values_reverse_iterator rbegin_values(
+  ) noexcept(noexcept(std::next(std::declval<values_reverse_iterator>(), std::declval<int>()))) {
+    return std::next(fields_.values.rbegin(), max_values_count() - values_count());
+  }
   values_reverse_iterator rend_values() noexcept { return fields_.values.rend(); }
 
   // Returns the pointer to the front of the children array.
   children_iterator begin_children() noexcept { return fields_.children.begin(); }
 
   // Returns the pointer to the back of the children array.
-  children_iterator end_children() noexcept(noexcept(std::next(std::declval<children_iterator>(), std::declval<int>()))) { return std::next(begin_children(), count() + 1); }
+  children_iterator end_children(
+  ) noexcept(noexcept(std::next(std::declval<children_iterator>(), std::declval<int>()))) {
+    return std::next(begin_children(), count() + 1);
+  }
 
-  children_reverse_iterator rbegin_children() noexcept(noexcept(std::next(std::declval<children_reverse_iterator>(), std::declval<int>()))) { return std::next(fields_.children.rbegin(), max_children_count() - children_count()); }
+  children_reverse_iterator rbegin_children(
+  ) noexcept(noexcept(std::next(std::declval<children_reverse_iterator>(), std::declval<int>()))) {
+    return std::next(fields_.children.rbegin(), max_children_count() - children_count());
+  }
   children_reverse_iterator rend_children() noexcept { return fields_.children.rend(); }
 
   int values_count() const noexcept { return count(); }
@@ -346,10 +383,12 @@ class btree_node {
   }
 
   // CAUTION: This function doesn't uninitialize [first, last) in *src.
-  void receive_children(children_iterator dest, btree_node* src, children_iterator first, children_iterator last) {
-    int dest_idx = dest - begin_children();
+  void receive_children(
+      children_iterator dest, btree_node* src, children_iterator first, children_iterator last
+  ) {
+    int dest_idx  = dest - begin_children();
     int first_idx = first - src->begin_children();
-    int n = last - first;
+    int n         = last - first;
     for (int i = 0; i < n; ++i) {
       set_child(dest_idx + i, src->child(first_idx + i));
     }
@@ -357,9 +396,11 @@ class btree_node {
 
   // CAUTION: This function doesn't uninitialize [first, last) in *src.
   void receive_children_n(children_iterator dest, btree_node* src, children_iterator first, int n) {
-    int dest_idx = dest - begin_children();
+    int dest_idx  = dest - begin_children();
     int first_idx = first - src->begin_children();
-    assert(0 <= n && dest_idx + n <= max_children_count() && first_idx + n <= src->max_children_count());
+    assert(
+        0 <= n && dest_idx + n <= max_children_count() && first_idx + n <= src->max_children_count()
+    );
     for (int i = 0; i < n; ++i) {
       set_child(dest_idx + i, src->child(first_idx + i));
     }
@@ -430,7 +471,9 @@ class btree_node {
 
  private:
   template <typename... Args>
-  void value_init(int i, Args&&... args) { new (&fields_.values[i]) mutable_value_type{std::forward<Args>(args)...}; }
+  void value_init(int i, Args&&... args) {
+    new (&fields_.values[i]) mutable_value_type{std::forward<Args>(args)...};
+  }
   void value_init(int i, const value_type& x) { new (&fields_.values[i]) mutable_value_type(x); }
   void value_destroy(int i) { fields_.values[i].~mutable_value_type(); }
 
@@ -550,7 +593,12 @@ void btree_node<P>::rebalance_left_to_right(btree_node* dest, int to_move) {
   if (!leaf()) {
     // Move the child pointers from the left to the right node.
     dest->shift_children_right(0, dest->children_count(), to_move);
-    dest->receive_children_n(dest->begin_children(), this, begin_children() + children_count() - to_move, to_move);
+    dest->receive_children_n(
+        dest->begin_children(),
+        this,
+        begin_children() + children_count() - to_move,
+        to_move
+    );
     std::fill_n(rbegin_children(), to_move, nullptr);
   }
 
@@ -669,6 +717,6 @@ void btree_node<P>::swap(btree_node* x) {
   btree_swap_helper(fields_.count, x->fields_.count);
 }
 
-} // namespace cppbtree
+}  // namespace cppbtree
 
-#endif // CPPBTREE_BTREE_NODE_H_
+#endif  // CPPBTREE_BTREE_NODE_H_

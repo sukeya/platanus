@@ -206,6 +206,8 @@ class btree : public Params::key_compare {
   // Destructor.
   ~btree() { clear(); }
 
+  allocator_type get_allocator() const { return allocator_type(root_); }
+
   // Iterator routines.
   iterator       begin() { return iterator(leftmost(), 0); }
   const_iterator begin() const { return const_iterator(leftmost(), 0); }

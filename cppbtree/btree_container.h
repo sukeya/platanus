@@ -53,6 +53,8 @@ class btree_container {
   // Copy constructor.
   btree_container(const self_type& x) : tree_(x.tree_) {}
 
+  allocator_type get_allocator() const { return tree_.get_allocator(); }
+
   // Iterator routines.
   iterator               begin() { return tree_.begin(); }
   const_iterator         begin() const { return tree_.begin(); }

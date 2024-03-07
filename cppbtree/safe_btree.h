@@ -182,6 +182,8 @@ class safe_btree {
   // Copy constructor.
   safe_btree(const self_type& x) : tree_(x.tree_), generation_(1) {}
 
+  allocator_type get_allocator() const { return tree_.get_allocator(); }
+
   iterator               begin() { return iterator(this, tree_.begin()); }
   const_iterator         begin() const { return const_iterator(this, tree_.begin()); }
   iterator               end() { return iterator(this, tree_.end()); }

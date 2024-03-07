@@ -91,8 +91,8 @@ struct btree_map_params
   );
   static constexpr int kValueSize = sizeof(Key) + sizeof(mapped_type);
 
-  static const Key& key(const value_type& x) { return x.first; }
-  static const Key& key(const mutable_value_type& x) { return x.first; }
+  static const Key& key(const value_type& x) noexcept { return x.first; }
+  static const Key& key(const mutable_value_type& x) noexcept { return x.first; }
   static void       swap(mutable_value_type* a, mutable_value_type* b) {
           btree_swap_helper(a->first, b->first);
           btree_swap_helper(a->second, b->second);
@@ -121,7 +121,7 @@ struct btree_set_params
   );
   static constexpr std::size_t kValueSize = sizeof(Key);
 
-  static const Key& key(const value_type& x) { return x; }
+  static const Key& key(const value_type& x) noexcept { return x; }
   static void       swap(mutable_value_type* a, mutable_value_type* b) {
           btree_swap_helper<mutable_value_type>(*a, *b);
   }

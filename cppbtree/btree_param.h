@@ -70,20 +70,23 @@ struct btree_common_params {
 template <typename Key, typename Data, typename Compare, typename Alloc, int TargetNodeSize>
 struct btree_map_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key) + sizeof(Data)> {
+  // Deprecated: use mapped_type instead.
   using data_type          = Data;
   using mapped_type        = Data;
-  using value_type         = std::pair<const Key, data_type>;
-  using mutable_value_type = std::pair<Key, data_type>;
+  using value_type         = std::pair<const Key, mapped_type>;
+  using mutable_value_type = std::pair<Key, mapped_type>;
+  // TODO
+  using value_compare      = std::false_type;
   using pointer            = value_type*;
   using const_pointer      = const value_type*;
   using reference          = value_type&;
   using const_reference    = const value_type&;
 
   static_assert(
-      sizeof(Key) + sizeof(data_type) <= std::numeric_limits<int>::max(),
-      "The total size of Key and data_type must be less than the max of int."
+      sizeof(Key) + sizeof(mapped_type) <= std::numeric_limits<int>::max(),
+      "The total size of Key and mapped_type must be less than the max of int."
   );
-  static constexpr int kValueSize = sizeof(Key) + sizeof(data_type);
+  static constexpr int kValueSize = sizeof(Key) + sizeof(mapped_type);
 
   static const Key& key(const value_type& x) { return x.first; }
   static const Key& key(const mutable_value_type& x) { return x.first; }
@@ -97,6 +100,7 @@ struct btree_map_params
 template <typename Key, typename Compare, typename Alloc, int TargetNodeSize>
 struct btree_set_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key)> {
+  // Deprecated: use mapped_type instead.
   using data_type          = std::false_type;
   using mapped_type        = std::false_type;
   using value_type         = Key;

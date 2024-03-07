@@ -184,6 +184,7 @@ class btree_map_container : public btree_unique_container<Tree> {
 
  public:
   using key_type       = typename Tree::key_type;
+  // Deprecated: use mapped_type instead.
   using data_type      = typename Tree::data_type;
   using value_type     = typename Tree::value_type;
   using mapped_type    = typename Tree::mapped_type;
@@ -192,11 +193,11 @@ class btree_map_container : public btree_unique_container<Tree> {
 
  private:
   // A pointer-like object which only generates its value when
-  // dereferenced. Used by operator[] to avoid constructing an empty data_type
+  // dereferenced. Used by operator[] to avoid constructing an empty mapped_data
   // if the key already exists in the map.
   struct generate_value {
     generate_value(const key_type& k) : key(k) {}
-    value_type      operator*() const { return std::make_pair(key, data_type()); }
+    value_type      operator*() const { return std::make_pair(key, mapped_type()); }
     const key_type& key;
   };
 
@@ -221,7 +222,7 @@ class btree_map_container : public btree_unique_container<Tree> {
       : super_type(b, e, comp, alloc) {}
 
   // Insertion routines.
-  data_type& operator[](const key_type& key) {
+  mapped_type& operator[](const key_type& key) {
     return this->tree_.insert_unique(key, generate_value(key)).first->second;
   }
 };

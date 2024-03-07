@@ -175,6 +175,7 @@ class btree : public Params::key_compare {
  public:
   using params_type            = Params;
   using key_type               = typename Params::key_type;
+  // Deprecated: use mapped_type instead.
   using data_type              = typename Params::data_type;
   using mapped_type            = typename Params::mapped_type;
   using value_type             = typename Params::value_type;

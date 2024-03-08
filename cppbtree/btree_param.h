@@ -48,24 +48,7 @@ struct btree_common_params {
   using difference_type = std::ptrdiff_t;
 
   static constexpr std::uint_least16_t kTargetNodeSize = TargetNodeSize;
-
-  // Available space for values.  This is largest for leaf nodes,
-  // which has overhead no fewer than two pointers.
-  static_assert(
-      TargetNodeSize >= 2 * sizeof(void*), "ValueSize must be no less than 2 * sizeof(void*)"
-  );
-  static constexpr std::uint_least16_t kNodeValueSpace = TargetNodeSize - 2 * sizeof(void*);
-
-  // This is an integral type large enough to hold as many
-  // ValueSize-values as will fit a node of TargetNodeSize bytes.
-  static_assert(
-      kNodeValueSpace / ValueSize <= std::numeric_limits<std::uint_least16_t>::max(),
-      "The total of nodes exceeds supported size (max of uint16_t)."
-  );
-  using node_count_type = typename std::conditional<
-      (kNodeValueSpace / ValueSize) >= 256,
-      std::uint_least16_t,
-      std::uint_least8_t>::type;
+  static constexpr std::uint_least16_t kValueSize = ValueSize;
 };
 
 // A parameters structure for holding the type parameters for a btree_map.

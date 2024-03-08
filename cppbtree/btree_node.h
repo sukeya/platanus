@@ -100,13 +100,30 @@ class btree_node {
   static constexpr int kValueSize      = params_type::kValueSize;
   static constexpr int kTargetNodeSize = params_type::kTargetNodeSize;
 
-  // Compute how many values we can fit onto a leaf node.
-  static_assert(kTargetNodeSize >= sizeof(base_fields), "target node size too small.");
-  static constexpr int kNodeTargetValues = (kTargetNodeSize - sizeof(base_fields)) / kValueSize;
+  // Available space for values.  This is largest for leaf nodes,
+  // which has overhead no fewer than two pointers.
+  static_assert(
+      kTargetNodeSize >= 3 * sizeof(void*), "ValueSize must be no less than 3 * sizeof(void*)"
+  );
+  static constexpr std::uint_least16_t kNodeValueSpace = kTargetNodeSize - 3 * std::uint_least16_t(sizeof(void*));
+
+  // This is an integral type large enough to hold as many
+  // ValueSize-values as will fit a node of TargetNodeSize bytes.
+  static_assert(
+      kNodeValueSpace / kValueSize <= std::numeric_limits<std::uint_least16_t>::max(),
+      "The total of nodes exceeds supported size (max of uint16_t)."
+  );
+
+  using node_count_type = typename std::conditional<
+      (kNodeValueSpace / kValueSize) > std::numeric_limits<std::uint_least8_t>::max(),
+      std::uint_least16_t,
+      std::uint_least8_t>::type;
+
+  static constexpr node_count_type kNodeTargetValues = kNodeValueSpace / kValueSize;
   // We need a minimum of 3 values per internal node in order to perform
   // splitting (1 value for the two nodes involved in the split and 1 value
   // propagated to the parent as the delimiter for the split).
-  static constexpr int kNodeValues = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
+  static constexpr node_count_type kNodeValues = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
 
   static_assert(
       std::numeric_limits<int>::digits >= 31, "This program requires int to have 32 bit at least."

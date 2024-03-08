@@ -662,16 +662,6 @@ class btree : public Params::key_compare {
       sizeof(key_compare_checker(key_compare_helper()(key_type(), key_type()))) == sizeof(big_),
       "key comparison function must return bool"
   );
-
-  // Note: We insist on kTargetValues, which is computed from
-  // Params::kTargetNodeSize, must fit the base_fields::field_type.
-  static_assert(
-      kNodeValues < (1 << (8 * sizeof(typename base_fields::field_type))),
-      "target node size too large"
-  );
-
-  // Test the assumption made in setting kNodeValueSpace.
-  static_assert(sizeof(base_fields) >= 2 * sizeof(void*), "node space assumption incorrect");
 };
 
 ////

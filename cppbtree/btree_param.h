@@ -27,7 +27,7 @@
 
 namespace cppbtree {
 
-template <typename Key, typename Compare, typename Alloc, int TargetNodeSize, int ValueSize>
+template <typename Key, typename Compare, typename Alloc, std::uint_least16_t TargetNodeSize, std::uint_least16_t ValueSize>
 struct btree_common_params {
   // If Compare is derived from btree_key_compare_to_tag then use it as the
   // key_compare type. Otherwise, use btree_key_compare_to_adapter<> which will
@@ -47,19 +47,19 @@ struct btree_common_params {
   using size_type       = ssize_t;
   using difference_type = std::ptrdiff_t;
 
-  static constexpr int kTargetNodeSize = TargetNodeSize;
+  static constexpr std::uint_least16_t kTargetNodeSize = TargetNodeSize;
 
   // Available space for values.  This is largest for leaf nodes,
   // which has overhead no fewer than two pointers.
   static_assert(
       TargetNodeSize >= 2 * sizeof(void*), "ValueSize must be no less than 2 * sizeof(void*)"
   );
-  static constexpr int kNodeValueSpace = TargetNodeSize - 2 * sizeof(void*);
+  static constexpr std::uint_least16_t kNodeValueSpace = TargetNodeSize - 2 * sizeof(void*);
 
   // This is an integral type large enough to hold as many
   // ValueSize-values as will fit a node of TargetNodeSize bytes.
   static_assert(
-      kNodeValueSpace / ValueSize <= std::numeric_limits<std::uint_fast16_t>::max(),
+      kNodeValueSpace / ValueSize <= std::numeric_limits<std::uint_least16_t>::max(),
       "The total of nodes exceeds supported size (max of uint16_t)."
   );
   using node_count_type = typename std::conditional<
@@ -69,7 +69,7 @@ struct btree_common_params {
 };
 
 // A parameters structure for holding the type parameters for a btree_map.
-template <typename Key, typename Data, typename Compare, typename Alloc, int TargetNodeSize>
+template <typename Key, typename Data, typename Compare, typename Alloc, std::uint_least16_t TargetNodeSize>
 struct btree_map_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key) + sizeof(Data)> {
   // Deprecated: use mapped_type instead.
@@ -91,10 +91,10 @@ struct btree_map_params
   using const_reference = const value_type&;
 
   static_assert(
-      sizeof(Key) + sizeof(mapped_type) <= std::numeric_limits<int>::max(),
-      "The total size of Key and mapped_type must be less than the max of int."
+      sizeof(Key) + sizeof(mapped_type) <= std::numeric_limits<std::uint_least16_t>::max(),
+      "The total size of Key and mapped_type must be less than the max of std::uint_least16_t."
   );
-  static constexpr int kValueSize = sizeof(Key) + sizeof(mapped_type);
+  static constexpr std::uint_least16_t kValueSize = sizeof(Key) + sizeof(mapped_type);
 
   static const Key& key(const value_type& x) noexcept { return x.first; }
   static const Key& key(const mutable_value_type& x) noexcept { return x.first; }
@@ -105,7 +105,7 @@ struct btree_map_params
 };
 
 // A parameters structure for holding the type parameters for a btree_set.
-template <typename Key, typename Compare, typename Alloc, int TargetNodeSize>
+template <typename Key, typename Compare, typename Alloc, std::uint_least16_t TargetNodeSize>
 struct btree_set_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key)> {
   // Deprecated: use mapped_type instead.
@@ -122,8 +122,8 @@ struct btree_set_params
   using const_reference = const value_type&;
 
   static_assert(
-      sizeof(Key) <= std::numeric_limits<int>::max(),
-      "The size of Key must be less than the max of int."
+      sizeof(Key) <= std::numeric_limits<std::uint_least16_t>::max(),
+      "The size of Key must be less than the max of std::uint_least16_t."
   );
   static constexpr std::size_t kValueSize = sizeof(Key);
 

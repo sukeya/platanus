@@ -101,11 +101,12 @@
 #define CPPBTREE_BTREE_H__
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <initializer_list>
 #include <iostream>
 #include <iterator>
 #include <limits>
@@ -278,9 +279,19 @@ class btree : public Params::key_compare {
   // logarithmic time as if a call to insert_unique(v) were made.
   iterator insert_unique(iterator position, const value_type& v);
 
+  // Insert with hint. See insert_unique(iterator, const value_type&).
+  iterator insert_unique(const_iterator position, const value_type& v) {
+    return insert_unique(iterator(position), v);
+  }
+
   // Insert a range of values into the btree.
   template <typename InputIterator>
   void insert_unique(InputIterator b, InputIterator e);
+
+  // Insert initialiser list of values into the btree.
+  void insert_unique(std::initializer_list<value_type> list) {
+    insert_unique(list.begin(), list.end());
+  }
 
   // Inserts a value into the btree. The ValuePointer type is used to avoid
   // instatiating the value unless the key is being inserted. Value is not
@@ -298,9 +309,19 @@ class btree : public Params::key_compare {
   // logarithmic time as if a call to insert_multi(v) were made.
   iterator insert_multi(iterator position, const value_type& v);
 
+  // Insert with hint. See insert_unique(iterator, const value_type&).
+  iterator insert_multi(const_iterator position, const value_type& v) {
+    return insert_multi(iterator(position), v);
+  }
+
   // Insert a range of values into the btree.
   template <typename InputIterator>
   void insert_multi(InputIterator b, InputIterator e);
+
+  // Insert initialiser list of values into the btree.
+  void insert_multi(std::initializer_list<value_type> list) {
+    insert_multi(list.begin(), list.end());
+  }
 
   void assign(const self_type& x);
 

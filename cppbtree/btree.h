@@ -174,8 +174,8 @@ class btree : public Params::key_compare {
   };
 
  public:
-  using params_type            = Params;
-  using key_type               = typename Params::key_type;
+  using params_type = Params;
+  using key_type    = typename Params::key_type;
   // Deprecated: use mapped_type instead.
   using data_type              = typename Params::data_type;
   using mapped_type            = typename Params::mapped_type;
@@ -405,8 +405,12 @@ class btree : public Params::key_compare {
 
   // Size routines. Note that empty() is slightly faster than doing size()==0.
   size_type size() const {
-    if (empty()) return 0;
-    if (root()->leaf()) return root()->count();
+    if (empty()) {
+      return 0;
+    }
+    if (root()->leaf()) {
+      return root()->count();
+    }
     return root()->size();
   }
   size_type max_size() const { return std::numeric_limits<size_type>::max(); }
@@ -479,15 +483,17 @@ class btree : public Params::key_compare {
   node_type**      mutable_root() { return &root_.data; }
 
   // The rightmost node is stored in the root node.
-  node_type* rightmost() { return (!root() || root()->leaf()) ? root() : root()->rightmost(); }
-  const node_type* rightmost() const {
+  node_type* rightmost() noexcept {
+    return (!root() || root()->leaf()) ? root() : root()->rightmost();
+  }
+  const node_type* rightmost() const noexcept {
     return (!root() || root()->leaf()) ? root() : root()->rightmost();
   }
   node_type** mutable_rightmost() { return root()->mutable_rightmost(); }
 
   // The leftmost node is stored as the parent of the root node.
-  node_type*       leftmost() { return root() ? root()->parent() : nullptr; }
-  const node_type* leftmost() const { return root() ? root()->parent() : nullptr; }
+  node_type*       leftmost() noexcept { return root() ? root()->parent() : nullptr; }
+  const node_type* leftmost() const noexcept { return root() ? root()->parent() : nullptr; }
 
   // The size of the tree is stored in the root node.
   size_type* mutable_size() { return root()->mutable_size(); }

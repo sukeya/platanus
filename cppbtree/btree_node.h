@@ -201,9 +201,8 @@ class btree_node {
       allocator_type& alloc,
       node_count_type max_count = kNodeValues
   ) {
-    auto                                    node_alloc = node_allocator_type{alloc};
-    auto node_ptr =
-        node_allocator_traits::allocate(node_alloc, 1);
+    auto node_alloc = node_allocator_type{alloc};
+    auto node_ptr   = node_allocator_traits::allocate(node_alloc, 1);
     node_allocator_traits::construct(node_alloc, node_ptr, is_leaf, parent, alloc, max_count);
     return node_owner(node_ptr, node_deleter{std::move(node_alloc)});
   }
@@ -217,9 +216,8 @@ class btree_node {
       reused_node->max_count_ = max_count;
       return std::move(reused_node);
     }
-    auto                                    node_alloc = node_allocator_type{alloc};
-    auto node_ptr =
-        node_allocator_traits::allocate(node_alloc, 1);
+    auto node_alloc = node_allocator_type{alloc};
+    auto node_ptr   = node_allocator_traits::allocate(node_alloc, 1);
     node_allocator_traits::construct(node_alloc, node_ptr, true, node_ptr, alloc, max_count);
     return node_owner(node_ptr, node_deleter{std::move(node_alloc)});
   }
@@ -242,9 +240,8 @@ class btree_node {
       : children_ptr_(), parent_(parent), position_(0), max_count_(max_count), count_(0) {
     assert(0 <= max_count && max_count <= kNodeValues);
     if (not is_leaf) {
-      auto                                        children_alloc = children_allocator_type{alloc};
-      auto p =
-          children_allocator_traits::allocate(children_alloc, max_children_count());
+      auto children_alloc = children_allocator_type{alloc};
+      auto p = children_allocator_traits::allocate(children_alloc, max_children_count());
       for (node_count_type i = 0; i < max_children_count(); ++i) {
         children_allocator_traits::construct(children_alloc, &p[i], nullptr);
         std::cout << p[i].get() << std::endl;

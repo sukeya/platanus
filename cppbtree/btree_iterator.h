@@ -157,7 +157,8 @@ void btree_iterator<N, R, P>::decrement_slow() noexcept {
       position = node->position() - 1;
       node     = node->borrow_parent();
     }
-    // If node is the root, the previoud *this is the rend() position, so set *this to the saved rend() position.
+    // If node is the root, the previoud *this is the rend() position, so set *this to the saved
+    // rend() position.
     if (position < 0) {
       *this = save;
     }

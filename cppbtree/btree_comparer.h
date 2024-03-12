@@ -233,6 +233,6 @@ struct btree_internal_locate_compare_to {
   }
 };
 
-} // namespace cppbtree
+}  // namespace cppbtree
 
-#endif // CPPBTREE_BTREE_COMPARER_H_
+#endif  // CPPBTREE_BTREE_COMPARER_H_

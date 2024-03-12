@@ -27,7 +27,12 @@
 
 namespace cppbtree {
 
-template <typename Key, typename Compare, typename Alloc, std::uint_least16_t TargetNodeSize, std::uint_least16_t ValueSize>
+template <
+    typename Key,
+    typename Compare,
+    typename Alloc,
+    std::uint_least16_t TargetNodeSize,
+    std::uint_least16_t ValueSize>
 struct btree_common_params {
   // If Compare is derived from btree_key_compare_to_tag then use it as the
   // key_compare type. Otherwise, use btree_key_compare_to_adapter<> which will
@@ -48,11 +53,16 @@ struct btree_common_params {
   using difference_type = std::ptrdiff_t;
 
   static constexpr std::uint_least16_t kTargetNodeSize = TargetNodeSize;
-  static constexpr std::uint_least16_t kValueSize = ValueSize;
+  static constexpr std::uint_least16_t kValueSize      = ValueSize;
 };
 
 // A parameters structure for holding the type parameters for a btree_map.
-template <typename Key, typename Data, typename Compare, typename Alloc, std::uint_least16_t TargetNodeSize>
+template <
+    typename Key,
+    typename Data,
+    typename Compare,
+    typename Alloc,
+    std::uint_least16_t TargetNodeSize>
 struct btree_map_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key) + sizeof(Data)> {
   // Deprecated: use mapped_type instead.
@@ -81,9 +91,7 @@ struct btree_map_params
 
   static const Key& key(const value_type& x) noexcept { return x.first; }
   static const Key& key(const mutable_value_type& x) noexcept { return x.first; }
-  static void       swap(mutable_value_type& a, mutable_value_type& b) {
-          btree_swap_helper(a, b);
-  }
+  static void       swap(mutable_value_type& a, mutable_value_type& b) { btree_swap_helper(a, b); }
 };
 
 // A parameters structure for holding the type parameters for a btree_set.
@@ -110,9 +118,7 @@ struct btree_set_params
   static constexpr std::size_t kValueSize = sizeof(Key);
 
   static const Key& key(const value_type& x) noexcept { return x; }
-  static void       swap(mutable_value_type& a, mutable_value_type& b) {
-          btree_swap_helper(a, b);
-  }
+  static void       swap(mutable_value_type& a, mutable_value_type& b) { btree_swap_helper(a, b); }
 };
 
 }  // namespace cppbtree

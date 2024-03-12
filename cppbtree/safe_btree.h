@@ -154,8 +154,8 @@ class safe_btree {
   using tree_const_iterator = typename btree_type::const_iterator;
 
  public:
-  using params_type            = typename btree_type::params_type;
-  using key_type               = typename btree_type::key_type;
+  using params_type = typename btree_type::params_type;
+  using key_type    = typename btree_type::key_type;
   // Deprecated: use mapped_type instead.
   using data_type              = typename btree_type::data_type;
   using mapped_type            = typename btree_type::mapped_type;

@@ -508,7 +508,7 @@ class btree {
 
   allocator_type& ref_alloc() noexcept { return alloc_; }
 
-  key_compare& ref_key_comp() noexcept { return comp_; }
+  key_compare&       ref_key_comp() noexcept { return comp_; }
   const key_compare& ref_key_comp() const noexcept { return comp_; }
 
   // Node creation/deletion routines.

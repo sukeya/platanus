@@ -41,8 +41,10 @@ struct btree_iterator {
   using const_iterator = btree_iterator<const_node, const_reference, const_pointer>;
   using self_type      = btree_iterator<Node, Reference, Pointer>;
 
+  using node_borrower = typename Node::node_borrower;
+
   btree_iterator() noexcept : node(nullptr), position(-1) {}
-  btree_iterator(Node* n, int p) noexcept : node(n), position(p) {}
+  btree_iterator(node_borrower n, int p) noexcept : node(n), position(p) {}
   btree_iterator(const iterator& x) noexcept : node(x.node), position(x.position) {}
 
   // Increment/decrement the iterator.
@@ -93,7 +95,7 @@ struct btree_iterator {
   }
 
   // The node in the tree the iterator is pointing at.
-  Node* node;
+  node_borrower node;
   // The position within the node of the tree the iterator is pointing at.
   int position;
 };
@@ -107,9 +109,9 @@ void btree_iterator<N, R, P>::increment_slow() noexcept {
     self_type save(*this);
     // Climb the tree.
     while (position == node->count() && !node->is_root()) {
-      assert(node->parent()->child(node->position()) == node);
+      assert(node->borrow_parent()->borrow_child(node->position()) == node);
       position = node->position();
-      node     = node->parent();
+      node     = node->borrow_parent();
     }
     // If node is the root, this tree is fully iterated, so set this to the saved end() position.
     if (position == node->count()) {
@@ -117,10 +119,10 @@ void btree_iterator<N, R, P>::increment_slow() noexcept {
     }
   } else {
     assert(position < node->count());
-    node = node->child(position + 1);
+    node = node->borrow_child(position + 1);
     // Descend to the leaf node.
     while (!node->leaf()) {
-      node = node->child(0);
+      node = node->borrow_child(0);
     }
     position = 0;
   }
@@ -151,20 +153,20 @@ void btree_iterator<N, R, P>::decrement_slow() noexcept {
     self_type save(*this);
     // Climb the tree while updating the position to the left sibling of this in its parent node.
     while (position < 0 && !node->is_root()) {
-      assert(node->parent()->child(node->position()) == node);
+      assert(node->borrow_parent()->borrow_child(node->position()) == node);
       position = node->position() - 1;
-      node     = node->parent();
+      node     = node->borrow_parent();
     }
-    // If node is the root, this is the rend() position, so set this to the saved rend() position.
+    // If node is the root, the previoud *this is the rend() position, so set *this to the saved rend() position.
     if (position < 0) {
       *this = save;
     }
   } else {
     assert(position >= 0);
-    node = node->child(position);
+    node = node->borrow_child(position);
     // Descend to the leaf node.
     while (!node->leaf()) {
-      node = node->child(node->count());
+      node = node->borrow_child(node->count());
     }
     position = node->count() - 1;
   }

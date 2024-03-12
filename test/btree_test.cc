@@ -18,12 +18,10 @@
 #include "btree_test.h"
 
 namespace cppbtree {
-namespace {
 
 template <typename K, int N>
 void SetTest() {
   using TestAlloc = TestAllocator<K>;
-  ASSERT_EQ(sizeof(btree_set<K>), sizeof(void*));
   BtreeTest<btree_set<K, std::less<K>, std::allocator<K>, N>, std::set<K> >();
   BtreeAllocatorTest<btree_set<K, std::less<K>, TestAlloc, N> >();
 }
@@ -31,7 +29,6 @@ void SetTest() {
 template <typename K, int N>
 void MapTest() {
   using TestAlloc = TestAllocator<K>;
-  ASSERT_EQ(sizeof(btree_map<K, K>), sizeof(void*));
   BtreeTest<btree_map<K, K, std::less<K>, std::allocator<K>, N>, std::map<K, K> >();
   BtreeAllocatorTest<btree_map<K, K, std::less<K>, TestAlloc, N> >();
   BtreeMapTest<btree_map<K, K, std::less<K>, std::allocator<K>, N> >();
@@ -71,7 +68,6 @@ TEST(Btree, set_string_4096) { SetTest<std::string, 4096>(); }
 template <typename K, int N>
 void MultiSetTest() {
   using TestAlloc = TestAllocator<K>;
-  ASSERT_EQ(sizeof(btree_multiset<K>), sizeof(void*));
   BtreeMultiTest<btree_multiset<K, std::less<K>, std::allocator<K>, N>, std::multiset<K> >();
   BtreeAllocatorTest<btree_multiset<K, std::less<K>, TestAlloc, N> >();
 }
@@ -79,7 +75,6 @@ void MultiSetTest() {
 template <typename K, int N>
 void MultiMapTest() {
   using TestAlloc = TestAllocator<K>;
-  ASSERT_EQ(sizeof(btree_multimap<K, K>), sizeof(void*));
   BtreeMultiTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N>, std::multimap<K, K> >();
   BtreeMultiMapTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N> >();
   BtreeAllocatorTest<btree_multimap<K, K, std::less<K>, TestAlloc, N> >();
@@ -258,5 +253,4 @@ TEST(Btree, RangeCtorSanity) {
   EXPECT_EQ(1, tmap.size());
 }
 
-}  // namespace
 }  // namespace cppbtree

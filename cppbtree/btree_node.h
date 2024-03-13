@@ -246,7 +246,7 @@ class btree_node {
     if (not is_leaf) {
       auto children_alloc = children_allocator_type{alloc};
       auto p = children_allocator_traits::allocate(children_alloc, max_children_count());
-      for (node_count_type i = 0; i < max_children_count(); ++i) {
+      for (node_count_type i = 0; i < max_count + 1; ++i) {
         children_allocator_traits::construct(children_alloc, &p[i], nullptr);
       }
       children_ptr_ = children_ptr(p, children_deleter{std::move(children_alloc), max_children_count()});

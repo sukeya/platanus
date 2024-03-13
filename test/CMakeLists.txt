@@ -1,7 +1,6 @@
 set(tests 
-  #btree_test
-  #safe_btree_test
-  btree_node_test
+  btree_test
+  safe_btree_test
 )
 
 foreach(test ${tests})

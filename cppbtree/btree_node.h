@@ -104,7 +104,7 @@ class btree_node {
   using allocator_type   = typename Params::allocator_type;
   using allocator_traits = std::allocator_traits<allocator_type>;
 
-  using node_allocator_type   = allocator_traits::template rebind_alloc<btree_node>;
+  using node_allocator_type   = typename allocator_traits::template rebind_alloc<btree_node>;
   using node_allocator_traits = std::allocator_traits<node_allocator_type>;
 
   class node_deleter {
@@ -138,7 +138,7 @@ class btree_node {
   // allowed).
   using node_borrower = btree_node*;
 
-  using children_allocator_type   = allocator_traits::template rebind_alloc<node_owner>;
+  using children_allocator_type   = typename allocator_traits::template rebind_alloc<node_owner>;
   using children_allocator_traits = std::allocator_traits<children_allocator_type>;
 
   class children_deleter {
@@ -152,21 +152,27 @@ class btree_node {
     children_deleter& operator=(children_deleter&&)      = default;
     ~children_deleter()                                  = default;
 
-    explicit children_deleter(children_allocator_type&& alloc) : alloc_(std::move(alloc)) {}
+    explicit children_deleter(children_allocator_type&& alloc, node_count_type max_children_count)
+     : alloc_(std::move(alloc)), max_children_count_(max_children_count) {}
 
     void operator()(pointer p) {
       if (p == nullptr) {
         return;
       }
-      auto max_children_count = (*p)->borrow_parent()->max_children_count();
-      for (node_count_type i = 0; i < max_children_count; ++i) {
+      for (node_count_type i = 0; i < max_children_count_; ++i) {
         children_allocator_traits::destroy(alloc_, &p[i]);
       }
-      children_allocator_traits::deallocate(alloc_, p, max_children_count);
+      children_allocator_traits::deallocate(alloc_, p, max_children_count_);
+    }
+
+    void swap(children_deleter& x) noexcept {
+      std::swap(alloc_, x.alloc_);
+      std::swap(max_children_count_, x.max_children_count_);
     }
 
    private:
     children_allocator_type alloc_;
+    node_count_type max_children_count_;
   };
 
   using children_ptr                    = std::unique_ptr<node_owner[], children_deleter>;
@@ -243,7 +249,7 @@ class btree_node {
       for (node_count_type i = 0; i < max_children_count(); ++i) {
         children_allocator_traits::construct(children_alloc, &p[i], nullptr);
       }
-      children_ptr_ = children_ptr(p, children_deleter{std::move(children_alloc)});
+      children_ptr_ = children_ptr(p, children_deleter{std::move(children_alloc), max_children_count()});
     }
   }
 
@@ -749,10 +755,10 @@ void btree_node<P>::swap(btree_node& x) {
     // Swap the child pointers.
     btree_swap_helper(children_ptr_, x.children_ptr_);
     std::for_each_n(x.begin_children(), children_count(), [x](node_borrower np) {
-      np.parent_ = x.borrow_myself();
+      np->parent_ = x.borrow_myself();
     });
     std::for_each_n(begin_children(), x.children_count(), [this](node_borrower np) {
-      np.parent_ = borrow_myself();
+      np->parent_ = borrow_myself();
     });
   }
   btree_swap_helper(parent_, x.parent_);

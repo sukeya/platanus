@@ -18,6 +18,8 @@ project(cppbtree VERSION 1.1.0 LANGUAGES CXX)
 
 option(build_tests "Build B-tree tests" OFF)
 
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 

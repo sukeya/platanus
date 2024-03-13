@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <functional>
 #include <map>
+#include <random>
 #include <set>
 #include <string>
 #include <sys/time.h>
@@ -46,12 +47,6 @@ using std::vector;
 
 namespace cppbtree {
 namespace {
-
-struct RandGen {
-  using result_type = ptrdiff_t;
-  RandGen(result_type seed) { srand(seed); }
-  result_type operator()(result_type l) { return rand() % l; }
-};
 
 struct BenchmarkRun {
   BenchmarkRun(const char* name, void (*func)(int));
@@ -311,10 +306,10 @@ void BM_QueueAddRem(int n) {
     add_keys[i]    = i;
   }
 
-  RandGen rand(FLAGS_test_random_seed);
+  std::mt19937 rand(FLAGS_test_random_seed);
 
-  random_shuffle(remove_keys.begin(), remove_keys.end(), rand);
-  random_shuffle(add_keys.begin(), add_keys.end(), rand);
+  shuffle(remove_keys.begin(), remove_keys.end(), rand);
+  shuffle(add_keys.begin(), add_keys.end(), rand);
 
   Generator<V> g(FLAGS_benchmark_values + FLAGS_benchmark_max_iters);
 
@@ -336,8 +331,8 @@ void BM_QueueAddRem(int n) {
 
     if (idx == 0) {
       StopBenchmarkTiming();
-      random_shuffle(remove_keys.begin(), remove_keys.end(), rand);
-      random_shuffle(add_keys.begin(), add_keys.end(), rand);
+      shuffle(remove_keys.begin(), remove_keys.end(), rand);
+      shuffle(add_keys.begin(), add_keys.end(), rand);
       offset += half;
       StartBenchmarkTiming();
     }
@@ -361,7 +356,7 @@ void BM_MixedAddRem(int n) {
   assert(FLAGS_benchmark_values % 2 == 0);
 
   T       container;
-  RandGen rand(FLAGS_test_random_seed);
+  std::mt19937 rand(FLAGS_test_random_seed);
 
   vector<V> values = GenerateValues<V>(FLAGS_benchmark_values * 2);
 
@@ -388,8 +383,8 @@ void BM_MixedAddRem(int n) {
     if (idx == 0) {
       StopBenchmarkTiming();
       remove_keys.swap(add_keys);
-      random_shuffle(remove_keys.begin(), remove_keys.end(), rand);
-      random_shuffle(add_keys.begin(), add_keys.end(), rand);
+      shuffle(remove_keys.begin(), remove_keys.end(), rand);
+      shuffle(add_keys.begin(), add_keys.end(), rand);
       StartBenchmarkTiming();
     }
 

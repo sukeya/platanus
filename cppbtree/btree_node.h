@@ -101,6 +101,25 @@ class btree_node {
       std::uint_least16_t,
       std::uint_least8_t>::type;
 
+  static constexpr node_count_type kNodeTargetValues = kNodeValueSpace / kValueSize;
+  // We need a minimum of 3 values per internal node in order to perform
+  // splitting (1 value for the two nodes involved in the split and 1 value
+  // propagated to the parent as the delimiter for the split).
+  static constexpr node_count_type kNodeValues   = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
+  static constexpr node_count_type kNodeChildren = kNodeValues + 1;
+
+  static_assert(
+      std::numeric_limits<int>::digits >= 31, "This program requires int to have 32 bit at least."
+  );
+  static constexpr int kExactMatch = 1 << 30;
+  static constexpr int kMatchMask  = kExactMatch - 1;
+
+  using values_type                   = std::array<mutable_value_type, kNodeValues>;
+  using values_iterator               = typename values_type::iterator;
+  using values_const_iterator         = typename values_type::const_iterator;
+  using values_reverse_iterator       = typename values_type::reverse_iterator;
+  using values_const_reverse_iterator = typename values_type::const_reverse_iterator;
+
   using allocator_type   = typename Params::allocator_type;
   using allocator_traits = std::allocator_traits<allocator_type>;
 
@@ -118,18 +137,21 @@ class btree_node {
     node_deleter& operator=(node_deleter&&)      = default;
     ~node_deleter()                              = default;
 
-    explicit node_deleter(allocator_type&& alloc) : alloc_(std::move(alloc)) {}
+    explicit node_deleter(node_allocator_type& alloc) : alloc_(&alloc) {}
 
     void operator()(pointer p) {
       if (p == nullptr) {
         return;
       }
-      node_allocator_traits::destroy(alloc_, p);
-      node_allocator_traits::deallocate(alloc_, p, 1);
+      assert(alloc_ != nullptr);
+      node_allocator_traits::destroy(*alloc_, p);
+      node_allocator_traits::deallocate(*alloc_, p, 1);
     }
 
+    void swap(node_deleter& x) noexcept { btree_swap_helper(alloc_, x.alloc_); }
+
    private:
-    node_allocator_type alloc_;
+    node_allocator_type* alloc_;
   };
 
   // node_owner owes to allocate and release the memory of the node.
@@ -152,27 +174,25 @@ class btree_node {
     children_deleter& operator=(children_deleter&&)      = default;
     ~children_deleter()                                  = default;
 
-    explicit children_deleter(children_allocator_type&& alloc, node_count_type max_children_count)
-     : alloc_(std::move(alloc)), max_children_count_(max_children_count) {}
+    explicit children_deleter(children_allocator_type& alloc) : alloc_(&alloc) {}
 
     void operator()(pointer p) {
       if (p == nullptr) {
         return;
       }
-      for (node_count_type i = 0; i < max_children_count_; ++i) {
-        children_allocator_traits::destroy(alloc_, &p[i]);
+      assert(alloc_ != nullptr);
+      for (node_count_type i = 0; i < kValueSize + 1; ++i) {
+        if (not p[i]) {
+          children_allocator_traits::destroy(*alloc_, &p[i]);
+        }
       }
-      children_allocator_traits::deallocate(alloc_, p, max_children_count_);
+      children_allocator_traits::deallocate(*alloc_, p, kNodeChildren);
     }
 
-    void swap(children_deleter& x) noexcept {
-      std::swap(alloc_, x.alloc_);
-      std::swap(max_children_count_, x.max_children_count_);
-    }
+    void swap(children_deleter& x) noexcept { btree_swap_helper(alloc_, x.alloc_); }
 
    private:
-    children_allocator_type alloc_;
-    node_count_type max_children_count_;
+    children_allocator_type* alloc_;
   };
 
   using children_ptr                    = std::unique_ptr<node_owner[], children_deleter>;
@@ -181,49 +201,37 @@ class btree_node {
   using children_reverse_iterator       = std::reverse_iterator<children_iterator>;
   using children_const_reverse_iterator = std::reverse_iterator<children_const_iterator>;
 
-  static constexpr node_count_type kNodeTargetValues = kNodeValueSpace / kValueSize;
-  // We need a minimum of 3 values per internal node in order to perform
-  // splitting (1 value for the two nodes involved in the split and 1 value
-  // propagated to the parent as the delimiter for the split).
-  static constexpr node_count_type kNodeValues = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
-
-  using values_type                   = std::array<mutable_value_type, kNodeValues>;
-  using values_iterator               = typename values_type::iterator;
-  using values_const_iterator         = typename values_type::const_iterator;
-  using values_reverse_iterator       = typename values_type::reverse_iterator;
-  using values_const_reverse_iterator = typename values_type::const_reverse_iterator;
-
-  static_assert(
-      std::numeric_limits<int>::digits >= 31, "This program requires int to have 32 bit at least."
-  );
-  static constexpr int kExactMatch = 1 << 30;
-  static constexpr int kMatchMask  = kExactMatch - 1;
-
   static node_owner make_node(
-      bool            is_leaf,
-      node_borrower   parent,
-      allocator_type& alloc,
-      node_count_type max_count = kNodeValues
+      bool                     is_leaf,
+      node_borrower            parent,
+      node_allocator_type&     node_alloc,
+      children_allocator_type& children_alloc
   ) {
-    auto node_alloc = node_allocator_type{alloc};
-    auto node_ptr   = node_allocator_traits::allocate(node_alloc, 1);
-    node_allocator_traits::construct(node_alloc, node_ptr, is_leaf, parent, alloc, max_count);
-    return node_owner(node_ptr, node_deleter{std::move(node_alloc)});
+    auto node_ptr = node_allocator_traits::allocate(node_alloc, 1);
+    node_allocator_traits::construct(node_alloc, node_ptr, is_leaf, parent, children_alloc);
+    return node_owner(node_ptr, node_deleter{node_alloc});
   }
 
   static node_owner make_leaf_root_node(
-      allocator_type& alloc,
-      node_count_type max_count   = kNodeValues,
-      node_owner&&    reused_node = nullptr
+      node_allocator_type&     node_alloc,
+      children_allocator_type& children_alloc,
+      node_count_type          max_count   = kNodeValues,
+      node_owner&&             reused_node = nullptr
   ) {
     if (reused_node) {
       reused_node->max_count_ = max_count;
       return std::move(reused_node);
     }
-    auto node_alloc = node_allocator_type{alloc};
-    auto node_ptr   = node_allocator_traits::allocate(node_alloc, 1);
-    node_allocator_traits::construct(node_alloc, node_ptr, true, node_ptr, alloc, max_count);
-    return node_owner(node_ptr, node_deleter{std::move(node_alloc)});
+    auto node_ptr = node_allocator_traits::allocate(node_alloc, 1);
+    node_allocator_traits::construct(
+        node_alloc,
+        node_ptr,
+        true,
+        node_ptr,
+        children_alloc,
+        max_count
+    );
+    return node_owner(node_ptr, node_deleter{node_alloc});
   }
 
  public:
@@ -236,20 +244,19 @@ class btree_node {
   void operator=(const btree_node&) = delete;
 
   explicit btree_node(
-      bool            is_leaf,
-      node_borrower   parent,
-      allocator_type& alloc,
-      node_count_type max_count = kNodeValues
+      bool                     is_leaf,
+      node_borrower            parent,
+      children_allocator_type& children_alloc,
+      node_count_type          max_count = kNodeValues
   )
       : children_ptr_(), parent_(parent), position_(0), max_count_(max_count), count_(0) {
     assert(0 <= max_count && max_count <= kNodeValues);
     if (not is_leaf) {
-      auto children_alloc = children_allocator_type{alloc};
-      auto p = children_allocator_traits::allocate(children_alloc, max_children_count());
-      for (node_count_type i = 0; i < max_count + 1; ++i) {
+      auto p = children_allocator_traits::allocate(children_alloc, kNodeChildren);
+      for (node_count_type i = 0; i < kNodeChildren; ++i) {
         children_allocator_traits::construct(children_alloc, &p[i], nullptr);
       }
-      children_ptr_ = children_ptr(p, children_deleter{std::move(children_alloc), max_children_count()});
+      children_ptr_ = children_ptr(p, children_deleter{children_alloc});
     }
   }
 
@@ -266,7 +273,8 @@ class btree_node {
   // Getter for the position of this node in its parent.
   node_count_type position() const noexcept { return position_; }
   void            set_position(node_count_type v) noexcept {
-               assert(0 <= v && v < max_count());
+               assert(borrow_parent() != nullptr);
+               assert(0 <= v && v < borrow_parent()->max_children_count());
                position_ = v;
   }
 
@@ -313,7 +321,7 @@ class btree_node {
   void       set_child(node_count_type i, node_owner&& new_child) noexcept {
           children_ptr_[i]              = std::move(new_child);
           auto borrowed_new_child       = borrow_child(i);
-          borrowed_new_child->parent_   = this;
+          borrowed_new_child->parent_   = borrow_myself();
           borrowed_new_child->position_ = i;
   }
 
@@ -549,7 +557,7 @@ class btree_node {
 
   // Merges a node with its right sibling, moving all of the values and the
   // delimiting key in the parent node onto itself.
-  void merge(node_owner&& sibling);
+  void merge(node_borrower sibling);
 
   // Swap the contents of "this" and "src".
   void swap(btree_node& src);
@@ -609,14 +617,14 @@ template <typename P>
 inline void btree_node<P>::remove_value(int i) {
   if (!leaf()) {
     assert(borrow_child(i + 1)->count() == 0);
-    if (i + 2 != children_count()) {
+    if (i + 2 < children_count()) {
       shift_children_left(i + 2, children_count(), 1);
     }
   }
 
   auto old_values_count = values_count();
   set_count(count() - 1);
-  if (i != count()) {
+  if (i + 1 < old_values_count) {
     rotate_values(i, i + 1, old_values_count);
   }
 }
@@ -723,7 +731,7 @@ void btree_node<P>::split(node_owner&& dest, int insert_position) {
 }
 
 template <typename P>
-void btree_node<P>::merge(node_owner&& src) {
+void btree_node<P>::merge(node_borrower src) {
   assert(borrow_readonly_parent() == src->borrow_readonly_parent());
   assert(position() + 1 == src->position());
 
@@ -736,11 +744,12 @@ void btree_node<P>::merge(node_owner&& src) {
 
   if (!leaf()) {
     // Move the child pointers from the right to the left node.
-    receive_children(end_children(), src.get(), src->begin_children(), src->end_children());
+    receive_children(end_children(), src, src->begin_children(), src->end_children());
   }
 
   // Fixup the counts on the src and dest nodes.
   set_count(1 + count() + src->count());
+  src->set_count(0);
 
   // Remove the value on the parent node.
   borrow_parent()->remove_value(position());

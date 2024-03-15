@@ -139,6 +139,7 @@ class btree {
       btree_internal_locate_plain_compare>;
 
   static constexpr int kNodeValues    = node_type::kNodeValues;
+  static constexpr int kNodeChildren  = node_type::kNodeChildren;
   static constexpr int kMinNodeValues = kNodeValues / 2;
   static constexpr int kValueSize     = node_type::kValueSize;
   static constexpr int kExactMatch    = node_type::kExactMatch;
@@ -181,14 +182,16 @@ class btree {
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using reverse_iterator       = std::reverse_iterator<iterator>;
 
-  using allocator_type   = typename node_type::allocator_type;
-  using allocator_traits = std::allocator_traits<allocator_type>;
+  using allocator_type = typename node_type::allocator_type;
+
+  using node_allocator_type     = typename node_type::node_allocator_type;
+  using children_allocator_type = typename node_type::children_allocator_type;
 
  public:
-  btree() noexcept                   = default;
-  btree(btree&&) noexcept            = default;
-  btree& operator=(btree&&) noexcept = default;
-  ~btree()                           = default;
+  btree()                   = default;
+  btree(btree&&)            = default;
+  btree& operator=(btree&&) = default;
+  ~btree()                  = default;
 
   btree(const btree&);
   btree& operator=(const btree& x) {
@@ -202,7 +205,8 @@ class btree {
 
   btree(const key_compare& comp, const allocator_type& alloc);
 
-  allocator_type get_allocator() const noexcept { return alloc_; }
+  node_allocator_type     get_node_allocator() const noexcept { return node_alloc_; }
+  children_allocator_type get_children_allocator() const noexcept { return children_alloc_; }
 
   // Iterator routines.
   iterator       begin() noexcept { return iterator(borrow_leftmost(), 0); }
@@ -325,7 +329,7 @@ class btree {
 
   void assign(const self_type& x);
 
-  // Erase the specified iterator from the btree. The iterator must be valid
+  // Erase the specified element from the btree. The iterator must be valid
   // (i.e. not equal to end()).  Return an iterator pointing to the node after
   // the one that was erased (or end() if none exists).
   iterator erase(iterator iter);
@@ -397,17 +401,12 @@ class btree {
   void verify() const;
 
   // Size routines. Note that empty() is slightly faster than doing size()==0.
-  size_type size() const noexcept {
-    if (empty()) {
-      return 0;
-    }
-    if (borrow_readonly_root()->leaf()) {
-      return borrow_readonly_root()->count();
-    }
-    return size_;
-  }
+  size_type size() const noexcept { return size_; }
   size_type max_size() const noexcept { return std::numeric_limits<size_type>::max(); }
-  bool      empty() const noexcept { return borrow_readonly_root() == nullptr; }
+  bool      empty() const noexcept {
+         assert((size() == 0) == (borrow_readonly_root() == nullptr));
+         return size() == 0;
+  }
 
   // The height of the btree. An empty tree will have height 0.
   size_type height() const noexcept {
@@ -444,8 +443,8 @@ class btree {
     if (stats.leaf_nodes == 1 && stats.internal_nodes == 0) {
       return sizeof(*this) + sizeof(node_type);
     } else {
-      return sizeof(*this) + sizeof(node_type) * (stats.leaf_nodes + stats.internal_nodes + 1)
-             + stats.internal_nodes * sizeof(node_owner);
+      return sizeof(*this) + sizeof(node_type) * (stats.leaf_nodes + stats.internal_nodes)
+             + stats.internal_nodes * sizeof(node_owner) * kNodeChildren;
     }
   }
 
@@ -490,10 +489,6 @@ class btree {
     return static_cast<const node_borrower>(const_cast<btree*>(this)->borrow_rightmost());
   }
   void set_rightmost(node_borrower node) noexcept { rightmost_ = node; }
-  void set_rightmost(node_owner&& node) noexcept {
-    auto rightmost_parent = borrow_rightmost()->borrow_parent();
-    rightmost_parent->set_child(borrow_readonly_rightmost()->position(), std::move(node));
-  }
 
   // The leftmost node is stored as the parent of the root node.
   node_borrower borrow_leftmost() noexcept {
@@ -504,27 +499,38 @@ class btree {
   }
 
   // Getter/Setter for the size of the tree.
-  size_type& ref_size() noexcept { return size_; }
+  void set_size(size_type size) noexcept { size_ = size; }
 
-  allocator_type& ref_alloc() noexcept { return alloc_; }
+  node_allocator_type&     ref_node_alloc() noexcept { return node_alloc_; }
+  children_allocator_type& ref_children_alloc() noexcept { return children_alloc_; }
 
   key_compare&       ref_key_comp() noexcept { return comp_; }
   const key_compare& ref_key_comp() const noexcept { return comp_; }
 
   // Node creation/deletion routines.
-  node_owner make_internal_node(node_borrower parent, node_count_type max_count = kNodeValues) {
-    return node_type::make_node(false, parent, ref_alloc(), max_count);
+  node_owner make_internal_node(node_borrower parent) {
+    return node_type::make_node(false, parent, ref_node_alloc(), ref_children_alloc());
   }
-  node_owner make_internal_root_node(node_count_type max_count = kNodeValues) {
-    return node_type::make_node(false, borrow_root()->borrow_parent(), ref_alloc(), max_count);
+  node_owner make_internal_root_node() {
+    return node_type::make_node(
+        false,
+        borrow_root()->borrow_parent(),
+        ref_node_alloc(),
+        ref_children_alloc()
+    );
   }
-  node_owner make_leaf_node(node_borrower parent, node_count_type max_count = kNodeValues) {
-    return node_type::make_node(true, parent, ref_alloc(), max_count);
+  node_owner make_leaf_node(node_borrower parent) {
+    return node_type::make_node(true, parent, ref_node_alloc(), ref_children_alloc());
   }
   node_owner make_leaf_root_node(
       node_count_type max_count = kNodeValues, node_owner&& reused_node = nullptr
   ) {
-    return node_type::make_leaf_root_node(ref_alloc(), max_count, std::move(reused_node));
+    return node_type::make_leaf_root_node(
+        ref_node_alloc(),
+        ref_children_alloc(),
+        max_count,
+        std::move(reused_node)
+    );
   }
 
   // Rebalances or splits the node iter points to.
@@ -532,13 +538,13 @@ class btree {
 
   // Merges the values of left, right and the delimiting key on their parent
   // onto left, removing the delimiting key and deleting right.
-  void merge_nodes(node_borrower left, node_owner&& right);
+  void merge_nodes(node_borrower left, node_borrower right);
 
   // Tries to merge node with its left or right sibling, and failing that,
   // rebalance with its left or right sibling. Returns true if a merge
   // occurred, at which point it is no longer valid to access node. Returns
   // false if no merging took place.
-  bool try_merge_or_rebalance(iterator* iter);
+  bool try_merge_or_rebalance(iterator& iter);
 
   // Tries to shrink the height of the tree by 1.
   void try_shrink();
@@ -610,14 +616,15 @@ class btree {
   }
 
  private:
-  node_owner     root_;
-  allocator_type alloc_;
-  key_compare    comp_;
+  key_compare             comp_{};
+  node_allocator_type     node_alloc_{};
+  children_allocator_type children_alloc_{};
+  node_owner              root_{};
   // TODO
   // A pointer to the rightmost node of the tree?
-  node_borrower rightmost_;
+  node_borrower rightmost_{nullptr};
   // The size of the tree.
-  size_type size_;
+  size_type size_{0};
 
  private:
   // A never instantiated helper function that returns big_ if we have a
@@ -650,11 +657,21 @@ class btree {
 // btree methods
 template <typename P>
 btree<P>::btree(const key_compare& comp, const allocator_type& alloc)
-    : root_(), comp_(comp), alloc_(alloc), rightmost_(nullptr), size_(0) {}
+    : root_(),
+      comp_(comp),
+      node_alloc_(alloc),
+      children_alloc_(alloc),
+      rightmost_(nullptr),
+      size_(0) {}
 
 template <typename P>
 btree<P>::btree(const self_type& x)
-    : root_(), comp_(x.key_comp()), alloc_(x.alloc_), rightmost_(x.rightmost_), size_(x.size_) {
+    : root_(),
+      comp_(x.comp_),
+      node_alloc_(x.node_alloc_),
+      children_alloc_(x.children_alloc_),
+      rightmost_(x.rightmost_),
+      size_(x.size_) {
   assign(x);
 }
 
@@ -665,6 +682,7 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::insert_unique(
 ) {
   if (empty()) {
     set_root(make_leaf_root_node(1));
+    set_rightmost(borrow_root());
   }
 
   std::pair<iterator, int> res  = internal_locate(key, iterator(borrow_root(), 0));
@@ -722,6 +740,7 @@ template <typename ValuePointer>
 typename btree<P>::iterator btree<P>::insert_multi(const key_type& key, ValuePointer value) {
   if (empty()) {
     set_root(make_leaf_root_node(1));
+    set_rightmost(borrow_root());
   }
 
   iterator iter = internal_upper_bound(key, iterator(borrow_readonly_root(), 0));
@@ -789,10 +808,8 @@ typename btree<P>::iterator btree<P>::erase(iterator iter) {
     assert(!compare_keys(tmp_iter.key(), iter.key()));
     iter.node->value_swap(iter.position, tmp_iter.node, tmp_iter.position);
     internal_delete = true;
-    --ref_size();
-  } else if (!borrow_readonly_root()->leaf()) {
-    --ref_size();
   }
+  set_size(size() - 1);
 
   // Delete the key from the leaf.
   iter.node->remove_value(iter.position);
@@ -817,7 +834,7 @@ typename btree<P>::iterator btree<P>::erase(iterator iter) {
     if (iter.node->count() >= kMinNodeValues) {
       break;
     }
-    bool merged = try_merge_or_rebalance(&iter);
+    bool merged = try_merge_or_rebalance(iter);
     if (iter.node->leaf()) {
       res = iter;
     }
@@ -876,7 +893,8 @@ template <typename P>
 void btree<P>::swap(self_type& x) {
   btree_swap_helper(comp_, x.comp_);
   btree_swap_helper(root_, x.root_);
-  btree_swap_helper(alloc_, x.alloc_);
+  btree_swap_helper(node_alloc_, x.node_alloc_);
+  btree_swap_helper(children_alloc_, x.children_alloc_);
   btree_swap_helper(rightmost_, x.rightmost_);
   btree_swap_helper(size_, x.size_);
 }
@@ -971,7 +989,7 @@ void btree<P>::rebalance_or_split(iterator& iter) {
     auto new_root = make_internal_root_node();
     new_root->set_child(0, extract_root());
     set_root(std::move(new_root));
-    if (borrow_readonly_root()->leaf()) {
+    if (borrow_readonly_root()->borrow_readonly_child(0)->leaf()) {
       // The root node is currently a leaf node: set the current root node as the child of the new
       // root.
       set_rightmost(borrow_root()->borrow_child(0));
@@ -1000,58 +1018,56 @@ void btree<P>::rebalance_or_split(iterator& iter) {
 }
 
 template <typename P>
-void btree<P>::merge_nodes(node_borrower left, node_owner&& right) {
-  if (right->leaf() && borrow_readonly_rightmost() == right->borrow_readonly_myself()) {
+void btree<P>::merge_nodes(node_borrower left, node_borrower right) {
+  left->merge(right);
+  if (right->leaf() && borrow_readonly_rightmost() == right) {
     set_rightmost(left);
   }
-  left->merge(std::move(right));
 }
 
 template <typename P>
-bool btree<P>::try_merge_or_rebalance(iterator* iter) {
-  node_borrower parent = iter->node->borrow_parent();
-  if (iter->node->position() > 0) {
+bool btree<P>::try_merge_or_rebalance(iterator& iter) {
+  node_borrower parent = iter.node->borrow_parent();
+  if (iter.node->position() > 0) {
     // Try merging with our left sibling.
-    node_borrower left = parent->borrow_child(iter->node->position() - 1);
-    if ((1 + left->count() + iter->node->count()) <= left->max_count()) {
-      iter->position += 1 + left->count();
-      auto iter_node_parent = iter->node->borrow_parent();
-      merge_nodes(left, iter_node_parent->extract_child(iter->node->position()));
-      iter->node = left;
+    node_borrower left = parent->borrow_child(iter.node->position() - 1);
+    if ((1 + left->count() + iter.node->count()) <= left->max_count()) {
+      iter.position += 1 + left->count();
+      merge_nodes(left, iter.node);
+      iter.node = left;
       return true;
     }
   }
-  if (iter->node->position() < parent->count()) {
+  if (iter.node->position() < parent->count()) {
     // Try merging with our right sibling.
-    node_borrower right = parent->borrow_child(iter->node->position() + 1);
-    if ((1 + iter->node->count() + right->count()) <= right->max_count()) {
-      node_owner right = parent->extract_child(iter->node->position() + 1);
-      merge_nodes(iter->node, std::move(right));
+    node_borrower right = parent->borrow_child(iter.node->position() + 1);
+    if ((1 + iter.node->count() + right->count()) <= right->max_count()) {
+      merge_nodes(iter.node, right);
       return true;
     }
     // Try rebalancing with our right sibling. We don't perform rebalancing if
-    // we deleted the first element from iter->node and the node is not
+    // we deleted the first element from iter.node and the node is not
     // empty. This is a small optimization for the common pattern of deleting
     // from the front of the tree.
-    if ((right->count() > kMinNodeValues) && ((iter->node->count() == 0) || (iter->position > 0))) {
-      int to_move = (right->count() - iter->node->count()) / 2;
+    if ((right->count() > kMinNodeValues) && ((iter.node->count() == 0) || (iter.position > 0))) {
+      int to_move = (right->count() - iter.node->count()) / 2;
       to_move     = std::min(to_move, right->count() - 1);
-      iter->node->rebalance_right_to_left(right, to_move);
+      iter.node->rebalance_right_to_left(right, to_move);
       return false;
     }
   }
-  if (iter->node->position() > 0) {
+  if (iter.node->position() > 0) {
     // Try rebalancing with our left sibling. We don't perform rebalancing if
-    // we deleted the last element from iter->node and the node is not
+    // we deleted the last element from iter.node and the node is not
     // empty. This is a small optimization for the common pattern of deleting
     // from the back of the tree.
-    node_borrower left = parent->borrow_child(iter->node->position() - 1);
+    node_borrower left = parent->borrow_child(iter.node->position() - 1);
     if ((left->count() > kMinNodeValues)
-        && ((iter->node->count() == 0) || (iter->position < iter->node->count()))) {
-      int to_move = (left->count() - iter->node->count()) / 2;
+        && ((iter.node->count() == 0) || (iter.position < iter.node->count()))) {
+      int to_move = (left->count() - iter.node->count()) / 2;
       to_move     = std::min(to_move, left->count() - 1);
-      left->rebalance_left_to_right(iter->node, to_move);
-      iter->position += to_move;
+      left->rebalance_left_to_right(iter.node, to_move);
+      iter.position += to_move;
       return false;
     }
   }
@@ -1072,13 +1088,11 @@ void btree<P>::try_shrink() {
     if (child->leaf()) {
       // The child is a leaf node so simply make it the root node in the tree.
       child->make_root();
-      set_root(std::move(child));
-    } else {
-      // The child is an internal node. We want to keep the existing root node
-      // so we move all of the values from the child node into the existing
-      // (empty) root node.
-      set_root(std::move(child));
     }
+    // We want to keep the existing root node
+    // so we move all of the values from the child node into the existing
+    // (empty) root node.
+    set_root(std::move(child));
   }
 }
 
@@ -1115,11 +1129,9 @@ inline typename btree<P>::iterator btree<P>::internal_insert(iterator iter, cons
       iter.node = borrow_root();
     } else {
       rebalance_or_split(iter);
-      ++ref_size();
     }
-  } else if (!borrow_readonly_root()->leaf()) {
-    ++ref_size();
   }
+  set_size(size() + 1);
   iter.node->insert_value(iter.position, v);
   return iter;
 }

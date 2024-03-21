@@ -213,17 +213,10 @@ class btree_node {
   }
 
   static node_owner make_leaf_root_node(
-      node_allocator_type&     node_alloc,
-      children_allocator_type& children_alloc
+      node_allocator_type& node_alloc, children_allocator_type& children_alloc
   ) {
     auto node_ptr = node_allocator_traits::allocate(node_alloc, 1);
-    node_allocator_traits::construct(
-        node_alloc,
-        node_ptr,
-        true,
-        node_ptr,
-        children_alloc
-    );
+    node_allocator_traits::construct(node_alloc, node_ptr, true, node_ptr, children_alloc);
     return node_owner(node_ptr, node_deleter{node_alloc});
   }
 
@@ -236,11 +229,7 @@ class btree_node {
   btree_node(const btree_node&)     = delete;
   void operator=(const btree_node&) = delete;
 
-  explicit btree_node(
-      bool                     is_leaf,
-      node_borrower            parent,
-      children_allocator_type& children_alloc
-  )
+  explicit btree_node(bool is_leaf, node_borrower parent, children_allocator_type& children_alloc)
       : children_ptr_(), parent_(parent), position_(0), count_(0) {
     if (not is_leaf) {
       auto p = children_allocator_traits::allocate(children_alloc, kNodeChildren);
@@ -270,11 +259,7 @@ class btree_node {
   }
 
   // Getter/setter for the number of values stored in this node.
-  node_count_type count() const noexcept { return count_; }
-  void            set_count(node_count_type v) noexcept {
-               assert(0 <= v && v <= max_count());
-               count_ = v;
-  }
+  node_count_type           count() const noexcept { return count_; }
   constexpr node_count_type max_count() const noexcept { return kNodeValues; }
 
   // Getter for the parent of this node.
@@ -554,6 +539,11 @@ class btree_node {
   void swap(btree_node& src);
 
  private:
+  void set_count(node_count_type v) noexcept {
+    assert(0 <= v && v <= max_count());
+    count_ = v;
+  }
+
   template <typename... Args>
   void value_init(int i, Args&&... args) {
     values_[i] = mutable_value_type{std::forward<Args>(args)...};

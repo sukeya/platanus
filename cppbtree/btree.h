@@ -430,7 +430,7 @@ class btree {
       // root.
       ++h;
       const node_type* n = borrow_readonly_leftmost();
-      while (n != borrow_readonly_root()){
+      while (n != borrow_readonly_root()) {
         ++h;
         n = n->borrow_readonly_parent();
       }
@@ -508,7 +508,7 @@ class btree {
   const node_borrower borrow_readonly_leftmost() const noexcept {
     return static_cast<const node_borrower>(const_cast<btree*>(this)->borrow_leftmost());
   }
-  
+
   // Getter/Setter for the size of the tree.
   void set_size(size_type size) noexcept { size_ = size; }
 
@@ -534,10 +534,7 @@ class btree {
     return node_type::make_node(true, parent, ref_node_alloc(), ref_children_alloc());
   }
   node_owner make_leaf_root_node() {
-    return node_type::make_leaf_root_node(
-        ref_node_alloc(),
-        ref_children_alloc()
-    );
+    return node_type::make_leaf_root_node(ref_node_alloc(), ref_children_alloc());
   }
 
   // Rebalances or splits the node iter points to.
@@ -629,7 +626,7 @@ class btree {
   node_owner              root_{};
   // A pointer to the rightmost node of the tree
   node_borrower rightmost_{nullptr};
-    // The size of the tree.
+  // The size of the tree.
   size_type size_{0};
 };
 
@@ -642,7 +639,7 @@ btree<P>::btree(const key_compare& comp, const allocator_type& alloc)
       node_alloc_(alloc),
       children_alloc_(alloc),
       rightmost_(nullptr),
-            size_(0) {}
+      size_(0) {}
 
 template <typename P>
 btree<P>::btree(const self_type& x)
@@ -651,7 +648,7 @@ btree<P>::btree(const self_type& x)
       node_alloc_(x.node_alloc_),
       children_alloc_(x.children_alloc_),
       rightmost_(x.rightmost_),
-            size_(x.size_) {
+      size_(x.size_) {
   assign(x);
 }
 
@@ -663,7 +660,7 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::insert_unique(
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
-      }
+  }
 
   std::pair<iterator, int> res  = internal_locate(key, iterator(borrow_root(), 0));
   iterator&                iter = res.first;
@@ -721,7 +718,7 @@ typename btree<P>::iterator btree<P>::insert_multi(const key_type& key, ValuePoi
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
-      }
+  }
 
   iterator iter = internal_upper_bound(key, iterator(borrow_readonly_root(), 0));
   if (!iter.node) {
@@ -1051,7 +1048,7 @@ bool btree<P>::try_merge_or_rebalance(iterator& iter) {
       return false;
     }
   }
-    return false;
+  return false;
 }
 
 template <typename P>

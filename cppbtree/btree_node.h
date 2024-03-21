@@ -214,22 +214,15 @@ class btree_node {
 
   static node_owner make_leaf_root_node(
       node_allocator_type&     node_alloc,
-      children_allocator_type& children_alloc,
-      node_count_type          max_count   = kNodeValues,
-      node_owner&&             reused_node = nullptr
+      children_allocator_type& children_alloc
   ) {
-    if (reused_node) {
-      reused_node->max_count_ = max_count;
-      return std::move(reused_node);
-    }
     auto node_ptr = node_allocator_traits::allocate(node_alloc, 1);
     node_allocator_traits::construct(
         node_alloc,
         node_ptr,
         true,
         node_ptr,
-        children_alloc,
-        max_count
+        children_alloc
     );
     return node_owner(node_ptr, node_deleter{node_alloc});
   }
@@ -246,11 +239,9 @@ class btree_node {
   explicit btree_node(
       bool                     is_leaf,
       node_borrower            parent,
-      children_allocator_type& children_alloc,
-      node_count_type          max_count = kNodeValues
+      children_allocator_type& children_alloc
   )
-      : children_ptr_(), parent_(parent), position_(0), max_count_(max_count), count_(0) {
-    assert(0 <= max_count && max_count <= kNodeValues);
+      : children_ptr_(), parent_(parent), position_(0), count_(0) {
     if (not is_leaf) {
       auto p = children_allocator_traits::allocate(children_alloc, kNodeChildren);
       for (node_count_type i = 0; i < kNodeChildren; ++i) {
@@ -284,7 +275,7 @@ class btree_node {
                assert(0 <= v && v <= max_count());
                count_ = v;
   }
-  node_count_type max_count() const noexcept { return max_count_; }
+  constexpr node_count_type max_count() const noexcept { return kNodeValues; }
 
   // Getter for the parent of this node.
   node_borrower       borrow_parent() const noexcept { return parent_; }
@@ -580,8 +571,6 @@ class btree_node {
   node_borrower parent_;
   // The position of the node in the node's parent.
   node_count_type position_;
-  // The maximum number of values the node can hold.
-  node_count_type max_count_;
   // The count of the number of values in the node.
   node_count_type count_;
 };
@@ -632,6 +621,7 @@ inline void btree_node<P>::remove_value(int i) {
 template <typename P>
 void btree_node<P>::rebalance_right_to_left(node_borrower src, int to_move) {
   assert(borrow_readonly_parent() == src->borrow_readonly_parent());
+  assert(borrow_readonly_parent() != nullptr);
   assert(position() + 1 == src->position());
   assert(src->count() >= count());
   assert(to_move >= 1);
@@ -650,7 +640,6 @@ void btree_node<P>::rebalance_right_to_left(node_borrower src, int to_move) {
   if (!leaf()) {
     // Move the child pointers from the right to the left node.
     receive_children_n(end_children(), src, src->begin_children(), to_move);
-    assert(src->count() <= src->max_count());
     src->shift_children_left(to_move, src->children_count(), to_move);
   }
 
@@ -662,6 +651,7 @@ void btree_node<P>::rebalance_right_to_left(node_borrower src, int to_move) {
 template <typename P>
 void btree_node<P>::rebalance_left_to_right(node_borrower dest, int to_move) {
   assert(borrow_readonly_parent() == dest->borrow_readonly_parent());
+  assert(borrow_readonly_parent() != nullptr);
   assert(position() + 1 == dest->position());
   assert(count() >= dest->count());
   assert(to_move >= 1);
@@ -697,6 +687,7 @@ void btree_node<P>::rebalance_left_to_right(node_borrower dest, int to_move) {
 template <typename P>
 void btree_node<P>::split(node_owner&& dest, int insert_position) {
   assert(dest->count() == 0);
+  assert(borrow_readonly_parent() != nullptr);
 
   // We bias the split based on the position being inserted. If we're
   // inserting at the beginning of the left node then bias the split to put
@@ -704,7 +695,7 @@ void btree_node<P>::split(node_owner&& dest, int insert_position) {
   // right node then bias the split to put more values on the left node.
   if (insert_position == 0) {
     dest->set_count(count() - 1);
-  } else if (insert_position == max_count()) {
+  } else if (insert_position == max_children_count() - 1) {
     dest->set_count(0);
   } else {
     dest->set_count(count() / 2);
@@ -733,6 +724,7 @@ void btree_node<P>::split(node_owner&& dest, int insert_position) {
 template <typename P>
 void btree_node<P>::merge(node_borrower src) {
   assert(borrow_readonly_parent() == src->borrow_readonly_parent());
+  assert(borrow_readonly_parent() != nullptr);
   assert(position() + 1 == src->position());
 
   // Move the delimiting value to the left node.
@@ -772,7 +764,6 @@ void btree_node<P>::swap(btree_node& x) {
   }
   btree_swap_helper(parent_, x.parent_);
   btree_swap_helper(position_, x.position_);
-  btree_swap_helper(max_count_, x.max_count_);
   btree_swap_helper(count_, x.count_);
 }
 

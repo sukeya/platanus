@@ -32,13 +32,6 @@ inline void btree_swap_helper(T& a, T& b) {
   swap(a, b);
 }
 
-// Types small_ and big_ are promise that sizeof(small_) < sizeof(big_)
-using small_ = char;
-
-struct big_ {
-  char dummy[2];
-};
-
 }  // namespace cppbtree
 
 #endif  // CPPBTREE_BTREE_UTIL_H_

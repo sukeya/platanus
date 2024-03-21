@@ -631,32 +631,6 @@ class btree {
   node_borrower rightmost_{nullptr};
     // The size of the tree.
   size_type size_{0};
-
- private:
-  // A never instantiated helper function that returns big_ if we have a
-  // key-compare-to functor or if R is bool and small_ otherwise.
-  template <typename R>
-  static typename std::conditional_t<
-      std::conditional_t<is_key_compare_to::value, std::is_same<R, int>, std::is_same<R, bool>>::
-          value,
-      big_,
-      small_>
-      key_compare_checker(R);
-
-  // A never instantiated helper function that returns the key comparison
-  // functor.
-  static key_compare key_compare_helper();
-
-  // Verify that key_compare returns a bool. This is similar to the way
-  // is_convertible in base/type_traits.h works. Note that key_compare_checker
-  // is never actually invoked. The compiler will select which
-  // key_compare_checker() to instantiate and then figure out the size of the
-  // return type of key_compare_checker() at compile time which we then check
-  // against the sizeof of big_.
-  static_assert(
-      sizeof(key_compare_checker(key_compare_helper()(key_type(), key_type()))) == sizeof(big_),
-      "key comparison function must return bool"
-  );
 };
 
 ////

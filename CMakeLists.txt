@@ -76,7 +76,7 @@ export(EXPORT cppbtreeTargets
   NAMESPACE cppbtree::
 )
 
-if(build_tests)
+if(BUILD_TESTS)
   enable_testing()
 
   find_package(GTest REQUIRED)

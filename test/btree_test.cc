@@ -161,22 +161,16 @@ TEST(Btree, IteratorIncrementBy) {
     my_set.insert(i);
   }
 
-  {
-    // Simple increment vs. increment by.
-    btree_set<int32_t>::iterator a = my_set.begin();
-    btree_set<int32_t>::iterator b = my_set.begin();
+  btree_set<int32_t>::iterator a = my_set.begin();
+  for (int i = 0; i < kSetSize; ++i) {
+    EXPECT_EQ(*a, i);
     a.increment();
-    b.increment_by(1);
-    EXPECT_EQ(*a, *b);
   }
 
-  btree_set<int32_t>::iterator a = my_set.begin();
-  for (int i = 1; i < kSetSize; ++i) {
-    ++a;
-    // increment_by
-    btree_set<int32_t>::iterator b = my_set.begin();
-    b.increment_by(i);
-    EXPECT_EQ(*a, *b) << ": i=" << i;
+  btree_set<int32_t>::iterator b = my_set.begin();
+  for (int i = 0; i < kSetSize; ++i) {
+    EXPECT_EQ(*b, i);
+    ++b;
   }
 }
 

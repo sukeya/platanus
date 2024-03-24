@@ -31,8 +31,8 @@ template <
     typename Key,
     typename Compare,
     typename Alloc,
-    std::uint_least16_t TargetNodeSize,
-    std::uint_least16_t ValueSize>
+    std::size_t TargetNodeSize,
+    std::size_t ValueSize>
 struct btree_common_params {
   // If Compare is derived from btree_key_compare_to_tag then use it as the
   // key_compare type. Otherwise, use btree_key_compare_to_adapter<> which will
@@ -52,17 +52,12 @@ struct btree_common_params {
   using size_type       = ssize_t;
   using difference_type = std::ptrdiff_t;
 
-  static constexpr std::uint_least16_t kTargetNodeSize = TargetNodeSize;
-  static constexpr std::uint_least16_t kValueSize      = ValueSize;
+  static constexpr std::size_t kTargetNodeSize = TargetNodeSize;
+  static constexpr std::size_t kValueSize      = ValueSize;
 };
 
 // A parameters structure for holding the type parameters for a btree_map.
-template <
-    typename Key,
-    typename Data,
-    typename Compare,
-    typename Alloc,
-    std::uint_least16_t TargetNodeSize>
+template <typename Key, typename Data, typename Compare, typename Alloc, std::size_t TargetNodeSize>
 struct btree_map_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key) + sizeof(Data)> {
   // Deprecated: use mapped_type instead.
@@ -70,12 +65,11 @@ struct btree_map_params
   using mapped_type        = Data;
   using value_type         = std::pair<const Key, mapped_type>;
   using mutable_value_type = std::pair<Key, mapped_type>;
-  using key_compare        = typename btree_common_params<
-      Key,
-      Compare,
-      Alloc,
-      TargetNodeSize,
-      sizeof(Key) + sizeof(Data)>::key_compare;
+
+  static constexpr std::size_t kValueSize = sizeof(Key) + sizeof(mapped_type);
+
+  using key_compare =
+      typename btree_common_params<Key, Compare, Alloc, TargetNodeSize, kValueSize>::key_compare;
   // TODO
   using value_compare   = std::false_type;
   using pointer         = value_type*;
@@ -83,39 +77,29 @@ struct btree_map_params
   using reference       = value_type&;
   using const_reference = const value_type&;
 
-  static_assert(
-      sizeof(Key) + sizeof(mapped_type) <= std::numeric_limits<std::uint_least16_t>::max(),
-      "The total size of Key and mapped_type must be less than the max of std::uint_least16_t."
-  );
-  static constexpr std::uint_least16_t kValueSize = sizeof(Key) + sizeof(mapped_type);
-
   static const Key& key(const value_type& x) noexcept { return x.first; }
   static const Key& key(const mutable_value_type& x) noexcept { return x.first; }
   static void       swap(mutable_value_type& a, mutable_value_type& b) { btree_swap_helper(a, b); }
 };
 
 // A parameters structure for holding the type parameters for a btree_set.
-template <typename Key, typename Compare, typename Alloc, std::uint_least16_t TargetNodeSize>
+template <typename Key, typename Compare, typename Alloc, std::size_t TargetNodeSize>
 struct btree_set_params
     : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key)> {
+  static constexpr std::size_t kValueSize = sizeof(Key);
+
   // Deprecated: use mapped_type instead.
   using data_type          = std::false_type;
   using mapped_type        = std::false_type;
   using value_type         = Key;
   using mutable_value_type = value_type;
   using key_compare =
-      typename btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key)>::key_compare;
+      typename btree_common_params<Key, Compare, Alloc, TargetNodeSize, kValueSize>::key_compare;
   using value_compare   = key_compare;
   using pointer         = value_type*;
   using const_pointer   = const value_type*;
   using reference       = value_type&;
   using const_reference = const value_type&;
-
-  static_assert(
-      sizeof(Key) <= std::numeric_limits<std::uint_least16_t>::max(),
-      "The size of Key must be less than the max of std::uint_least16_t."
-  );
-  static constexpr std::size_t kValueSize = sizeof(Key);
 
   static const Key& key(const value_type& x) noexcept { return x; }
   static void       swap(mutable_value_type& a, mutable_value_type& b) { btree_swap_helper(a, b); }

@@ -172,10 +172,12 @@ struct btree_upper_bound_compare_to_adapter : public CompareTo {
 // Dispatch helper class for using linear search with plain compare.
 template <typename K, typename N, typename Compare>
 struct btree_linear_search_plain_compare {
-  static int lower_bound(const K& k, const N& n, Compare comp) {
+  using node_search_result = typename N::search_result;
+
+  static node_search_result lower_bound(const K& k, const N& n, Compare comp) {
     return n.linear_search_plain_compare(k, 0, n.count(), comp);
   }
-  static int upper_bound(const K& k, const N& n, Compare comp) {
+  static node_search_result upper_bound(const K& k, const N& n, Compare comp) {
     using upper_compare = btree_upper_bound_adapter<K, Compare>;
     return n.linear_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
@@ -184,10 +186,12 @@ struct btree_linear_search_plain_compare {
 // Dispatch helper class for using linear search with compare-to
 template <typename K, typename N, typename CompareTo>
 struct btree_linear_search_compare_to {
-  static int lower_bound(const K& k, const N& n, CompareTo comp) {
+  using node_search_result = typename N::search_result;
+
+  static node_search_result lower_bound(const K& k, const N& n, CompareTo comp) {
     return n.linear_search_compare_to(k, 0, n.count(), comp);
   }
-  static int upper_bound(const K& k, const N& n, CompareTo comp) {
+  static node_search_result upper_bound(const K& k, const N& n, CompareTo comp) {
     using upper_compare = btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true>>;
     return n.linear_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
@@ -196,10 +200,12 @@ struct btree_linear_search_compare_to {
 // Dispatch helper class for using binary search with plain compare.
 template <typename K, typename N, typename Compare>
 struct btree_binary_search_plain_compare {
-  static int lower_bound(const K& k, const N& n, Compare comp) {
+  using node_search_result = typename N::search_result;
+
+  static node_search_result lower_bound(const K& k, const N& n, Compare comp) {
     return n.binary_search_plain_compare(k, 0, n.count(), comp);
   }
-  static int upper_bound(const K& k, const N& n, Compare comp) {
+  static node_search_result upper_bound(const K& k, const N& n, Compare comp) {
     using upper_compare = btree_upper_bound_adapter<K, Compare>;
     return n.binary_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }
@@ -208,10 +214,12 @@ struct btree_binary_search_plain_compare {
 // Dispatch helper class for using binary search with compare-to.
 template <typename K, typename N, typename CompareTo>
 struct btree_binary_search_compare_to {
-  static int lower_bound(const K& k, const N& n, CompareTo comp) {
+  using node_search_result = typename N::search_result;
+
+  static node_search_result lower_bound(const K& k, const N& n, CompareTo comp) {
     return n.binary_search_compare_to(k, 0, n.count(), CompareTo());
   }
-  static int upper_bound(const K& k, const N& n, CompareTo comp) {
+  static node_search_result upper_bound(const K& k, const N& n, CompareTo comp) {
     using upper_compare = btree_upper_bound_adapter<K, btree_key_comparer<K, CompareTo, true>>;
     return n.linear_search_plain_compare(k, 0, n.count(), upper_compare(comp));
   }

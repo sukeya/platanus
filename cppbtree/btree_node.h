@@ -27,6 +27,38 @@
 
 namespace cppbtree {
 
+template <std::size_t BitWidth>
+class btree_node_search_result {
+ public:
+  static_assert(BitWidth > 0 && BitWidth < 16, "BitWidth must be in the range [1, 15].");
+
+  static constexpr std::size_t bit_width         = BitWidth;
+  static constexpr bool        is_less_than_8bit = bit_width < 8;
+
+  using count_type = std::conditional_t<is_less_than_8bit, std::uint_least8_t, std::uint_least16_t>;
+  using signed_count_type =
+      std::conditional_t<is_less_than_8bit, std::int_least16_t, std::int_least32_t>;
+
+  btree_node_search_result()                                           = default;
+  btree_node_search_result(const btree_node_search_result&)            = default;
+  btree_node_search_result& operator=(const btree_node_search_result&) = default;
+  btree_node_search_result(btree_node_search_result&&)                 = default;
+  btree_node_search_result& operator=(btree_node_search_result&&)      = default;
+  ~btree_node_search_result()                                          = default;
+
+  explicit btree_node_search_result(count_type index, bool is_exact_match) noexcept
+      : index_(index), exact_match_(is_exact_match ? 1 : 0) {
+    assert(index < (1 << bit_width));
+  }
+
+  count_type index() const noexcept { return index_; }
+  bool       is_exact_match() const noexcept { return exact_match_ == 1; }
+
+ private:
+  count_type index_ : bit_width{0};
+  count_type exact_match_ : 1 {0};
+};
+
 // A node in the btree holding. The same node type is used for both internal
 // and leaf nodes in the btree, though the nodes are allocated in such a way
 // that the children array is only valid in internal nodes.
@@ -78,41 +110,26 @@ class btree_node {
       linear_search_type,
       binary_search_type>;
 
-  static constexpr int kValueSize      = params_type::kValueSize;
-  static constexpr int kTargetNodeSize = params_type::kTargetNodeSize;
+  static constexpr std::size_t kValueSize      = params_type::kValueSize;
+  static constexpr std::size_t kTargetNodeSize = params_type::kTargetNodeSize;
 
-  // Available space for values.  This is largest for leaf nodes,
-  // which has overhead no fewer than two pointers.
+  // Available space for values.
   static_assert(
       kTargetNodeSize >= 3 * sizeof(void*), "ValueSize must be no less than 3 * sizeof(void*)"
   );
-  static constexpr std::uint_least16_t kNodeValueSpace =
-      kTargetNodeSize - 3 * std::uint_least16_t(sizeof(void*));
+  static constexpr std::size_t kNodeValueSpace = kTargetNodeSize - 3 * sizeof(void*);
 
-  // This is an integral type large enough to hold as many
-  // ValueSize-values as will fit a node of TargetNodeSize bytes.
-  static_assert(
-      kNodeValueSpace / kValueSize <= std::numeric_limits<std::uint_least16_t>::max(),
-      "The total of nodes exceeds supported size (max of uint16_t)."
-  );
-
-  using node_count_type = typename std::conditional<
-      (kNodeValueSpace / kValueSize > std::numeric_limits<std::uint_least8_t>::max()),
-      std::uint_least16_t,
-      std::uint_least8_t>::type;
-
-  static constexpr node_count_type kNodeTargetValues = kNodeValueSpace / kValueSize;
+  static constexpr std::size_t kNodeTargetValues = kNodeValueSpace / kValueSize;
   // We need a minimum of 3 values per internal node in order to perform
   // splitting (1 value for the two nodes involved in the split and 1 value
   // propagated to the parent as the delimiter for the split).
-  static constexpr node_count_type kNodeValues   = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
-  static constexpr node_count_type kNodeChildren = kNodeValues + 1;
+  static constexpr std::size_t kNodeValues   = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
+  static constexpr std::size_t kNodeChildren = kNodeValues + 1;
 
-  static_assert(
-      std::numeric_limits<int>::digits >= 31, "This program requires int to have 32 bit at least."
-  );
-  static constexpr int kExactMatch = 1 << 30;
-  static constexpr int kMatchMask  = kExactMatch - 1;
+  using search_result =
+      btree_node_search_result<std::bit_width(static_cast<std::size_t>(kNodeChildren - 1))>;
+  using count_type        = typename search_result::count_type;
+  using signed_count_type = typename search_result::signed_count_type;
 
   using values_type                   = std::array<mutable_value_type, kNodeValues>;
   using values_iterator               = typename values_type::iterator;
@@ -181,7 +198,7 @@ class btree_node {
         return;
       }
       assert(alloc_ != nullptr);
-      for (node_count_type i = 0; i < kValueSize + 1; ++i) {
+      for (count_type i = 0; i < kValueSize + 1; ++i) {
         if (not p[i]) {
           children_allocator_traits::destroy(*alloc_, &p[i]);
         }
@@ -233,7 +250,7 @@ class btree_node {
       : children_ptr_(), parent_(parent), position_(0), count_(0) {
     if (not is_leaf) {
       auto p = children_allocator_traits::allocate(children_alloc, kNodeChildren);
-      for (node_count_type i = 0; i < kNodeChildren; ++i) {
+      for (count_type i = 0; i < kNodeChildren; ++i) {
         children_allocator_traits::construct(children_alloc, &p[i], nullptr);
       }
       children_ptr_ = children_ptr(p, children_deleter{children_alloc});
@@ -251,16 +268,16 @@ class btree_node {
   bool leaf() const noexcept { return children_ptr_ ? false : true; }
 
   // Getter for the position of this node in its parent.
-  node_count_type position() const noexcept { return position_; }
-  void            set_position(node_count_type v) noexcept {
-               assert(borrow_parent() != nullptr);
-               assert(0 <= v && v < borrow_parent()->max_children_count());
-               position_ = v;
+  count_type position() const noexcept { return position_; }
+  void       set_position(count_type v) noexcept {
+          assert(borrow_parent() != nullptr);
+          assert(0 <= v && v < borrow_parent()->max_children_count());
+          position_ = v;
   }
 
   // Getter/setter for the number of values stored in this node.
-  node_count_type           count() const noexcept { return count_; }
-  constexpr node_count_type max_count() const noexcept { return kNodeValues; }
+  count_type           count() const noexcept { return count_; }
+  constexpr count_type max_count() const noexcept { return kNodeValues; }
 
   // Getter for the parent of this node.
   node_borrower       borrow_parent() const noexcept { return parent_; }
@@ -275,26 +292,26 @@ class btree_node {
   }
 
   // Getters for the key/value at position i in the node.
-  const key_type& key(node_count_type i) const noexcept { return params_type::key(values_[i]); }
-  reference value(node_count_type i) noexcept { return reinterpret_cast<reference>(values_[i]); }
-  const_reference value(node_count_type i) const noexcept {
+  const key_type& key(count_type i) const noexcept { return params_type::key(values_[i]); }
+  reference       value(count_type i) noexcept { return reinterpret_cast<reference>(values_[i]); }
+  const_reference value(count_type i) const noexcept {
     return reinterpret_cast<const_reference>(values_[i]);
   }
 
   // Swap value i in this node with value j in node x.
-  void value_swap(node_count_type i, node_borrower x, node_count_type j) noexcept(noexcept(
+  void value_swap(count_type i, node_borrower x, count_type j) noexcept(noexcept(
       params_type::swap(std::declval<mutable_value_type&>(), std::declval<mutable_value_type&>())
   )) {
     params_type::swap(values_[i], x->values_[j]);
   }
 
   // Getters/setter for the child at position i in the node.
-  node_borrower borrow_child(node_count_type i) const noexcept { return children_ptr_[i].get(); }
-  const node_borrower borrow_readonly_child(node_count_type i) const noexcept {
+  node_borrower       borrow_child(count_type i) const noexcept { return children_ptr_[i].get(); }
+  const node_borrower borrow_readonly_child(count_type i) const noexcept {
     return children_ptr_[i].get();
   }
-  node_owner extract_child(node_count_type i) noexcept { return std::move(children_ptr_[i]); }
-  void       set_child(node_count_type i, node_owner&& new_child) noexcept {
+  node_owner extract_child(count_type i) noexcept { return std::move(children_ptr_[i]); }
+  void       set_child(count_type i, node_owner&& new_child) noexcept {
           children_ptr_[i]              = std::move(new_child);
           auto borrowed_new_child       = borrow_child(i);
           borrowed_new_child->parent_   = borrow_myself();
@@ -303,7 +320,7 @@ class btree_node {
 
   // Returns the position of the first value whose key is not less than k.
   template <typename Compare>
-  int lower_bound(const key_type& k, const Compare& comp) const
+  search_result lower_bound(const key_type& k, const Compare& comp) const
       noexcept(noexcept(search_type::lower_bound(
           std::declval<const key_type&>(),
           std::declval<const btree_node&>(),
@@ -313,7 +330,7 @@ class btree_node {
   }
   // Returns the position of the first value whose key is greater than k.
   template <typename Compare>
-  int upper_bound(const key_type& k, const Compare& comp) const
+  search_result upper_bound(const key_type& k, const Compare& comp) const
       noexcept(noexcept(search_type::upper_bound(
           std::declval<const key_type&>(),
           std::declval<const btree_node&>(),
@@ -325,7 +342,9 @@ class btree_node {
   // Returns the position of the first value whose key is not less than k using
   // linear search performed using plain compare.
   template <typename Compare>
-  int linear_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const
+  search_result linear_search_plain_compare(
+      const key_type& k, count_type s, count_type e, const Compare& comp
+  ) const
       noexcept(noexcept(btree_compare_keys(
           std::declval<const Compare&>(),
           std::declval<const key_type&>(),
@@ -337,54 +356,60 @@ class btree_node {
       }
       ++s;
     }
-    return s;
+    return search_result(s, false);
   }
 
   // Returns the position of the first value whose key is not less than k using
   // linear search performed using compare-to.
   template <typename Compare>
-  int linear_search_compare_to(const key_type& k, int s, int e, const Compare& comp) const
+  search_result linear_search_compare_to(
+      const key_type& k, count_type s, count_type e, const Compare& comp
+  ) const
       noexcept(noexcept(comp(std::declval<const key_type&>(), std::declval<const key_type&>()))) {
     while (s < e) {
       int c = comp(key(s), k);
       if (c == 0) {
-        return s | kExactMatch;
+        return search_result(s, true);
       } else if (c > 0) {
         break;
       }
       ++s;
     }
-    return s;
+    return search_result(s, false);
   }
 
   // Returns the position of the first value whose key is not less than k using
   // binary search performed using plain compare.
   template <typename Compare>
-  int binary_search_plain_compare(const key_type& k, int s, int e, const Compare& comp) const
+  search_result binary_search_plain_compare(
+      const key_type& k, count_type s, count_type e, const Compare& comp
+  ) const
       noexcept(noexcept(btree_compare_keys(
           std::declval<const Compare&>(),
           std::declval<const key_type&>(),
           std::declval<const key_type&>()
       ))) {
     while (s != e) {
-      int mid = (s + e) / 2;
+      count_type mid = (s + e) / 2;
       if (btree_compare_keys(comp, key(mid), k)) {
         s = mid + 1;
       } else {
         e = mid;
       }
     }
-    return s;
+    return search_result(s, false);
   }
 
   // Returns the position of the first value whose key is not less than k using
   // binary search performed using compare-to.
   template <typename CompareTo>
-  int binary_search_compare_to(const key_type& k, int s, int e, const CompareTo& comp) const
+  search_result binary_search_compare_to(
+      const key_type& k, count_type s, count_type e, const CompareTo& comp
+  ) const
       noexcept(noexcept(comp(std::declval<const key_type&>(), std::declval<const key_type&>()))) {
     while (s != e) {
-      int mid = (s + e) / 2;
-      int c   = comp(key(mid), k);
+      count_type mid = (s + e) / 2;
+      int        c   = comp(key(mid), k);
       if (c < 0) {
         s = mid + 1;
       } else if (c > 0) {
@@ -394,20 +419,19 @@ class btree_node {
         // requires continuing the binary search. Note that we are guaranteed
         // that the result is an exact match because if "key(mid-1) < k" the
         // call to binary_search_compare_to() will return "mid".
-        s = binary_search_compare_to(k, s, mid, comp);
-        return s | kExactMatch;
+        s = binary_search_compare_to(k, s, mid, comp).index();
+        return search_result(s, true);
       }
     }
-    return s;
+    return search_result(s, false);
   }
 
   // Returns the pointer to the front of the values array.
   values_iterator begin_values() noexcept { return values_.begin(); }
 
   // Returns the pointer to the back of the values array.
-  values_iterator end_values() noexcept(
-      noexcept(std::next(std::declval<values_iterator>(), std::declval<node_count_type>()))
-  ) {
+  values_iterator end_values(
+  ) noexcept(noexcept(std::next(std::declval<values_iterator>(), std::declval<count_type>()))) {
     return std::next(begin_values(), count());
   }
 
@@ -434,11 +458,11 @@ class btree_node {
     return std::reverse_iterator(begin_children());
   }
 
-  node_count_type values_count() const noexcept { return count(); }
-  node_count_type children_count() const noexcept { return leaf() ? 0 : count() + 1; }
+  count_type values_count() const noexcept { return count(); }
+  count_type children_count() const noexcept { return leaf() ? 0 : count() + 1; }
 
-  node_count_type max_values_count() const noexcept { return max_count(); }
-  node_count_type max_children_count() const noexcept { return leaf() ? 0 : max_count() + 1; }
+  count_type max_values_count() const noexcept { return max_count(); }
+  count_type max_children_count() const noexcept { return leaf() ? 0 : max_count() + 1; }
 
   // Rotate the values in the range [first, last) to the left.
   // As a result, the value pointed by middle will now be the first value and
@@ -539,7 +563,7 @@ class btree_node {
   void swap(btree_node& src);
 
  private:
-  void set_count(node_count_type v) noexcept {
+  void set_count(count_type v) noexcept {
     assert(0 <= v && v <= max_count());
     count_ = v;
   }
@@ -560,9 +584,9 @@ class btree_node {
   // A pointer to the node's parent.
   node_borrower parent_;
   // The position of the node in the node's parent.
-  node_count_type position_;
+  count_type position_;
   // The count of the number of values in the node.
-  node_count_type count_;
+  count_type count_;
 };
 
 ////

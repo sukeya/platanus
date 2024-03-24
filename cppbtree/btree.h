@@ -138,12 +138,10 @@ class btree {
       btree_internal_locate_compare_to,
       btree_internal_locate_plain_compare>;
 
-  static constexpr int kNodeValues    = node_type::kNodeValues;
-  static constexpr int kNodeChildren  = node_type::kNodeChildren;
-  static constexpr int kMinNodeValues = kNodeValues / 2;
-  static constexpr int kValueSize     = node_type::kValueSize;
-  static constexpr int kExactMatch    = node_type::kExactMatch;
-  static constexpr int kMatchMask     = node_type::kMatchMask;
+  static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
+  static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
+  static constexpr std::size_t kMinNodeValues = kNodeValues / 2;
+  static constexpr std::size_t kValueSize     = node_type::kValueSize;
 
   struct node_stats {
     node_stats(ssize_t l, ssize_t i) : leaf_nodes(l), internal_nodes(i) {}
@@ -158,9 +156,9 @@ class btree {
     ssize_t internal_nodes;
   };
 
-  using node_owner      = typename node_type::node_owner;
-  using node_borrower   = typename node_type::node_borrower;
-  using node_count_type = typename node_type::node_count_type;
+  using node_owner         = typename node_type::node_owner;
+  using node_borrower      = typename node_type::node_borrower;
+  using node_search_result = typename node_type::search_result;
 
  public:
   using params_type = Params;
@@ -571,17 +569,15 @@ class btree {
   // reside in the tree. We provide 2 versions of internal_locate. The first
   // version (internal_locate_plain_compare) always returns 0 for the second
   // field of the pair. The second version (internal_locate_compare_to) is for
-  // the key-compare-to specialization and returns either kExactMatch (if the
-  // key was found in the tree) or -kExactMatch (if it wasn't) in the second
-  // field of the pair. The compare_to specialization allows the caller to
-  // avoid a subsequent comparison to determine if an exact match was made,
-  // speeding up string keys.
+  // the key-compare-to specialization and returns either true (if the
+  // key was found in the tree) or false (if it wasn't) in the second
+  // field of the pair.
   template <typename IterType>
-  std::pair<IterType, int> internal_locate(const key_type& key, IterType iter) const;
+  std::pair<IterType, bool> internal_locate(const key_type& key, IterType iter) const;
   template <typename IterType>
-  std::pair<IterType, int> internal_locate_plain_compare(const key_type& key, IterType iter) const;
+  std::pair<IterType, bool> internal_locate_plain_compare(const key_type& key, IterType iter) const;
   template <typename IterType>
-  std::pair<IterType, int> internal_locate_compare_to(const key_type& key, IterType iter) const;
+  std::pair<IterType, bool> internal_locate_compare_to(const key_type& key, IterType iter) const;
 
   // Internal routine which implements lower_bound().
   template <typename IterType>
@@ -662,13 +658,12 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::insert_unique(
     set_rightmost(borrow_root());
   }
 
-  std::pair<iterator, int> res  = internal_locate(key, iterator(borrow_root(), 0));
-  iterator&                iter = res.first;
-  if (res.second == kExactMatch) {
-    // TODO Is internal_last() needed here?
+  std::pair<iterator, bool> res  = internal_locate(key, iterator(borrow_root(), 0));
+  iterator&                 iter = res.first;
+  if (res.second) {
     // The key already exists in the tree, do nothing.
-    return std::make_pair(internal_last(iter), false);
-  } else if (!res.second) {
+    return std::make_pair(iter, false);
+  } else /*TODO if constexpr (key_comp doesn't return int)*/ {
     iterator last = internal_last(iter);
     if (last.node && !compare_keys(key, last.key())) {
       // The key already exists in the tree, do nothing.
@@ -899,7 +894,7 @@ void btree<P>::verify() const {
 template <typename P>
 void btree<P>::rebalance_or_split(iterator& iter) {
   node_borrower& node            = iter.node;
-  int&           insert_position = iter.position;
+  auto&          insert_position = iter.position;
   assert(node->count() == node->max_count());
 
   // First try to make room on the node by rebalancing.
@@ -1103,43 +1098,43 @@ inline typename btree<P>::iterator btree<P>::internal_insert(iterator iter, cons
 
 template <typename P>
 template <typename IterType>
-inline std::pair<IterType, int> btree<P>::internal_locate(const key_type& key, IterType iter)
+inline std::pair<IterType, bool> btree<P>::internal_locate(const key_type& key, IterType iter)
     const {
   return internal_locate_type::dispatch(key, *this, iter);
 }
 
 template <typename P>
 template <typename IterType>
-inline std::pair<IterType, int> btree<P>::internal_locate_plain_compare(
+inline std::pair<IterType, bool> btree<P>::internal_locate_plain_compare(
     const key_type& key, IterType iter
 ) const {
   for (;;) {
-    iter.position = iter.node->lower_bound(key, ref_key_comp());
+    iter.position = iter.node->lower_bound(key, ref_key_comp()).index();
     if (iter.node->leaf()) {
       break;
     }
     iter.node = iter.node->borrow_child(iter.position);
   }
-  return std::make_pair(iter, 0);
+  return std::make_pair(iter, false);
 }
 
 template <typename P>
 template <typename IterType>
-inline std::pair<IterType, int> btree<P>::internal_locate_compare_to(
+inline std::pair<IterType, bool> btree<P>::internal_locate_compare_to(
     const key_type& key, IterType iter
 ) const {
   for (;;) {
-    int res       = iter.node->lower_bound(key, ref_key_comp());
-    iter.position = res & kMatchMask;
-    if (res & kExactMatch) {
-      return std::make_pair(iter, static_cast<int>(kExactMatch));
+    node_search_result res = iter.node->lower_bound(key, ref_key_comp());
+    iter.position          = res.index();
+    if (res.is_exact_match()) {
+      return std::make_pair(iter, true);
     }
     if (iter.node->leaf()) {
       break;
     }
     iter.node = iter.node->borrow_child(iter.position);
   }
-  return std::make_pair(iter, -kExactMatch);
+  return std::make_pair(iter, false);
 }
 
 template <typename P>
@@ -1147,7 +1142,7 @@ template <typename IterType>
 IterType btree<P>::internal_lower_bound(const key_type& key, IterType iter) const {
   if (iter.node) {
     for (;;) {
-      iter.position = iter.node->lower_bound(key, ref_key_comp()) & kMatchMask;
+      iter.position = iter.node->lower_bound(key, ref_key_comp()).index();
       if (iter.node->leaf()) {
         break;
       }
@@ -1163,7 +1158,7 @@ template <typename IterType>
 IterType btree<P>::internal_upper_bound(const key_type& key, IterType iter) const {
   if (iter.node) {
     for (;;) {
-      iter.position = iter.node->upper_bound(key, ref_key_comp());
+      iter.position = iter.node->upper_bound(key, ref_key_comp()).index();
       if (iter.node->leaf()) {
         break;
       }
@@ -1178,11 +1173,10 @@ template <typename P>
 template <typename IterType>
 IterType btree<P>::internal_find_unique(const key_type& key, IterType iter) const {
   if (iter.node) {
-    std::pair<IterType, int> res = internal_locate(key, iter);
-    if (res.second == kExactMatch) {
+    std::pair<IterType, bool> res = internal_locate(key, iter);
+    if (res.second) {
       return res.first;
-    }
-    if (!res.second) {
+    } else /* TODO if constexpr (key_comp doesn't return int)*/ {
       iter = internal_last(res.first);
       if (iter.node && !compare_keys(key, iter.key())) {
         return iter;

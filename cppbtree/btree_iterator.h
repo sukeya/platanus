@@ -43,6 +43,8 @@ struct btree_iterator {
 
   using node_borrower = typename Node::node_borrower;
 
+  using signed_count_type = typename Node::signed_count_type;
+
   btree_iterator() noexcept : node(nullptr), position(-1) {}
   btree_iterator(node_borrower n, int p) noexcept : node(n), position(p) {}
   btree_iterator(const iterator& x) noexcept : node(x.node), position(x.position) {}
@@ -54,7 +56,6 @@ struct btree_iterator {
     }
     increment_slow();
   }
-  void increment_by(int count) noexcept;
   void increment_slow() noexcept;
 
   void decrement() noexcept {
@@ -97,7 +98,7 @@ struct btree_iterator {
   // The node in the tree the iterator is pointing at.
   node_borrower node;
   // The position within the node of the tree the iterator is pointing at.
-  int position;
+  signed_count_type position;
 };
 
 ////
@@ -125,24 +126,6 @@ void btree_iterator<N, R, P>::increment_slow() noexcept {
       node = node->borrow_child(0);
     }
     position = 0;
-  }
-}
-
-template <typename N, typename R, typename P>
-void btree_iterator<N, R, P>::increment_by(int count) noexcept {
-  while (count > 0) {
-    if (node->leaf()) {
-      int rest = node->count() - position;
-      position += std::min(rest, count);
-      count = count - rest;
-      if (position < node->count()) {
-        // In this case, count is less than rest, so we are done.
-        return;
-      }
-    } else {
-      --count;
-    }
-    increment_slow();
   }
 }
 

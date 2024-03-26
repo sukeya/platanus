@@ -475,13 +475,13 @@ using stl_multimap_int64  = multimap<int64_t, intptr_t>;
 using stl_multimap_string = multimap<string, intptr_t>;
 
 #define MY_BENCHMARK_TYPES2(value, name, size)                                                 \
-  using btree##_##size##_set_##name = btree##_set<value, less<value>, allocator<value>, size>; \
+  using btree##_##size##_set_##name = btree##_set<value, DefaultWeakComp, allocator<value>, size>; \
   using btree##_##size##_map_##name =                                                          \
-      btree##_map<value, int, less<value>, allocator<value>, size>;                            \
+      btree##_map<value, int, DefaultWeakComp, allocator<value>, size>;                            \
   using btree##_##size##_multiset_##name =                                                     \
-      btree##_multiset<value, less<value>, allocator<value>, size>;                            \
+      btree##_multiset<value, DefaultWeakComp, allocator<value>, size>;                            \
   using btree##_##size##_multimap_##name =                                                     \
-      btree##_multimap<value, int, less<value>, allocator<value>, size>;
+      btree##_multimap<value, int, DefaultWeakComp, allocator<value>, size>;
 
 #define MY_BENCHMARK_TYPES(value, name)   \
   MY_BENCHMARK_TYPES2(value, name, 128);  \

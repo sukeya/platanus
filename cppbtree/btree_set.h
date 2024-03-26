@@ -20,6 +20,7 @@
 #ifndef CPPBTREE_BTREE_SET_H__
 #define CPPBTREE_BTREE_SET_H__
 
+#include <compare>
 #include <functional>
 #include <memory>
 #include <string>
@@ -32,7 +33,7 @@ namespace cppbtree {
 // The btree_set class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Compare   = std::less<Key>,
+    typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
     int TargetNodeSize = 256>
 class btree_set : public btree_unique_container<
@@ -74,7 +75,7 @@ inline void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
 // The btree_multiset class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Compare   = std::less<Key>,
+    typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
     int TargetNodeSize = 256>
 class btree_multiset

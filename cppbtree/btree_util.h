@@ -15,7 +15,12 @@
 #ifndef CPPBTREE_BTREE_UTIL_H_
 #define CPPBTREE_BTREE_UTIL_H_
 
+#include <compare>
 #include <utility>
+
+namespace std {
+inline void swap(const decltype(std::compare_weak_order_fallback)&, const decltype(std::compare_weak_order_fallback)&) {}
+}
 
 namespace cppbtree {
 
@@ -31,6 +36,13 @@ inline void btree_swap_helper(T& a, T& b) {
   using std::swap;
   swap(a, b);
 }
+
+template <class Key, class Compare>
+concept is_comp_weak_order = requires(Key lhd, Key rhd, Compare comp) {
+  {comp(lhd, rhd)} -> std::convertible_to<std::weak_ordering>;
+};
+
+using DefaultWeakComp = decltype(std::compare_weak_order_fallback);
 
 }  // namespace cppbtree
 

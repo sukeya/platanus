@@ -43,7 +43,7 @@ namespace cppbtree {
 template <
     typename Key,
     typename Value,
-    typename Compare   = std::less<Key>,
+    typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<std::pair<const Key, Value> >,
     int TargetNodeSize = 256>
 class safe_btree_map

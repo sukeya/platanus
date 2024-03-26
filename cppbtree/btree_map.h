@@ -23,6 +23,7 @@
 #define CPPBTREE_BTREE_MAP_H__
 
 #include <algorithm>
+#include <compare>
 #include <functional>
 #include <memory>
 #include <string>
@@ -37,7 +38,7 @@ namespace cppbtree {
 template <
     typename Key,
     typename Value,
-    typename Compare   = std::less<Key>,
+    typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<std::pair<const Key, Value> >,
     int TargetNodeSize = 256>
 class btree_map : public btree_map_container<
@@ -79,7 +80,7 @@ inline void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
 template <
     typename Key,
     typename Value,
-    typename Compare   = std::less<Key>,
+    typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<std::pair<const Key, Value> >,
     int TargetNodeSize = 256>
 class btree_multimap : public btree_multi_container<

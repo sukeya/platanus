@@ -33,18 +33,9 @@ template <
     typename Alloc,
     std::size_t TargetNodeSize,
     std::size_t ValueSize>
+requires is_comp_weak_order<Key, Compare>
 struct btree_common_params {
-  // If Compare is derived from btree_key_compare_to_tag then use it as the
-  // key_compare type. Otherwise, use btree_key_compare_to_adapter<> which will
-  // fall-back to Compare if we don't have an appropriate specialization.
-  using key_compare = typename std::conditional_t<
-      btree_is_key_compare_to<Compare>::value,
-      Compare,
-      btree_key_compare_to_adapter<Compare>>;
-  // A type which indicates if we have a key-compare-to functor or a plain old
-  // key-compare functor.
-  using is_key_compare_to = btree_is_key_compare_to<key_compare>;
-
+  using key_compare = Compare;
   using value_compare = std::false_type;
 
   using allocator_type  = Alloc;

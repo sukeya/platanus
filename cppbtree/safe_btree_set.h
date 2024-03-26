@@ -30,6 +30,7 @@
 #ifndef CPPBTREE_SAFE_BTREE_SET_H__
 #define CPPBTREE_SAFE_BTREE_SET_H__
 
+#include <compare>
 #include <functional>
 #include <memory>
 
@@ -42,7 +43,7 @@ namespace cppbtree {
 // The safe_btree_set class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Compare   = std::less<Key>,
+    typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
     int TargetNodeSize = 256>
 class safe_btree_set : public btree_unique_container<

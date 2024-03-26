@@ -129,14 +129,6 @@ template <typename Params>
 class btree {
   using self_type         = btree<Params>;
   using node_type         = btree_node<Params>;
-  using is_key_compare_to = typename Params::is_key_compare_to;
-
-  friend class btree_internal_locate_plain_compare;
-  friend class btree_internal_locate_compare_to;
-  using internal_locate_type = typename std::conditional_t<
-      is_key_compare_to::value,
-      btree_internal_locate_compare_to,
-      btree_internal_locate_plain_compare>;
 
   static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
   static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
@@ -398,7 +390,8 @@ class btree {
 
   key_compare key_comp() const noexcept { return comp_; }
   bool        compare_keys(const key_type& x, const key_type& y) const {
-           return btree_compare_keys(ref_key_comp(), x, y);
+          const auto& comp = ref_key_comp();
+           return comp(x, y) < 0;
   }
 
   // Dump the btree to the specified ostream. Requires that operator<< is
@@ -566,18 +559,11 @@ class btree {
   static IterType internal_last(IterType iter);
 
   // Returns an iterator pointing to the leaf position at which key would
-  // reside in the tree. We provide 2 versions of internal_locate. The first
-  // version (internal_locate_plain_compare) always returns 0 for the second
-  // field of the pair. The second version (internal_locate_compare_to) is for
-  // the key-compare-to specialization and returns either true (if the
+  // reside in the tree. This function returns either true (if the
   // key was found in the tree) or false (if it wasn't) in the second
   // field of the pair.
   template <typename IterType>
   std::pair<IterType, bool> internal_locate(const key_type& key, IterType iter) const;
-  template <typename IterType>
-  std::pair<IterType, bool> internal_locate_plain_compare(const key_type& key, IterType iter) const;
-  template <typename IterType>
-  std::pair<IterType, bool> internal_locate_compare_to(const key_type& key, IterType iter) const;
 
   // Internal routine which implements lower_bound().
   template <typename IterType>
@@ -663,12 +649,6 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::insert_unique(
   if (res.second) {
     // The key already exists in the tree, do nothing.
     return std::make_pair(iter, false);
-  } else /*TODO if constexpr (key_comp doesn't return int)*/ {
-    iterator last = internal_last(iter);
-    if (last.node && !compare_keys(key, last.key())) {
-      // The key already exists in the tree, do nothing.
-      return std::make_pair(last, false);
-    }
   }
 
   return std::make_pair(internal_insert(iter, *value), true);
@@ -1100,29 +1080,6 @@ template <typename P>
 template <typename IterType>
 inline std::pair<IterType, bool> btree<P>::internal_locate(const key_type& key, IterType iter)
     const {
-  return internal_locate_type::dispatch(key, *this, iter);
-}
-
-template <typename P>
-template <typename IterType>
-inline std::pair<IterType, bool> btree<P>::internal_locate_plain_compare(
-    const key_type& key, IterType iter
-) const {
-  for (;;) {
-    iter.position = iter.node->lower_bound(key, ref_key_comp()).index();
-    if (iter.node->leaf()) {
-      break;
-    }
-    iter.node = iter.node->borrow_child(iter.position);
-  }
-  return std::make_pair(iter, false);
-}
-
-template <typename P>
-template <typename IterType>
-inline std::pair<IterType, bool> btree<P>::internal_locate_compare_to(
-    const key_type& key, IterType iter
-) const {
   for (;;) {
     node_search_result res = iter.node->lower_bound(key, ref_key_comp());
     iter.position          = res.index();

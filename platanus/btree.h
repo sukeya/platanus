@@ -261,9 +261,7 @@ class btree {
     if (borrow_rightmost()) {
       return iterator(
           borrow_rightmost(),
-          borrow_readonly_root() == borrow_readonly_rightmost()
-              ? borrow_readonly_root()->values_count()
-              : borrow_readonly_rightmost()->values_count()
+          borrow_readonly_rightmost()->values_count()
       );
     } else {
       return iterator();

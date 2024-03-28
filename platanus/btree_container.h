@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CPPBTREE_BTREE_CONTAINER_H__
-#define CPPBTREE_BTREE_CONTAINER_H__
+#ifndef PLATANUS_BTREE_CONTAINER_H__
+#define PLATANUS_BTREE_CONTAINER_H__
 
 #include <iosfwd>
 #include <utility>
 
 #include "btree.h"
 
-namespace cppbtree {
+namespace platanus {
 
 // A common base class for btree_set, btree_map, btree_multiset and
 // btree_multimap.
@@ -298,6 +298,6 @@ class btree_multi_container : public btree_container<Tree> {
   void     erase(const iterator& first, const iterator& last) { this->tree_.erase(first, last); }
 };
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_BTREE_CONTAINER_H__
+#endif  // PLATANUS_BTREE_CONTAINER_H__

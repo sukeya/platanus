@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CPPBTREE_BTREE_UTIL_H_
-#define CPPBTREE_BTREE_UTIL_H_
+#ifndef PLATANUS_BTREE_UTIL_H_
+#define PLATANUS_BTREE_UTIL_H_
 
 #include <compare>
 #include <utility>
@@ -22,7 +22,7 @@ namespace std {
 inline void swap(const decltype(std::compare_weak_order_fallback)&, const decltype(std::compare_weak_order_fallback)&) {}
 }
 
-namespace cppbtree {
+namespace platanus {
 
 // Inside a btree method, if we just call swap(), it will choose the
 // btree::swap method, which we don't want. And we can't say ::swap
@@ -44,6 +44,6 @@ concept is_comp_weak_order = requires(Key lhd, Key rhd, Compare comp) {
 
 using DefaultWeakComp = decltype(std::compare_weak_order_fallback);
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_BTREE_UTIL_H_
+#endif  // PLATANUS_BTREE_UTIL_H_

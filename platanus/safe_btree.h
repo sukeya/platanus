@@ -25,8 +25,8 @@
 // See the incorrect usage examples mentioned in safe_btree_set.h and
 // safe_btree_map.h.
 
-#ifndef CPPBTREE_SAFE_BTREE_H__
-#define CPPBTREE_SAFE_BTREE_H__
+#ifndef PLATANUS_SAFE_BTREE_H__
+#define PLATANUS_SAFE_BTREE_H__
 
 #include <stddef.h>
 #include <iosfwd>
@@ -34,7 +34,7 @@
 
 #include "btree.h"
 
-namespace cppbtree {
+namespace platanus {
 
 template <typename Tree, typename Iterator>
 class safe_btree_iterator {
@@ -334,6 +334,6 @@ class safe_btree {
   int64_t    generation_;
 };
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_SAFE_BTREE_H__
+#endif  // PLATANUS_SAFE_BTREE_H__

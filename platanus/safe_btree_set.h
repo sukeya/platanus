@@ -12,47 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// The safe_btree_map<> is like btree_map<> except that it removes the caveat
+// The safe_btree_set<> is like btree_set<> except that it removes the caveat
 // about insertion and deletion invalidating existing iterators at a small cost
 // in making iterators larger and slower.
 //
 // Revalidation occurs whenever an iterator is accessed.  References
 // and pointers returned by safe_btree_map<> iterators are not stable,
-// they are potentially invalidated by any non-const method on the map.
+// they are potentially invalidated by any non-const method on the set.
 //
 // BEGIN INCORRECT EXAMPLE
-//   for (auto i = safe_map->begin(); i != safe_map->end(); ++i) {
-//     const T *value = &i->second;  // DO NOT DO THIS
-//     [code that modifies safe_map and uses value];
+//   for (auto i = safe_set->begin(); i != safe_set->end(); ++i) {
+//     const T &value = *i;  // DO NOT DO THIS
+//     [code that modifies safe_set and uses value];
 //   }
 // END INCORRECT EXAMPLE
-#ifndef CPPBTREE_SAFE_BTREE_MAP_H__
-#define CPPBTREE_SAFE_BTREE_MAP_H__
 
+#ifndef PLATANUS_SAFE_BTREE_SET_H__
+#define PLATANUS_SAFE_BTREE_SET_H__
+
+#include <compare>
 #include <functional>
 #include <memory>
-#include <utility>
 
 #include "btree_container.h"
-#include "btree_map.h"
+#include "btree_set.h"
 #include "safe_btree.h"
 
-namespace cppbtree {
+namespace platanus {
 
-// The safe_btree_map class is needed mainly for its constructors.
+// The safe_btree_set class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Value,
     typename Compare   = DefaultWeakComp,
-    typename Alloc     = std::allocator<std::pair<const Key, Value> >,
+    typename Alloc     = std::allocator<Key>,
     int TargetNodeSize = 512>
-class safe_btree_map
-    : public btree_map_container<
-          safe_btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
-  using self_type   = safe_btree_map<Key, Value, Compare, Alloc, TargetNodeSize>;
-  using params_type = btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize>;
+class safe_btree_set : public btree_unique_container<
+                           safe_btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
+  using self_type   = safe_btree_set<Key, Compare, Alloc, TargetNodeSize>;
+  using params_type = btree_set_params<Key, Compare, Alloc, TargetNodeSize>;
   using btree_type  = safe_btree<params_type>;
-  using super_type  = btree_map_container<btree_type>;
+  using super_type  = btree_unique_container<btree_type>;
 
  public:
   using key_compare    = typename btree_type::key_compare;
@@ -61,17 +60,17 @@ class safe_btree_map
 
  public:
   // Default constructor.
-  safe_btree_map(
+  safe_btree_set(
       const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()
   )
       : super_type(comp, alloc) {}
 
   // Copy constructor.
-  safe_btree_map(const self_type& x) : super_type(x) {}
+  safe_btree_set(const self_type& x) : super_type(x) {}
 
   // Range constructor.
   template <class InputIterator>
-  safe_btree_map(
+  safe_btree_set(
       InputIterator         b,
       InputIterator         e,
       const key_compare&    comp  = key_compare(),
@@ -80,11 +79,11 @@ class safe_btree_map
       : super_type(b, e, comp, alloc) {}
 };
 
-template <typename K, typename V, typename C, typename A, int N>
-inline void swap(safe_btree_map<K, V, C, A, N>& x, safe_btree_map<K, V, C, A, N>& y) {
+template <typename K, typename C, typename A, int N>
+inline void swap(safe_btree_set<K, C, A, N>& x, safe_btree_set<K, C, A, N>& y) {
   x.swap(y);
 }
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_SAFE_BTREE_MAP_H__
+#endif  // PLATANUS_SAFE_BTREE_SET_H__

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CPPBTREE_BTREE_TEST_H__
-#define CPPBTREE_BTREE_TEST_H__
+#ifndef PLATANUS_BTREE_TEST_H__
+#define PLATANUS_BTREE_TEST_H__
 
 #include <stdio.h>
 #include <algorithm>
@@ -30,7 +30,7 @@
 
 #include "gtest/gtest.h"
 #include "gflags/gflags.h"
-#include "cppbtree/btree_container.h"
+#include "platanus/btree_container.h"
 
 DECLARE_int32(test_values);
 DECLARE_int32(benchmark_values);
@@ -61,7 +61,7 @@ struct remove_const<pair<T, U>> {
 
 }  // namespace std
 
-namespace cppbtree {
+namespace platanus {
 
 // Select the first member of a pair.
 template <class _Pair>
@@ -887,6 +887,6 @@ void BtreeMultiMapTest() {
   (void)m;
 }
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_BTREE_TEST_H__
+#endif  // PLATANUS_BTREE_TEST_H__

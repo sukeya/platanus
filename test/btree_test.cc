@@ -13,11 +13,11 @@
 // limitations under the License.
 
 #include "gtest/gtest.h"
-#include "cppbtree/btree_map.h"
-#include "cppbtree/btree_set.h"
+#include "platanus/btree_map.h"
+#include "platanus/btree_set.h"
 #include "btree_test.h"
 
-namespace cppbtree {
+namespace platanus {
 
 template <typename K, int N>
 void SetTest() {
@@ -248,4 +248,4 @@ TEST(Btree, RangeCtorSanity) {
   EXPECT_EQ(1, tmap.size());
 }
 
-}  // namespace cppbtree
+}  // namespace platanus

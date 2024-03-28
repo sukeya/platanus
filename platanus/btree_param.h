@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CPPBTREE_BTREE_PARAM_H_
-#define CPPBTREE_BTREE_PARAM_H_
+#ifndef PLATANUS_BTREE_PARAM_H_
+#define PLATANUS_BTREE_PARAM_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -24,7 +24,7 @@
 
 #include "btree_util.h"
 
-namespace cppbtree {
+namespace platanus {
 
 template <
     typename Key,
@@ -95,6 +95,6 @@ struct btree_set_params
   static void       swap(mutable_value_type& a, mutable_value_type& b) { btree_swap_helper(a, b); }
 };
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_BTREE_PARAM_H_
+#endif  // PLATANUS_BTREE_PARAM_H_

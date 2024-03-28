@@ -25,8 +25,8 @@
 #include <vector>
 
 #include "gflags/gflags.h"
-#include "cppbtree/btree_map.h"
-#include "cppbtree/btree_set.h"
+#include "platanus/btree_map.h"
+#include "platanus/btree_set.h"
 #include "../test/btree_test.h"
 
 DEFINE_int32(test_random_seed, 123456789, "Seed for srand()");
@@ -45,7 +45,7 @@ using std::set;
 using std::string;
 using std::vector;
 
-namespace cppbtree {
+namespace platanus {
 namespace {
 
 struct BenchmarkRun {
@@ -564,9 +564,9 @@ MY_BENCHMARK(multiset_string);
 MY_BENCHMARK(multimap_string);
 
 }  // namespace
-}  // namespace cppbtree
+}  // namespace platanus
 
 int main(int argc, char** argv) {
-  cppbtree::RunBenchmarks();
+  platanus::RunBenchmarks();
   return 0;
 }

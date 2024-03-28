@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CPPBTREE_BTREE_ITERATOR_H_
-#define CPPBTREE_BTREE_ITERATOR_H_
+#ifndef PLATANUS_BTREE_ITERATOR_H_
+#define PLATANUS_BTREE_ITERATOR_H_
 
-namespace cppbtree {
+namespace platanus {
 
 template <typename Node, typename Reference, typename Pointer>
 struct btree_iterator {
@@ -156,6 +156,6 @@ void btree_iterator<N, R, P>::decrement_slow() noexcept {
   }
 }
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_BTREE_ITERATOR_H_
+#endif  // PLATANUS_BTREE_ITERATOR_H_

@@ -145,8 +145,8 @@
 // BM_set_int32_lookup                   494        127   74.29% <512>
 // BM_set_int32_insert                   505        153   69.70% <512>
 
-#ifndef CPPBTREE_BTREE_H__
-#define CPPBTREE_BTREE_H__
+#ifndef PLATANUS_BTREE_H__
+#define PLATANUS_BTREE_H__
 
 #include <algorithm>
 #include <cassert>
@@ -170,7 +170,7 @@
 #include "btree_param.h"
 #include "btree_util.h"
 
-namespace cppbtree {
+namespace platanus {
 
 template <typename Params>
 class btree {
@@ -1251,6 +1251,6 @@ int btree<P>::internal_verify(const node_borrower node, const key_type* lo, cons
   return count;
 }
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_BTREE_H__
+#endif  // PLATANUS_BTREE_H__

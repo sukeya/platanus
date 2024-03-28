@@ -7,16 +7,16 @@ cpp-btree is an implementation of B-tree which have the same interface as the st
 You only have to add the following codes to your `CMakeLists.txt`.
 
 ```cmake
-find_package(cppbtree CONFIG)
+find_package(platanus CONFIG)
 
 # replace 'foo' and 'main.cpp' with your programs.
 add_executable(foo main.cpp)
-target_link_libraries(foo cppbtree::cppbtree)
+target_link_libraries(foo platanus::platanus)
 ```
 
 ### Source
 We recommend using CMake, but you can also use by downloading source codes.
-In this case, copy the `cppbtree` directory in the uncompressed directory to your source directory.
+In this case, copy the `platanus` directory in the uncompressed directory to your source directory.
 
 ## How to use
 See [Google's usage instructions](http://code.google.com/p/cpp-btree/wiki/UsageInstructions).

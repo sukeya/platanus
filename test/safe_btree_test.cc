@@ -23,12 +23,12 @@
 
 #include "gtest/gtest.h"
 #include "btree_test.h"
-#include "cppbtree/safe_btree_map.h"
-#include "cppbtree/safe_btree_set.h"
+#include "platanus/safe_btree_map.h"
+#include "platanus/safe_btree_set.h"
 
 class UnsafeArena;
 
-namespace cppbtree {
+namespace platanus {
 namespace {
 
 template <typename K, int N>
@@ -114,4 +114,4 @@ TEST(SafeBtree, Comparison) {
 }
 
 }  // namespace
-}  // namespace cppbtree
+}  // namespace platanus

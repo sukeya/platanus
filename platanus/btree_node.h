@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CPPBTREE_BTREE_NODE_H_
-#define CPPBTREE_BTREE_NODE_H_
+#ifndef PLATANUS_BTREE_NODE_H_
+#define PLATANUS_BTREE_NODE_H_
 
 #include <algorithm>
 #include <array>
@@ -24,7 +24,7 @@
 
 #include "btree_util.h"
 
-namespace cppbtree {
+namespace platanus {
 
 template <std::size_t BitWidth>
 class btree_node_search_result {
@@ -685,6 +685,6 @@ void btree_node<P>::swap(btree_node& x) {
   btree_swap_helper(count_, x.count_);
 }
 
-}  // namespace cppbtree
+}  // namespace platanus
 
-#endif  // CPPBTREE_BTREE_NODE_H_
+#endif  // PLATANUS_BTREE_NODE_H_

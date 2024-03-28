@@ -45,7 +45,7 @@ template <
     typename Key,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
-    int TargetNodeSize = 256>
+    int TargetNodeSize = 512>
 class safe_btree_set : public btree_unique_container<
                            safe_btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
   using self_type   = safe_btree_set<Key, Compare, Alloc, TargetNodeSize>;

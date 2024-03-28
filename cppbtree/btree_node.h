@@ -22,7 +22,6 @@
 #include <limits>
 #include <type_traits>
 
-#include "btree_comparer.h"
 #include "btree_util.h"
 
 namespace cppbtree {
@@ -81,16 +80,6 @@ class btree_node {
   using value_compare      = typename Params::value_compare;
   using size_type          = typename Params::size_type;
   using difference_type    = typename Params::difference_type;
-  // Typedefs for the various types of node searches.
-  using linear_search_type = btree_linear_search_compare<key_type, btree_node, key_compare>;
-  using binary_search_type = btree_binary_search_compare<key_type, btree_node, key_compare>;
-  // If the key is an integral or floating point type, use linear search which
-  // is faster than binary search for such types. Might be wise to also
-  // configure linear search based on node-size.
-  using search_type = typename std::conditional_t<
-      std::is_integral_v<key_type> || std::is_floating_point_v<key_type>,
-      linear_search_type,
-      binary_search_type>;
 
   static constexpr std::size_t kValueSize      = params_type::kValueSize;
   static constexpr std::size_t kTargetNodeSize = params_type::kTargetNodeSize;
@@ -302,43 +291,13 @@ class btree_node {
 
   // Returns the position of the first value whose key is not less than k.
   search_result lower_bound(const key_type& k, const key_compare& comp) const
-      noexcept(noexcept(search_type::lower_bound(
-          std::declval<const key_type&>(),
-          std::declval<const btree_node&>(),
-          std::declval<const key_compare&>()
-      ))) {
-    return search_type::lower_bound(k, *this, comp);
+      noexcept(noexcept(binary_search_compare(k, 0, count(), comp))) {
+    return binary_search_compare(k, 0, count(), comp);
   }
   // Returns the position of the first value whose key is greater than k.
   search_result upper_bound(const key_type& k, const key_compare& comp) const
-      noexcept(noexcept(search_type::upper_bound(
-          std::declval<const key_type&>(),
-          std::declval<const btree_node&>(),
-          std::declval<const key_compare&>()
-      ))) {
-    return search_type::upper_bound(k, *this, comp);
-  }
-
-  // Returns the position of the first value whose key is not less than k using
-  // linear search.
-  template <bool WithEqual = true>
-  search_result linear_search_compare(
-      const key_type& k, count_type s, count_type e, const key_compare& comp
-  ) const
-      noexcept(noexcept(comp(std::declval<const key_type&>(), k))) {
-    while (s < e) {
-      auto c = comp(key(s), k);
-      if constexpr (WithEqual) {
-        if (c == 0) {
-          return search_result(s, true);
-        }
-      }
-      if (c > 0) {
-        break;
-      }
-      ++s;
-    }
-    return search_result(s, false);
+      noexcept(noexcept(binary_search_compare<false>(k, 0, count(), comp))) {
+    return binary_search_compare<false>(k, 0, count(), comp);
   }
 
   // Returns the position of the first value whose key is not less than k using

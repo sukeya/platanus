@@ -22,7 +22,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "btree_comparer.h"
 #include "btree_util.h"
 
 namespace cppbtree {

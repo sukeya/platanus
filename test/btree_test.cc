@@ -38,13 +38,14 @@ TEST(Btree, set_int32_32) { SetTest<int32_t, 32>(); }
 TEST(Btree, set_int32_64) { SetTest<int32_t, 64>(); }
 TEST(Btree, set_int32_128) { SetTest<int32_t, 128>(); }
 TEST(Btree, set_int32_256) { SetTest<int32_t, 256>(); }
-TEST(Btree, set_int64_256) { SetTest<int64_t, 256>(); }
-TEST(Btree, set_string_256) { SetTest<std::string, 256>(); }
-TEST(Btree, set_pair_256) { SetTest<std::pair<int, int>, 256>(); }
-TEST(Btree, map_int32_256) { MapTest<int32_t, 256>(); }
-TEST(Btree, map_int64_256) { MapTest<int64_t, 256>(); }
-TEST(Btree, map_string_256) { MapTest<std::string, 256>(); }
-TEST(Btree, map_pair_256) { MapTest<std::pair<int, int>, 256>(); }
+TEST(Btree, set_int32_512) { SetTest<int32_t, 512>(); }
+TEST(Btree, set_int64_512) { SetTest<int64_t, 512>(); }
+TEST(Btree, set_string_512) { SetTest<std::string, 512>(); }
+TEST(Btree, set_pair_512) { SetTest<std::pair<int, int>, 512>(); }
+TEST(Btree, map_int32_512) { MapTest<int32_t, 512>(); }
+TEST(Btree, map_int64_512) { MapTest<int64_t, 512>(); }
+TEST(Btree, map_string_512) { MapTest<std::string, 512>(); }
+TEST(Btree, map_pair_512) { MapTest<std::pair<int, int>, 512>(); }
 
 // Large-node tests
 TEST(Btree, map_int32_1024) { MapTest<int32_t, 1024>(); }
@@ -80,14 +81,14 @@ void MultiMapTest() {
   BtreeAllocatorTest<btree_multimap<K, K, DefaultWeakComp, TestAlloc, N> >();
 }
 
-TEST(Btree, multiset_int32_256) { MultiSetTest<int32_t, 256>(); }
-TEST(Btree, multiset_int64_256) { MultiSetTest<int64_t, 256>(); }
-TEST(Btree, multiset_string_256) { MultiSetTest<std::string, 256>(); }
-TEST(Btree, multiset_pair_256) { MultiSetTest<std::pair<int, int>, 256>(); }
-TEST(Btree, multimap_int32_256) { MultiMapTest<int32_t, 256>(); }
-TEST(Btree, multimap_int64_256) { MultiMapTest<int64_t, 256>(); }
-TEST(Btree, multimap_string_256) { MultiMapTest<std::string, 256>(); }
-TEST(Btree, multimap_pair_256) { MultiMapTest<std::pair<int, int>, 256>(); }
+TEST(Btree, multiset_int32_512) { MultiSetTest<int32_t, 512>(); }
+TEST(Btree, multiset_int64_512) { MultiSetTest<int64_t, 512>(); }
+TEST(Btree, multiset_string_512) { MultiSetTest<std::string, 512>(); }
+TEST(Btree, multiset_pair_512) { MultiSetTest<std::pair<int, int>, 512>(); }
+TEST(Btree, multimap_int32_512) { MultiMapTest<int32_t, 512>(); }
+TEST(Btree, multimap_int64_512) { MultiMapTest<int64_t, 512>(); }
+TEST(Btree, multimap_string_512) { MultiMapTest<std::string, 512>(); }
+TEST(Btree, multimap_pair_512) { MultiMapTest<std::pair<int, int>, 512>(); }
 
 // Large-node tests
 TEST(Btree, multimap_int32_1024) { MultiMapTest<int32_t, 1024>(); }
@@ -229,10 +230,10 @@ TEST(Btree, Comparison) {
 }
 
 TEST(Btree, RangeCtorSanity) {
-  using test_set  = btree_set<int, DefaultWeakComp, std::allocator<int>, 256>;
-  using test_map  = btree_map<int, int, DefaultWeakComp, std::allocator<int>, 256>;
-  using test_mset = btree_multiset<int, DefaultWeakComp, std::allocator<int>, 256>;
-  using test_mmap = btree_multimap<int, int, DefaultWeakComp, std::allocator<int>, 256>;
+  using test_set  = btree_set<int, DefaultWeakComp, std::allocator<int>, 512>;
+  using test_map  = btree_map<int, int, DefaultWeakComp, std::allocator<int>, 512>;
+  using test_mset = btree_multiset<int, DefaultWeakComp, std::allocator<int>, 512>;
+  using test_mmap = btree_multimap<int, int, DefaultWeakComp, std::allocator<int>, 512>;
   std::vector<int> ivec;
   ivec.push_back(1);
   std::map<int, int> imap;

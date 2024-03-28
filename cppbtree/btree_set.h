@@ -35,7 +35,7 @@ template <
     typename Key,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
-    int TargetNodeSize = 256>
+    int TargetNodeSize = 512>
 class btree_set : public btree_unique_container<
                       btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
   using self_type   = btree_set<Key, Compare, Alloc, TargetNodeSize>;
@@ -77,7 +77,7 @@ template <
     typename Key,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
-    int TargetNodeSize = 256>
+    int TargetNodeSize = 512>
 class btree_multiset
     : public btree_multi_container<btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
   using self_type   = btree_multiset<Key, Compare, Alloc, TargetNodeSize>;

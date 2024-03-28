@@ -17,10 +17,10 @@
 // STL set/map has an overhead of 3 pointers (left, right and parent) plus the
 // node color information for each stored value. So a set<int32> consumes 20
 // bytes for each value stored. This btree implementation stores multiple
-// values on fixed size nodes (usually 256 bytes) and doesn't store child
+// values on fixed size nodes (usually 512 bytes) and doesn't store child
 // pointers for leaf nodes. The result is that a btree_set<int32> may use much
 // less memory per stored value. For the random insertion benchmark in
-// btree_test.cc, a btree_set<int32> with node-size of 256 uses 4.9 bytes per
+// btree_test.cc, a btree_set<int32> with node-size of 512 uses 5.19 bytes per
 // stored value.
 //
 // The packing of multiple values on to each node of a btree has another effect
@@ -45,57 +45,105 @@
 //
 //   btree_bench --benchmarks=. 2>&1 | ./benchmarks.awk
 //
-// Run on pmattis-warp.nyc (4 X 2200 MHz CPUs); 2010/03/04-15:23:06
-// Benchmark                 STL(ns) B-Tree(ns) @    <size>
+// Run on Intel Core i7-8700 (6 x 3.20 GHz) 2024/03/26
+// Benchmark                         STL(ns) B-Tree(ns)          <size>
 // --------------------------------------------------------
-// BM_set_int32_insert        1516      608  +59.89%  <256>    [40.0,  5.2]
-// BM_set_int32_lookup        1160      414  +64.31%  <256>    [40.0,  5.2]
-// BM_set_int32_fulllookup     960      410  +57.29%  <256>    [40.0,  4.4]
-// BM_set_int32_delete        1741      528  +69.67%  <256>    [40.0,  5.2]
-// BM_set_int32_queueaddrem   3078     1046  +66.02%  <256>    [40.0,  5.5]
-// BM_set_int32_mixedaddrem   3600     1384  +61.56%  <256>    [40.0,  5.3]
-// BM_set_int32_fifo           227      113  +50.22%  <256>    [40.0,  4.4]
-// BM_set_int32_fwditer        158       26  +83.54%  <256>    [40.0,  5.2]
-// BM_map_int32_insert        1551      636  +58.99%  <256>    [48.0, 10.5]
-// BM_map_int32_lookup        1200      508  +57.67%  <256>    [48.0, 10.5]
-// BM_map_int32_fulllookup     989      487  +50.76%  <256>    [48.0,  8.8]
-// BM_map_int32_delete        1794      628  +64.99%  <256>    [48.0, 10.5]
-// BM_map_int32_queueaddrem   3189     1266  +60.30%  <256>    [48.0, 11.6]
-// BM_map_int32_mixedaddrem   3822     1623  +57.54%  <256>    [48.0, 10.9]
-// BM_map_int32_fifo           151      134  +11.26%  <256>    [48.0,  8.8]
-// BM_map_int32_fwditer        161       32  +80.12%  <256>    [48.0, 10.5]
-// BM_set_int64_insert        1546      636  +58.86%  <256>    [40.0, 10.5]
-// BM_set_int64_lookup        1200      512  +57.33%  <256>    [40.0, 10.5]
-// BM_set_int64_fulllookup     971      487  +49.85%  <256>    [40.0,  8.8]
-// BM_set_int64_delete        1745      616  +64.70%  <256>    [40.0, 10.5]
-// BM_set_int64_queueaddrem   3163     1195  +62.22%  <256>    [40.0, 11.6]
-// BM_set_int64_mixedaddrem   3760     1564  +58.40%  <256>    [40.0, 10.9]
-// BM_set_int64_fifo           146      103  +29.45%  <256>    [40.0,  8.8]
-// BM_set_int64_fwditer        162       31  +80.86%  <256>    [40.0, 10.5]
-// BM_map_int64_insert        1551      720  +53.58%  <256>    [48.0, 20.7]
-// BM_map_int64_lookup        1214      612  +49.59%  <256>    [48.0, 20.7]
-// BM_map_int64_fulllookup     994      592  +40.44%  <256>    [48.0, 17.2]
-// BM_map_int64_delete        1778      764  +57.03%  <256>    [48.0, 20.7]
-// BM_map_int64_queueaddrem   3189     1547  +51.49%  <256>    [48.0, 20.9]
-// BM_map_int64_mixedaddrem   3779     1887  +50.07%  <256>    [48.0, 21.6]
-// BM_map_int64_fifo           147      145   +1.36%  <256>    [48.0, 17.2]
-// BM_map_int64_fwditer        162       41  +74.69%  <256>    [48.0, 20.7]
-// BM_set_string_insert       1989     1966   +1.16%  <256>    [64.0, 44.5]
-// BM_set_string_lookup       1709     1600   +6.38%  <256>    [64.0, 44.5]
-// BM_set_string_fulllookup   1573     1529   +2.80%  <256>    [64.0, 35.4]
-// BM_set_string_delete       2520     1920  +23.81%  <256>    [64.0, 44.5]
-// BM_set_string_queueaddrem  4706     4309   +8.44%  <256>    [64.0, 48.3]
-// BM_set_string_mixedaddrem  5080     4654   +8.39%  <256>    [64.0, 46.7]
-// BM_set_string_fifo          318      512  -61.01%  <256>    [64.0, 35.4]
-// BM_set_string_fwditer       182       93  +48.90%  <256>    [64.0, 44.5]
-// BM_map_string_insert       2600     2227  +14.35%  <256>    [72.0, 55.8]
-// BM_map_string_lookup       2068     1730  +16.34%  <256>    [72.0, 55.8]
-// BM_map_string_fulllookup   1859     1618  +12.96%  <256>    [72.0, 44.0]
-// BM_map_string_delete       3168     2080  +34.34%  <256>    [72.0, 55.8]
-// BM_map_string_queueaddrem  5840     4701  +19.50%  <256>    [72.0, 59.4]
-// BM_map_string_mixedaddrem  6400     5200  +18.75%  <256>    [72.0, 57.8]
-// BM_map_string_fifo          398      596  -49.75%  <256>    [72.0, 44.0]
-// BM_map_string_fwditer       243      113  +53.50%  <256>    [72.0, 55.8]
+// BM_multimap_string_fwditer             86         16   81.40% <512>
+// BM_multimap_string_fifo                77        134  -74.03% <512>
+// BM_multimap_string_mixedaddrem       1692       1480   12.53% <512>
+// BM_multimap_string_queueaddrem       1459       1217   16.59% <512>
+// BM_multimap_string_delete             779        707    9.24% <512>
+// BM_multimap_string_fulllookup         654        403   38.38% <512>
+// BM_multimap_string_lookup             588        447   23.98% <512>
+// BM_multimap_string_insert             731        506   30.78% <512>
+// BM_multiset_string_fwditer             86         13   84.88% <512>
+// BM_multiset_string_fifo                70        123  -75.71% <512>
+// BM_multiset_string_mixedaddrem       1741       1368   21.42% <512>
+// BM_multiset_string_queueaddrem       1467       1142   22.15% <512>
+// BM_multiset_string_delete             773        658   14.88% <512>
+// BM_multiset_string_fulllookup         615        374   39.19% <512>
+// BM_multiset_string_lookup             608        406   33.22% <512>
+// BM_multiset_string_insert             712        463   34.97% <512>
+// BM_multimap_int64_fwditer              75          3   96.00% <512>
+// BM_multimap_int64_fifo                 51         48    5.88% <512>
+// BM_multimap_int64_mixedaddrem        1470        638   56.60% <512>
+// BM_multimap_int64_queueaddrem        1058        439   58.51% <512>
+// BM_multimap_int64_delete              584        268   54.11% <512>
+// BM_multimap_int64_fulllookup          668        148   77.84% <512>
+// BM_multimap_int64_lookup              491        165   66.40% <512>
+// BM_multimap_int64_insert              512        187   63.48% <512>
+// BM_multiset_int64_fwditer              73          2   97.26% <512>
+// BM_multiset_int64_fifo                 43         24   44.19% <512>
+// BM_multiset_int64_mixedaddrem        1370        531   61.24% <512>
+// BM_multiset_int64_queueaddrem        1036        336   67.57% <512>
+// BM_multiset_int64_delete              558        219   60.75% <512>
+// BM_multiset_int64_fulllookup          449        120   73.27% <512>
+// BM_multiset_int64_lookup              476        114   76.05% <512>
+// BM_multiset_int64_insert              475        130   72.63% <512>
+// BM_multimap_int32_fwditer              75          2   97.33% <512>
+// BM_multimap_int32_fifo                 49         60  -22.45% <512>
+// BM_multimap_int32_mixedaddrem        1457        558   61.70% <512>
+// BM_multimap_int32_queueaddrem        1122        385   65.69% <512>
+// BM_multimap_int32_delete              573        232   59.51% <512>
+// BM_multimap_int32_fulllookup          593        109   81.62% <512>
+// BM_multimap_int32_lookup              508        129   74.61% <512>
+// BM_multimap_int32_insert              497        155   68.81% <512>
+// BM_multiset_int32_fwditer              72          2   97.22% <512>
+// BM_multiset_int32_fifo                 42         22   47.62% <512>
+// BM_multiset_int32_mixedaddrem        1375        449   67.35% <512>
+// BM_multiset_int32_queueaddrem        1033        367   64.47% <512>
+// BM_multiset_int32_delete              558        256   54.12% <512>
+// BM_multiset_int32_fulllookup          481        138   71.31% <512>
+// BM_multiset_int32_lookup              465        114   75.48% <512>
+// BM_multiset_int32_insert              480        121   74.79% <512>
+// BM_map_string_fwditer                  87         16   81.61% <512>
+// BM_map_string_fifo                     80        135  -68.75% <512>
+// BM_map_string_mixedaddrem            1831       1275   30.37% <512>
+// BM_map_string_queueaddrem            1492       1038   30.43% <512>
+// BM_map_string_delete                  781        498   36.24% <512>
+// BM_map_string_fulllookup              620        399   35.65% <512>
+// BM_map_string_lookup                  638        435   31.82% <512>
+// BM_map_string_insert                  762        523   31.36% <512>
+// BM_set_string_fwditer                  86         13   84.88% <512>
+// BM_set_string_fifo                     71        122  -71.83% <512>
+// BM_set_string_mixedaddrem            1822       1195   34.41% <512>
+// BM_set_string_queueaddrem            1492        960   35.66% <512>
+// BM_set_string_delete                  778        455   41.52% <512>
+// BM_set_string_fulllookup              621        363   41.55% <512>
+// BM_set_string_lookup                  644        394   38.82% <512>
+// BM_set_string_insert                  738        481   34.82% <512>
+// BM_map_int64_fwditer                   78          3   96.15% <512>
+// BM_map_int64_fifo                      50         47    6.00% <512>
+// BM_map_int64_mixedaddrem             1564        605   61.32% <512>
+// BM_map_int64_queueaddrem             1195        438   63.35% <512>
+// BM_map_int64_delete                   619        211   65.91% <512>
+// BM_map_int64_fulllookup               635        156   75.43% <512>
+// BM_map_int64_lookup                   523        169   67.69% <512>
+// BM_map_int64_insert                   620        217   65.00% <512>
+// BM_set_int64_fwditer                   73          2   97.26% <512>
+// BM_set_int64_fifo                      44         24   45.45% <512>
+// BM_set_int64_mixedaddrem             1442        465   67.75% <512>
+// BM_set_int64_queueaddrem             1077        292   72.89% <512>
+// BM_set_int64_delete                   567        158   72.13% <512>
+// BM_set_int64_fulllookup               422        141   66.59% <512>
+// BM_set_int64_lookup                   514        132   74.32% <512>
+// BM_set_int64_insert                   504        139   72.42% <512>
+// BM_map_int32_fwditer                   78          2   97.44% <512>
+// BM_map_int32_fifo                      49         59  -20.41% <512>
+// BM_map_int32_mixedaddrem             1584        536   66.16% <512>
+// BM_map_int32_queueaddrem             1114        353   68.31% <512>
+// BM_map_int32_delete                   585        188   67.86% <512>
+// BM_map_int32_fulllookup               618        121   80.42% <512>
+// BM_map_int32_lookup                   532        131   75.38% <512>
+// BM_map_int32_insert                   583        173   70.33% <512>
+// BM_set_int32_fwditer                   73          2   97.26% <512>
+// BM_set_int32_fifo                      43         22   48.84% <512>
+// BM_set_int32_mixedaddrem             1434        391   72.73% <512>
+// BM_set_int32_queueaddrem             1077        319   70.38% <512>
+// BM_set_int32_delete                   566        137   75.80% <512>
+// BM_set_int32_fulllookup               527        127   75.90% <512>
+// BM_set_int32_lookup                   494        127   74.29% <512>
+// BM_set_int32_insert                   505        153   69.70% <512>
 
 #ifndef CPPBTREE_BTREE_H__
 #define CPPBTREE_BTREE_H__
@@ -117,7 +165,6 @@
 #include <type_traits>
 #include <utility>
 
-#include "btree_comparer.h"
 #include "btree_iterator.h"
 #include "btree_node.h"
 #include "btree_param.h"

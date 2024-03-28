@@ -531,7 +531,7 @@ MY_BENCHMARK_TYPES(string, string);
   MY_BENCHMARK4(tree##_2048_##type, name, func)
 #else
 #define MY_BENCHMARK3(tree, type, name, func)   \
-  MY_BENCHMARK4(tree##_256_##type, name, func); \
+  MY_BENCHMARK4(tree##_512_##type, name, func); \
   MY_BENCHMARK4(tree##_2048_##type, name, func)
 #endif
 

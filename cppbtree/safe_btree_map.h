@@ -45,7 +45,7 @@ template <
     typename Value,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<std::pair<const Key, Value> >,
-    int TargetNodeSize = 256>
+    int TargetNodeSize = 512>
 class safe_btree_map
     : public btree_map_container<
           safe_btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {

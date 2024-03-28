@@ -50,13 +50,14 @@ TEST(SafeBtree, set_int32_32) { SetTest<int32_t, 32>(); }
 TEST(SafeBtree, set_int32_64) { SetTest<int32_t, 64>(); }
 TEST(SafeBtree, set_int32_128) { SetTest<int32_t, 128>(); }
 TEST(SafeBtree, set_int32_256) { SetTest<int32_t, 256>(); }
-TEST(SafeBtree, set_int64_256) { SetTest<int64_t, 256>(); }
-TEST(SafeBtree, set_string_256) { SetTest<std::string, 256>(); }
-TEST(SafeBtree, set_pair_256) { SetTest<std::pair<int, int>, 256>(); }
-TEST(SafeBtree, map_int32_256) { MapTest<int32_t, 256>(); }
-TEST(SafeBtree, map_int64_256) { MapTest<int64_t, 256>(); }
-TEST(SafeBtree, map_string_256) { MapTest<std::string, 256>(); }
-TEST(SafeBtree, map_pair_256) { MapTest<std::pair<int, int>, 256>(); }
+TEST(SafeBtree, set_int32_512) { SetTest<int32_t, 512>(); }
+TEST(SafeBtree, set_int64_512) { SetTest<int64_t, 512>(); }
+TEST(SafeBtree, set_string_512) { SetTest<std::string, 512>(); }
+TEST(SafeBtree, set_pair_512) { SetTest<std::pair<int, int>, 512>(); }
+TEST(SafeBtree, map_int32_512) { MapTest<int32_t, 512>(); }
+TEST(SafeBtree, map_int64_512) { MapTest<int64_t, 512>(); }
+TEST(SafeBtree, map_string_512) { MapTest<std::string, 512>(); }
+TEST(SafeBtree, map_pair_512) { MapTest<std::pair<int, int>, 512>(); }
 
 TEST(SafeBtree, Comparison) {
   const int               kSetSize = 1201;

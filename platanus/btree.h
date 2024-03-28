@@ -288,10 +288,21 @@ class btree {
 
   // Finds the first element whose key is not less than key.
   iterator lower_bound(const key_type& key) {
-    return internal_end(internal_lower_bound(key, iterator(borrow_root(), 0)));
+    if (not borrow_readonly_root()) {
+      return end();
+    }
+    auto iter = iterator(borrow_root(), 0);
+    for (;;) {
+      iter.position = iter.node->lower_bound(key, ref_key_comp()).index();
+      if (iter.node->leaf()) {
+        break;
+      }
+      iter.node = iter.node->borrow_child(iter.position);
+    }
+    return internal_end(internal_last(iter));
   }
   const_iterator lower_bound(const key_type& key) const {
-    return internal_end(internal_lower_bound(key, const_iterator(borrow_readonly_root(), 0)));
+    return static_cast<const_iterator>(const_cast<btree*>(this)->lower_bound(key));
   }
 
   // Finds the first element whose key is greater than key.
@@ -403,10 +414,15 @@ class btree {
     return internal_end(internal_find_unique(key, const_iterator(borrow_readonly_root(), 0)));
   }
   iterator find_multi(const key_type& key) {
-    return internal_end(internal_find_multi(key, iterator(borrow_root(), 0)));
+    iterator iter = lower_bound(key);
+    if (iter != end() && !compare_keys(key, iter.key())) {
+      return iter;
+    } else {
+      return end();
+    }
   }
   const_iterator find_multi(const key_type& key) const {
-    return internal_end(internal_find_multi(key, const_iterator(borrow_readonly_root(), 0)));
+    return static_cast<const_iterator>(const_cast<btree*>(this)->find_multi(key));
   }
 
   // Returns a count of the number of times the key appears in the btree.
@@ -610,10 +626,6 @@ class btree {
   template <typename IterType>
   std::pair<IterType, bool> internal_locate(const key_type& key, IterType iter) const;
 
-  // Internal routine which implements lower_bound().
-  template <typename IterType>
-  IterType internal_lower_bound(const key_type& key, IterType iter) const;
-
   // Internal routine which implements upper_bound().
   template <typename IterType>
   IterType internal_upper_bound(const key_type& key, IterType iter) const;
@@ -621,10 +633,6 @@ class btree {
   // Internal routine which implements find_unique().
   template <typename IterType>
   IterType internal_find_unique(const key_type& key, IterType iter) const;
-
-  // Internal routine which implements find_multi().
-  template <typename IterType>
-  IterType internal_find_multi(const key_type& key, IterType iter) const;
 
   // Dumps a node and all of its children to the specified ostream.
   void internal_dump(std::ostream& os, const node_borrower node, int level) const;
@@ -877,8 +885,8 @@ int btree<P>::erase_unique(const key_type& key) {
 
 template <typename P>
 int btree<P>::erase_multi(const key_type& key) {
-  iterator begin = internal_lower_bound(key, iterator(borrow_root(), 0));
-  if (!begin.node) {
+  iterator begin = lower_bound(key);
+  if (begin == end()) {
     // The key doesn't exist in the tree, return nothing done.
     return 0;
   }
@@ -1141,22 +1149,6 @@ inline std::pair<IterType, bool> btree<P>::internal_locate(const key_type& key, 
 
 template <typename P>
 template <typename IterType>
-IterType btree<P>::internal_lower_bound(const key_type& key, IterType iter) const {
-  if (iter.node) {
-    for (;;) {
-      iter.position = iter.node->lower_bound(key, ref_key_comp()).index();
-      if (iter.node->leaf()) {
-        break;
-      }
-      iter.node = iter.node->borrow_child(iter.position);
-    }
-    iter = internal_last(iter);
-  }
-  return iter;
-}
-
-template <typename P>
-template <typename IterType>
 IterType btree<P>::internal_upper_bound(const key_type& key, IterType iter) const {
   if (iter.node) {
     for (;;) {
@@ -1180,21 +1172,6 @@ IterType btree<P>::internal_find_unique(const key_type& key, IterType iter) cons
       return res.first;
     } else /* TODO if constexpr (key_comp doesn't return int)*/ {
       iter = internal_last(res.first);
-      if (iter.node && !compare_keys(key, iter.key())) {
-        return iter;
-      }
-    }
-  }
-  return IterType(nullptr, 0);
-}
-
-template <typename P>
-template <typename IterType>
-IterType btree<P>::internal_find_multi(const key_type& key, IterType iter) const {
-  if (iter.node) {
-    iter = internal_lower_bound(key, iter);
-    if (iter.node) {
-      iter = internal_last(iter);
       if (iter.node && !compare_keys(key, iter.key())) {
         return iter;
       }

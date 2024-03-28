@@ -442,6 +442,7 @@ class btree_node {
   // Inserts the value x at position i, shifting all existing values and
   // children at positions >= i to the right by 1.
   void insert_value(int i, const value_type& x);
+  void insert_value(int i, value_type&& x);
 
   // Emplaces the value at position i, shifting all existing values and children
   // at positions >= i to the right by 1.
@@ -477,6 +478,7 @@ class btree_node {
     values_[i] = mutable_value_type{std::forward<Args>(args)...};
   }
   void value_init(int i, const value_type& x) { values_[i] = x; }
+  void value_init(int i, value_type&& x) { values_[i] = std::move(x); }
 
  private:
   // The pointer to the array of values.
@@ -510,6 +512,12 @@ inline void btree_node<P>::rotate_back_to(int i) {
 template <typename P>
 inline void btree_node<P>::insert_value(int i, const value_type& x) {
   value_init(values_count(), x);
+  rotate_back_to(i);
+}
+
+template <typename P>
+inline void btree_node<P>::insert_value(int i, value_type&& x) {
+  value_init(values_count(), std::move(x));
   rotate_back_to(i);
 }
 

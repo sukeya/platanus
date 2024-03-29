@@ -46,7 +46,7 @@ struct btree_iterator {
   using signed_count_type = typename Node::signed_count_type;
 
   btree_iterator() noexcept : node(nullptr), position(-1) {}
-  btree_iterator(node_borrower n, int p) noexcept : node(n), position(p) {}
+  btree_iterator(node_borrower n, signed_count_type p) noexcept : node(n), position(p) {}
   btree_iterator(const iterator& x) noexcept : node(x.node), position(x.position) {}
 
   // Increment/decrement the iterator.

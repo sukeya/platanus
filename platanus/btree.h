@@ -307,10 +307,21 @@ class btree {
 
   // Finds the first element whose key is greater than key.
   iterator upper_bound(const key_type& key) {
-    return internal_end(internal_upper_bound(key, iterator(borrow_root(), 0)));
+    if (not borrow_readonly_root()) {
+      return end();
+    }
+    auto iter = iterator(borrow_root(), 0);
+    for (;;) {
+      iter.position = iter.node->upper_bound(key, ref_key_comp()).index();
+      if (iter.node->leaf()) {
+        break;
+      }
+      iter.node = iter.node->borrow_child(iter.position);
+    }
+    return internal_end(internal_last(iter));
   }
   const_iterator upper_bound(const key_type& key) const {
-    return internal_end(internal_upper_bound(key, const_iterator(borrow_readonly_root(), 0)));
+    return static_cast<const_iterator>(const_cast<btree*>(this)->upper_bound(key));
   }
 
   // Finds the range of values which compare equal to key. The first member of
@@ -626,10 +637,6 @@ class btree {
   template <typename IterType>
   std::pair<IterType, bool> internal_locate(const key_type& key, IterType iter) const;
 
-  // Internal routine which implements upper_bound().
-  template <typename IterType>
-  IterType internal_upper_bound(const key_type& key, IterType iter) const;
-
   // Internal routine which implements find_unique().
   template <typename IterType>
   IterType internal_find_unique(const key_type& key, IterType iter) const;
@@ -748,11 +755,7 @@ typename btree<P>::iterator btree<P>::insert_multi(const key_type& key, ValuePoi
     set_rightmost(borrow_root());
   }
 
-  iterator iter = internal_upper_bound(key, iterator(borrow_readonly_root(), 0));
-  if (!iter.node) {
-    iter = end();
-  }
-  return internal_insert(iter, *value);
+  return internal_insert(upper_bound(key), *value);
 }
 
 template <typename P>
@@ -891,8 +894,7 @@ int btree<P>::erase_multi(const key_type& key) {
     return 0;
   }
   // Delete all of the keys between begin and upper_bound(key).
-  iterator end = internal_end(internal_upper_bound(key, iterator(borrow_root(), 0)));
-  return erase(begin, end);
+  return erase(begin, upper_bound(key));
 }
 
 template <typename P>
@@ -1145,22 +1147,6 @@ inline std::pair<IterType, bool> btree<P>::internal_locate(const key_type& key, 
     iter.node = iter.node->borrow_child(iter.position);
   }
   return std::make_pair(iter, false);
-}
-
-template <typename P>
-template <typename IterType>
-IterType btree<P>::internal_upper_bound(const key_type& key, IterType iter) const {
-  if (iter.node) {
-    for (;;) {
-      iter.position = iter.node->upper_bound(key, ref_key_comp()).index();
-      if (iter.node->leaf()) {
-        break;
-      }
-      iter.node = iter.node->borrow_child(iter.position);
-    }
-    iter = internal_last(iter);
-  }
-  return iter;
 }
 
 template <typename P>

@@ -1,6 +1,7 @@
-# cpp-btree
+# platanus
 
-cpp-btree is an implementation of B-tree which have the same interface as the standard C++ containers, so it is relatively simple to replace `map` with `btree_map`, `set` with `btree_set`, `multimap` with `btree_multimap` and `multiset` with `btree_multiset`.
+platanus is an fork of [cpp-btree](https://code.google.com/archive/p/cpp-btree/) which is an implementation of B-tree having the same interface as the standard C++ containers.
+So, it is relatively simple to replace `map` with `btree_map`, `set` with `btree_set`, `multimap` with `btree_multimap` and `multiset` with `btree_multiset`.
 
 ## Installation
 ### CMake (recommended)
@@ -30,4 +31,4 @@ If you want to test, Download and install the following libraries.
 Then, run `cmake -S . -B build -Dbuild_tests=ON`.
 
 ## License
-cpp-btree is licensed under [Apache License, Version 2.0](COPYING).
+platanus is licensed under [Apache License, Version 2.0](COPYING).

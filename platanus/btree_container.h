@@ -167,8 +167,12 @@ class btree_unique_container : public btree_container<Tree> {
 
   // Insertion routines.
   std::pair<iterator, bool> insert(const value_type& x) { return this->tree_.insert_unique(x); }
-  iterator                  insert(iterator position, const value_type& x) {
+  std::pair<iterator, bool> insert(value_type&& x) { return this->tree_.insert_unique(std::move(x)); }
+  iterator                  insert(const_iterator position, const value_type& x) {
                      return this->tree_.insert_unique(position, x);
+  }
+  iterator                  insert(const_iterator position, value_type&& x) {
+                     return this->tree_.insert_unique(position, std::move(x));
   }
   template <typename InputIterator>
   void insert(InputIterator b, InputIterator e) {
@@ -229,6 +233,14 @@ class btree_map_container : public btree_unique_container<Tree> {
       return this->tree_.insert_unique(iter, std::make_pair(key, mapped_type{}))->second;
     }
   }
+  mapped_type& operator[](key_type&& key) {
+    auto iter = this->tree_.lower_bound(key);
+    if (iter != this->tree_.end() && key == iter->first) {
+      return iter->second;
+    } else {
+      return this->tree_.insert_unique(iter, std::make_pair(std::move(key), mapped_type{}))->second;
+    }
+  }
 };
 
 // A common base class for btree_multiset and btree_multimap.
@@ -276,8 +288,12 @@ class btree_multi_container : public btree_container<Tree> {
 
   // Insertion routines.
   iterator insert(const value_type& x) { return this->tree_.insert_multi(x); }
+  iterator insert(value_type&& x) { return this->tree_.insert_multi(std::move(x)); }
   iterator insert(iterator position, const value_type& x) {
     return this->tree_.insert_multi(position, x);
+  }
+  iterator insert(iterator position, value_type&& x) {
+    return this->tree_.insert_multi(position, std::move(x));
   }
   template <typename InputIterator>
   void insert(InputIterator b, InputIterator e) {

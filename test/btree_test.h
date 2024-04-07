@@ -379,25 +379,37 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
   unique_checker(InputIterator b, InputIterator e) : super_type(b, e) {}
 
   // Insertion routines.
-  std::pair<iterator, bool> insert(const value_type& x) {
-    int                                             size        = this->tree_.size();
-    std::pair<typename CheckerType::iterator, bool> checker_res = this->checker_.insert(x);
-    std::pair<iterator, bool>                       tree_res    = this->tree_.insert(x);
+  template <class T>
+  std::pair<iterator, bool> insert_impl(T&& x) {
+    auto                                            y    = T{x};
+    std::size_t                                     size = this->tree_.size();
+    std::pair<typename CheckerType::iterator, bool> checker_res =
+        this->checker_.insert(y);
+    std::pair<iterator, bool> tree_res = this->tree_.insert(std::forward<T>(x));
     EXPECT_EQ(*tree_res.first, *checker_res.first);
     EXPECT_EQ(tree_res.second, checker_res.second);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + tree_res.second);
     return tree_res;
   }
-  iterator insert(iterator position, const value_type& x) {
-    int                                             size        = this->tree_.size();
-    std::pair<typename CheckerType::iterator, bool> checker_res = this->checker_.insert(x);
-    iterator                                        tree_res    = this->tree_.insert(position, x);
+  std::pair<iterator, bool> insert(const value_type& x) { return insert_impl(x); }
+  std::pair<iterator, bool> insert(value_type&& x) { return insert_impl(std::move(x)); }
+
+  template <class T>
+  iterator insert_impl(iterator position, T&& x) {
+    auto                                            y    = T{x};
+    typename CheckerType::size_type                 size = this->tree_.size();
+    std::pair<typename CheckerType::iterator, bool> checker_res =
+        this->checker_.insert(y);
+    iterator tree_res = this->tree_.insert(position, std::forward<T>(x));
     EXPECT_EQ(*tree_res, *checker_res.first);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + checker_res.second);
     return tree_res;
   }
+  iterator insert(iterator position, const value_type& x) { return insert_impl(position, x); }
+  iterator insert(iterator position, value_type&& x) { return insert_impl(position, std::move(x)); }
+
   template <typename InputIterator>
   void insert(InputIterator b, InputIterator e) {
     for (; b != e; ++b) {
@@ -428,24 +440,32 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
   multi_checker(InputIterator b, InputIterator e) : super_type(b, e) {}
 
   // Insertion routines.
-  iterator insert(const value_type& x) {
-    int                            size        = this->tree_.size();
-    typename CheckerType::iterator checker_res = this->checker_.insert(x);
-    iterator                       tree_res    = this->tree_.insert(x);
+  template <class T>
+  iterator insert_impl(T&& x) {
+    typename CheckerType::size_type size        = this->tree_.size();
+    typename CheckerType::iterator  checker_res = this->checker_.insert(x);
+    iterator                        tree_res    = this->tree_.insert(x);
     EXPECT_EQ(*tree_res, *checker_res);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + 1);
     return tree_res;
   }
-  iterator insert(iterator position, const value_type& x) {
-    int                            size        = this->tree_.size();
-    typename CheckerType::iterator checker_res = this->checker_.insert(x);
-    iterator                       tree_res    = this->tree_.insert(position, x);
+  iterator insert(const value_type& x) { return insert_impl(x); }
+  iterator insert(value_type&& x) { return insert_impl(std::move(x)); }
+
+  template <class T>
+  iterator insert_impl(iterator position, value_type&& x) {
+    typename CheckerType::size_type size        = this->tree_.size();
+    typename CheckerType::iterator  checker_res = this->checker_.insert(x);
+    iterator                        tree_res    = this->tree_.insert(position, x);
     EXPECT_EQ(*tree_res, *checker_res);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + 1);
     return tree_res;
   }
+  iterator insert(iterator position, const value_type& x) { return insert_impl(x); }
+  iterator insert(iterator position, value_type&& x) { return insert_impl(std::move(x)); }
+
   template <typename InputIterator>
   void insert(InputIterator b, InputIterator e) {
     for (; b != e; ++b) {
@@ -645,6 +665,20 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   }
 
   const_b.verify();
+
+  // Test insert rvalues.
+  T b_rvalues;
+  for (int i = 0; i < values.size(); i++) {
+    b_rvalues.insert(V(values[i]));
+  }
+  b_rvalues.verify();
+
+  // Test insert rvalues with hint.
+  b_rvalues.clear();
+  for (int i = 0; i < values.size(); i++) {
+    b_rvalues.insert(b_rvalues.upper_bound(key_of_value(values[i])), V(values[i]));
+  }
+  b_rvalues.verify();
 
   // Test dumping of the btree to an ostream. There should be 1 line for each
   // value.

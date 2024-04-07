@@ -236,7 +236,7 @@ class btree {
       // Don't copy onto ourselves.
       return *this;
     }
-    assign(x);
+    copy(x);
     return *this;
   }
 
@@ -336,65 +336,66 @@ class btree {
 
   // Inserts a value into the btree only if it does not already exist. The
   // boolean return value indicates whether insertion succeeded or failed.
-  std::pair<iterator, bool> insert_unique(const key_type& key, const value_type& value);
-  std::pair<iterator, bool> insert_unique(const key_type& key, value_type&& value);
-
-  // Inserts a value into the btree only if it does not already exist. The
-  // boolean return value indicates whether insertion succeeded or failed.
   std::pair<iterator, bool> insert_unique(const value_type& v) {
-    return insert_unique(params_type::key(v), v);
+    return internal_insert_unique(v);
   }
   std::pair<iterator, bool> insert_unique(value_type&& v) {
-    return insert_unique(params_type::key(v), std::move(v));
+    return internal_insert_unique(std::move(v));
   }
 
   // Insert with hint. Check to see if the value should be placed immediately
   // before position in the tree. If it does, then the insertion will take
   // amortized constant time. If not, the insertion will take amortized
   // logarithmic time as if a call to insert_unique(v) were made.
-  iterator insert_unique(const_iterator position, const value_type& v);
-  iterator insert_unique(const_iterator position, value_type&& v);
+  iterator insert_unique(const_iterator position, const value_type& v) {
+    return internal_insert_unique(position, v);
+  }
+  iterator insert_unique(const_iterator position, value_type&& v) {
+    return internal_insert_unique(position, std::move(v));
+  }
 
   // Insert a range of values into the btree.
   template <typename InputIterator>
-  void insert_unique(InputIterator b, InputIterator e);
+  void insert_unique(InputIterator b, InputIterator e) {
+    for (; b != e; ++b) {
+      insert_unique(cend(), *b);
+    }
+  }
 
   // Insert initialiser list of values into the btree.
   void insert_unique(std::initializer_list<value_type> list) {
     insert_unique(list.begin(), list.end());
   }
 
-  // Inserts a value into the btree. The ValuePointer type is used to avoid
-  // instatiating the value unless the key is being inserted. Value is not
-  // dereferenced if the key already exists in the btree. See
-  // btree_map::operator[].
-  template <typename ValuePointer>
-  iterator insert_multi(const key_type& key, ValuePointer value);
-
   // Inserts a value into the btree.
-  iterator insert_multi(const value_type& v) { return insert_multi(params_type::key(v), &v); }
+  iterator insert_multi(const value_type& v) { return internal_insert_multi(v); }
+  iterator insert_multi(value_type&& v) { return internal_insert_multi(std::move(v)); }
 
   // Insert with hint. Check to see if the value should be placed immediately
   // before position in the tree. If it does, then the insertion will take
   // amortized constant time. If not, the insertion will take amortized
   // logarithmic time as if a call to insert_multi(v) were made.
-  iterator insert_multi(iterator position, const value_type& v);
-
-  // Insert with hint. See insert_unique(iterator, const value_type&).
   iterator insert_multi(const_iterator position, const value_type& v) {
-    return insert_multi(iterator(position), v);
+    return internal_insert_multi(position, v);
+  }
+  iterator insert_multi(const_iterator position, value_type&& v) {
+    return internal_insert_multi(position, std::move(v));
   }
 
   // Insert a range of values into the btree.
   template <typename InputIterator>
-  void insert_multi(InputIterator b, InputIterator e);
+  void insert_multi(InputIterator b, InputIterator e) {
+    for (; b != e; ++b) {
+      insert_multi(end(), *b);
+    }
+  }
 
   // Insert initialiser list of values into the btree.
   void insert_multi(std::initializer_list<value_type> list) {
     insert_multi(list.begin(), list.end());
   }
 
-  void assign(const self_type& x);
+  void copy(const self_type& x);
 
   // Erase the specified element from the btree. The iterator must be valid
   // (i.e. not equal to end()).  Return an iterator pointing to the node after
@@ -621,10 +622,16 @@ class btree {
   iterator internal_insert(iterator iter, T&& v);
 
   template <typename T>
-  std::pair<iterator, bool> internal_insert_unique(const key_type& key, T&& value);
+  std::pair<iterator, bool> internal_insert_unique(T&& value);
 
   template <typename T>
   iterator internal_insert_unique(const_iterator position, T&& v);
+
+  template <typename T>
+  iterator internal_insert_multi(T&& value);
+
+  template <typename T>
+  iterator internal_insert_multi(const_iterator position, T&& value);
 
   // Returns an iterator pointing to the first value >= the value "iter" is
   // pointing at. Note that "iter" might be pointing to an invalid location as
@@ -694,19 +701,20 @@ btree<P>::btree(const self_type& x)
       children_alloc_(x.children_alloc_),
       rightmost_(x.rightmost_),
       size_(x.size_) {
-  assign(x);
+  copy(x);
 }
 
 template <typename P>
 template <typename T>
 std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(
-    const key_type& key, T&& value
+    T&& value
 ) {
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
   }
 
+  auto key = params_type::key(value);
   std::pair<iterator, bool> res  = internal_locate(key, iterator(borrow_root(), 0));
   iterator&                 iter = res.first;
   if (res.second) {
@@ -715,20 +723,6 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(
   }
 
   return std::make_pair(internal_insert(iter, std::forward<T>(value)), true);
-}
-
-template <typename P>
-std::pair<typename btree<P>::iterator, bool> btree<P>::insert_unique(
-    const key_type& key, const value_type& value
-) {
-  return internal_insert_unique(key, value);
-}
-
-template <typename P>
-std::pair<typename btree<P>::iterator, bool> btree<P>::insert_unique(
-    const key_type& key, value_type&& value
-) {
-  return internal_insert_unique(key, std::move(value));
 }
 
 template <typename P>
@@ -759,66 +753,43 @@ inline typename btree<P>::iterator btree<P>::internal_insert_unique(const_iterat
 }
 
 template <typename P>
-inline typename btree<P>::iterator btree<P>::insert_unique(const_iterator position, const value_type& v) {
-  return internal_insert_unique(position, v);
-}
-
-template <typename P>
-inline typename btree<P>::iterator btree<P>::insert_unique(const_iterator position, value_type&& v) {
-  return internal_insert_unique(position, std::move(v));
-}
-
-template <typename P>
-template <typename InputIterator>
-void btree<P>::insert_unique(InputIterator b, InputIterator e) {
-  for (; b != e; ++b) {
-    insert_unique(cend(), *b);
-  }
-}
-
-template <typename P>
-template <typename ValuePointer>
-typename btree<P>::iterator btree<P>::insert_multi(const key_type& key, ValuePointer value) {
+template <typename T>
+typename btree<P>::iterator btree<P>::internal_insert_multi(T&& value) {
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
   }
 
-  return internal_insert(upper_bound(key), *value);
+  auto key = params_type::key(value);
+  return internal_insert(upper_bound(key), std::forward<T>(value));
 }
 
 template <typename P>
-typename btree<P>::iterator btree<P>::insert_multi(iterator position, const value_type& v) {
+template <typename T>
+typename btree<P>::iterator btree<P>::internal_insert_multi(const_iterator const_iter, T&& v) {
+  auto position = iterator{const_iter.node, const_iter.position};
   if (!empty()) {
     const key_type& key = params_type::key(v);
     if (position == end() || !compare_keys(position.key(), key)) {
       iterator prev = position;
       if (position == begin() || !compare_keys(key, (--prev).key())) {
         // prev.key() <= key <= position.key()
-        return internal_insert(position, v);
+        return internal_insert(position, std::forward<T>(v));
       }
     } else {
       iterator next = position;
       ++next;
       if (next == end() || !compare_keys(next.key(), key)) {
         // position.key() < key <= next.key()
-        return internal_insert(next, v);
+        return internal_insert(next, std::forward<T>(v));
       }
     }
   }
-  return insert_multi(v);
+  return insert_multi(std::forward<T>(v));
 }
 
 template <typename P>
-template <typename InputIterator>
-void btree<P>::insert_multi(InputIterator b, InputIterator e) {
-  for (; b != e; ++b) {
-    insert_multi(end(), *b);
-  }
-}
-
-template <typename P>
-void btree<P>::assign(const self_type& x) {
+void btree<P>::copy(const self_type& x) {
   clear();
 
   // Assignment can avoid key comparisons because we know the order of the

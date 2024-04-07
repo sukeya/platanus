@@ -226,21 +226,29 @@ class safe_btree {
   size_type count_multi(const key_type& key) const { return tree_.count_multi(key); }
 
   // Insertion routines.
-  template <typename ValuePointer>
-  std::pair<iterator, bool> insert_unique(const key_type& key, ValuePointer value) {
-    std::pair<tree_iterator, bool> p = tree_.insert_unique(key, value);
+  template <class T>
+  std::pair<iterator, bool> insert_unique_impl(T&& v) {
+    std::pair<tree_iterator, bool> p = tree_.insert_unique(std::forward<T>(v));
     generation_ += p.second;
     return std::make_pair(iterator(this, p.first), p.second);
   }
   std::pair<iterator, bool> insert_unique(const value_type& v) {
-    std::pair<tree_iterator, bool> p = tree_.insert_unique(v);
-    generation_ += p.second;
-    return std::make_pair(iterator(this, p.first), p.second);
+    return insert_unique_impl(v);
   }
-  iterator insert_unique(iterator position, const value_type& v) {
-    tree_iterator tree_pos = position.iter();
+  std::pair<iterator, bool> insert_unique(value_type&& v) {
+    return insert_unique_impl(std::move(v));
+  }
+  template <class T>
+  iterator insert_unique_impl(const_iterator position, T&& v) {
+    tree_const_iterator tree_pos = position.iter();
     ++generation_;
-    return iterator(this, tree_.insert_unique(tree_pos, v));
+    return iterator(this, tree_.insert_unique(tree_pos, std::forward<T>(v)));
+  }
+  iterator insert_unique(const_iterator position, const value_type& v) {
+    return insert_unique_impl(position, v);
+  }
+  iterator insert_unique(const_iterator position, value_type&& v) {
+    return insert_unique_impl(position, std::forward<value_type>(v));
   }
   template <typename InputIterator>
   void insert_unique(InputIterator b, InputIterator e) {

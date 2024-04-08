@@ -39,7 +39,7 @@ struct btree_common_params {
 
   using allocator_type  = Alloc;
   using key_type        = Key;
-  using size_type       = ssize_t;
+  using size_type       = std::size_t;
   using difference_type = std::ptrdiff_t;
 
   static constexpr std::size_t kTargetNodeSize = TargetNodeSize;

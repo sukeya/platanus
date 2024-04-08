@@ -373,7 +373,7 @@ class btree_node {
   // the value pointed by middle - 1 will be the last value.
   // Example: let values be [0, 1, 2, 3, 4, 5], first = 1, middle = 3, last = 6,
   // after rotate_value_left(1, 3, 6) the values will be [0, 3, 4, 5, 1, 2].
-  void rotate_values(int first, int middle, int last) {
+  void rotate_values(count_type first, count_type middle, count_type last) {
     assert(0 <= first && first <= middle && middle <= last && last <= max_values_count());
     auto vbegin = begin_values();
     std::rotate(vbegin + first, vbegin + middle, vbegin + last);
@@ -381,7 +381,7 @@ class btree_node {
 
   // Shift the children in the range [first, last) to the right by shift.
   // CAUTION: This function  uninitializes [first, first + shift) in *this.
-  void shift_children_right(int first, int last, int shift) {
+  void shift_children_right(count_type first, count_type last, count_type shift) {
     assert(0 <= first && first <= last && 0 <= shift && last + shift <= max_children_count());
 
     auto begin = begin_children() + first;
@@ -396,7 +396,7 @@ class btree_node {
 
   // Shift the children in the range [first, last) to the left by shift.
   // CAUTION: This function  uninitializes [last - shift, last) in *this.
-  void shift_children_left(int first, int last, int shift) {
+  void shift_children_left(count_type first, count_type last, count_type shift) {
     assert(0 <= first && first <= last && last <= max_children_count());
     assert(0 <= shift && 0 <= first - shift);
 
@@ -423,7 +423,7 @@ class btree_node {
   // Receive the children from [first, first + n) in *src and set them to [dest, dest + n) in *this.
   // CAUTION: This function doesn't uninitialize [first, last) in *src.
   void receive_children_n(
-      children_iterator dest, node_borrower src, children_iterator first, int n
+      children_iterator dest, node_borrower src, children_iterator first, count_type n
   ) {
     auto dest_idx  = dest - begin_children();
     auto first_idx = first - src->begin_children();
@@ -431,34 +431,34 @@ class btree_node {
     assert(
         0 <= n && dest_idx + n <= max_children_count() && first_idx + n <= src->max_children_count()
     );
-    for (int i = 0; i < n; ++i) {
+    for (count_type i = 0; i < n; ++i) {
       set_child(dest_idx + i, src->extract_child(first_idx + i));
     }
   }
 
   // Rotate the values [values.begin() + i, values.end()) so that the last value is at position i.
-  void rotate_back_to(int i);
+  void rotate_back_to(count_type i);
 
   // Inserts the value x at position i, shifting all existing values and
   // children at positions >= i to the right by 1.
   template <typename T>
-  void insert_value(int i, T&& x);
+  void insert_value(count_type i, T&& x);
 
   // Emplaces the value at position i, shifting all existing values and children
   // at positions >= i to the right by 1.
   template <typename... Args>
-  void emplace_value(int i, Args&&... args);
+  void emplace_value(count_type i, Args&&... args);
 
   // Removes the value at position i, shifting all existing values and children
   // at positions > i to the left by 1.
-  void remove_value(int i);
+  void remove_value(count_type i);
 
   // Rebalances a node with its right sibling.
-  void rebalance_right_to_left(node_borrower sibling, int to_move);
-  void rebalance_left_to_right(node_borrower sibling, int to_move);
+  void rebalance_right_to_left(node_borrower sibling, count_type to_move);
+  void rebalance_left_to_right(node_borrower sibling, count_type to_move);
 
   // Splits a node, moving a portion of the node's values to its right sibling.
-  void split(node_owner&& sibling, int insert_position);
+  void split(node_owner&& sibling, count_type insert_position);
 
   // Merges a node with its right sibling, moving all of the values and the
   // delimiting key in the parent node onto itself.
@@ -468,17 +468,17 @@ class btree_node {
   void swap(btree_node& src);
 
  private:
-  void set_count(count_type v) noexcept {
+  void set_count(count_type  v) noexcept {
     assert(0 <= v && v <= max_count());
     count_ = v;
   }
 
   template <typename... Args>
-  void value_init(int i, Args&&... args) {
+  void value_init(count_type i, Args&&... args) {
     values_[i] = mutable_value_type{std::forward<Args>(args)...};
   }
   template <typename T>
-  void value_init(int i, T&& x) { values_[i] = std::forward<T>(x); }
+  void value_init(count_type i, T&& x) { values_[i] = std::forward<T>(x); }
 
  private:
   // The pointer to the array of values.
@@ -490,15 +490,15 @@ class btree_node {
   // A pointer to the node's parent.
   node_borrower parent_;
   // The position of the node in the node's parent.
-  count_type position_;
+  count_type  position_;
   // The count of the number of values in the node.
-  count_type count_;
+  count_type  count_;
 };
 
 ////
 // btree_node methods
 template <typename P>
-inline void btree_node<P>::rotate_back_to(int i) {
+inline void btree_node<P>::rotate_back_to(count_type i) {
   assert(i <= count());
   rotate_values(i, values_count(), values_count() + 1);
   set_count(count() + 1);
@@ -511,20 +511,20 @@ inline void btree_node<P>::rotate_back_to(int i) {
 
 template <typename P>
 template <typename T>
-inline void btree_node<P>::insert_value(int i, T&& x) {
+inline void btree_node<P>::insert_value(count_type i, T&& x) {
   value_init(values_count(), std::forward<T>(x));
   rotate_back_to(i);
 }
 
 template <typename P>
 template <typename... Args>
-inline void btree_node<P>::emplace_value(int i, Args&&... args) {
+inline void btree_node<P>::emplace_value(count_type i, Args&&... args) {
   value_init(values_count(), std::forward<Args>(args)...);
   rotate_back_to(i);
 }
 
 template <typename P>
-inline void btree_node<P>::remove_value(int i) {
+inline void btree_node<P>::remove_value(count_type i) {
   if (!leaf()) {
     assert(borrow_child(i + 1)->count() == 0);
     if (i + 2 < children_count()) {
@@ -540,7 +540,7 @@ inline void btree_node<P>::remove_value(int i) {
 }
 
 template <typename P>
-void btree_node<P>::rebalance_right_to_left(node_borrower src, int to_move) {
+void btree_node<P>::rebalance_right_to_left(node_borrower src, count_type to_move) {
   assert(borrow_readonly_parent() == src->borrow_readonly_parent());
   assert(borrow_readonly_parent() != nullptr);
   assert(position() + 1 == src->position());
@@ -570,7 +570,7 @@ void btree_node<P>::rebalance_right_to_left(node_borrower src, int to_move) {
 }
 
 template <typename P>
-void btree_node<P>::rebalance_left_to_right(node_borrower dest, int to_move) {
+void btree_node<P>::rebalance_left_to_right(node_borrower dest, count_type to_move) {
   assert(borrow_readonly_parent() == dest->borrow_readonly_parent());
   assert(borrow_readonly_parent() != nullptr);
   assert(position() + 1 == dest->position());
@@ -606,7 +606,7 @@ void btree_node<P>::rebalance_left_to_right(node_borrower dest, int to_move) {
 }
 
 template <typename P>
-void btree_node<P>::split(node_owner&& dest, int insert_position) {
+void btree_node<P>::split(node_owner&& dest, count_type insert_position) {
   assert(dest->count() == 0);
   assert(borrow_readonly_parent() != nullptr);
 
@@ -634,7 +634,7 @@ void btree_node<P>::split(node_owner&& dest, int insert_position) {
 
   if (!leaf()) {
     auto dest = borrow_parent()->borrow_child(position() + 1);
-    for (int i = 0; i <= dest->count(); ++i) {
+    for (count_type i = 0; i <= dest->count(); ++i) {
       assert(borrow_child(children_count() + i) != nullptr);
     }
     dest->receive_children_n(dest->begin_children(), this, end_children(), dest->count() + 1);

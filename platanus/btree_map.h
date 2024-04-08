@@ -40,7 +40,7 @@ template <
     typename Value,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<std::pair<const Key, Value> >,
-    int TargetNodeSize = 512>
+    std::size_t TargetNodeSize = 512>
 class btree_map : public btree_map_container<
                       btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
   using self_type   = btree_map<Key, Value, Compare, Alloc, TargetNodeSize>;
@@ -71,7 +71,7 @@ class btree_map : public btree_map_container<
       : super_type(b, e, comp, alloc) {}
 };
 
-template <typename K, typename V, typename C, typename A, int N>
+template <typename K, typename V, typename C, typename A, std::size_t N>
 inline void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
   x.swap(y);
 }
@@ -82,7 +82,7 @@ template <
     typename Value,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<std::pair<const Key, Value> >,
-    int TargetNodeSize = 512>
+    std::size_t TargetNodeSize = 512>
 class btree_multimap : public btree_multi_container<
                            btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
   using self_type   = btree_multimap<Key, Value, Compare, Alloc, TargetNodeSize>;
@@ -119,7 +119,7 @@ class btree_multimap : public btree_multi_container<
       : super_type(b, e, comp, alloc) {}
 };
 
-template <typename K, typename V, typename C, typename A, int N>
+template <typename K, typename V, typename C, typename A, std::size_t N>
 inline void swap(btree_multimap<K, V, C, A, N>& x, btree_multimap<K, V, C, A, N>& y) {
   x.swap(y);
 }

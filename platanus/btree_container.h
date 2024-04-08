@@ -180,7 +180,7 @@ class btree_unique_container : public btree_container<Tree> {
   }
 
   // Deletion routines.
-  int erase(const key_type& key) { return this->tree_.erase_unique(key); }
+  size_type erase(const key_type& key) { return this->tree_.erase_unique(key); }
   // Erase the specified iterator from the btree. The iterator must be valid
   // (i.e. not equal to end()).  Return an iterator pointing to the node after
   // the one that was erased (or end() if none exists).
@@ -301,7 +301,7 @@ class btree_multi_container : public btree_container<Tree> {
   }
 
   // Deletion routines.
-  int erase(const key_type& key) { return this->tree_.erase_multi(key); }
+  size_type erase(const key_type& key) { return this->tree_.erase_multi(key); }
   // Erase the specified iterator from the btree. The iterator must be valid
   // (i.e. not equal to end()).  Return an iterator pointing to the node after
   // the one that was erased (or end() if none exists).

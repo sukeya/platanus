@@ -35,7 +35,7 @@ template <
     typename Key,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
-    int TargetNodeSize = 512>
+    std::size_t TargetNodeSize = 512>
 class btree_set : public btree_unique_container<
                       btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
   using self_type   = btree_set<Key, Compare, Alloc, TargetNodeSize>;
@@ -67,7 +67,7 @@ class btree_set : public btree_unique_container<
       : super_type(b, e, comp, alloc) {}
 };
 
-template <typename K, typename C, typename A, int N>
+template <typename K, typename C, typename A, std::size_t N>
 inline void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
   x.swap(y);
 }
@@ -77,7 +77,7 @@ template <
     typename Key,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
-    int TargetNodeSize = 512>
+    std::size_t TargetNodeSize = 512>
 class btree_multiset
     : public btree_multi_container<btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
   using self_type   = btree_multiset<Key, Compare, Alloc, TargetNodeSize>;
@@ -110,7 +110,7 @@ class btree_multiset
       : super_type(b, e, comp, alloc) {}
 };
 
-template <typename K, typename C, typename A, int N>
+template <typename K, typename C, typename A, std::size_t N>
 inline void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y) {
   x.swap(y);
 }

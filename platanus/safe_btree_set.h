@@ -45,7 +45,7 @@ template <
     typename Key,
     typename Compare   = DefaultWeakComp,
     typename Alloc     = std::allocator<Key>,
-    int TargetNodeSize = 512>
+    std::size_t TargetNodeSize = 512>
 class safe_btree_set : public btree_unique_container<
                            safe_btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
   using self_type   = safe_btree_set<Key, Compare, Alloc, TargetNodeSize>;
@@ -79,7 +79,7 @@ class safe_btree_set : public btree_unique_container<
       : super_type(b, e, comp, alloc) {}
 };
 
-template <typename K, typename C, typename A, int N>
+template <typename K, typename C, typename A, std::size_t N>
 inline void swap(safe_btree_set<K, C, A, N>& x, safe_btree_set<K, C, A, N>& y) {
   x.swap(y);
 }

@@ -403,15 +403,15 @@ class btree {
   iterator erase(iterator iter);
 
   // Erases range. Returns the number of keys erased.
-  int erase(iterator begin, iterator end);
+  size_type erase(iterator begin, iterator end);
 
   // Erases the specified key from the btree. Returns 1 if an element was
   // erased and 0 otherwise.
-  int erase_unique(const key_type& key);
+  size_type erase_unique(const key_type& key);
 
   // Erases all of the entries matching the specified key from the
   // btree. Returns the number of elements erased.
-  int erase_multi(const key_type& key);
+  size_type erase_multi(const key_type& key);
 
   // Finds the iterator corresponding to a key or returns end() if the key is
   // not present.
@@ -665,7 +665,7 @@ class btree {
       return node_stats(1, 0);
     }
     node_stats res(0, 1);
-    for (int i = 0; i <= node->count(); ++i) {
+    for (size_type i = 0; i <= node->count(); ++i) {
       res += internal_stats(node->borrow_readonly_child(i));
     }
     return res;
@@ -866,9 +866,9 @@ typename btree<P>::iterator btree<P>::erase(iterator iter) {
 }
 
 template <typename P>
-int btree<P>::erase(iterator begin, iterator end) {
-  int count = distance(begin, end);
-  for (int i = 0; i < count; i++) {
+typename btree<P>::size_type btree<P>::erase(iterator begin, iterator end) {
+  size_type count = distance(begin, end);
+  for (size_type i = 0; i < count; i++) {
     begin = erase(begin);
     verify();
   }
@@ -876,7 +876,7 @@ int btree<P>::erase(iterator begin, iterator end) {
 }
 
 template <typename P>
-int btree<P>::erase_unique(const key_type& key) {
+typename btree<P>::size_type btree<P>::erase_unique(const key_type& key) {
   iterator iter = internal_find_unique(key, iterator(borrow_root(), 0));
   if (!iter.node) {
     // The key doesn't exist in the tree, return nothing done.
@@ -887,7 +887,7 @@ int btree<P>::erase_unique(const key_type& key) {
 }
 
 template <typename P>
-int btree<P>::erase_multi(const key_type& key) {
+typename btree<P>::size_type btree<P>::erase_multi(const key_type& key) {
   iterator begin = lower_bound(key);
   if (begin == end()) {
     // The key doesn't exist in the tree, return nothing done.
@@ -942,7 +942,7 @@ void btree<P>::rebalance_or_split(iterator& iter) {
         // We bias rebalancing based on the position being inserted. If we're
         // inserting at the end of the right node then we bias rebalancing to
         // fill up the left node.
-        int to_move = (left->max_count() - left->count())
+        auto to_move = (left->max_count() - left->count())
                       / (1 + (insert_position < left->max_count() ? 1 : 0));
         to_move = std::max(1, to_move);
 
@@ -969,7 +969,7 @@ void btree<P>::rebalance_or_split(iterator& iter) {
         // We bias rebalancing based on the position being inserted. If we're
         // inserting at the beginning of the left node then we bias rebalancing
         // to fill up the right node.
-        int to_move = (right->max_count() - right->count()) / (1 + (insert_position > 0 ? 1 : 0));
+        auto to_move = (right->max_count() - right->count()) / (1 + (insert_position > 0 ? 1 : 0));
         to_move     = std::max(1, to_move);
 
         if ((insert_position <= (node->count() - to_move))
@@ -1057,7 +1057,7 @@ bool btree<P>::try_merge_or_rebalance(iterator& iter) {
     // empty. This is a small optimization for the common pattern of deleting
     // from the front of the tree.
     if ((right->count() > kMinNodeValues) && ((iter.node->count() == 0) || (iter.position > 0))) {
-      int to_move = (right->count() - iter.node->count()) / 2;
+      auto to_move = (right->count() - iter.node->count()) / 2;
       to_move     = std::min(to_move, right->count() - 1);
       iter.node->rebalance_right_to_left(right, to_move);
       return false;
@@ -1071,7 +1071,7 @@ bool btree<P>::try_merge_or_rebalance(iterator& iter) {
     node_borrower left = parent->borrow_child(iter.node->position() - 1);
     if ((left->count() > kMinNodeValues)
         && ((iter.node->count() == 0) || (iter.position < iter.node->count()))) {
-      int to_move = (left->count() - iter.node->count()) / 2;
+      auto to_move = (left->count() - iter.node->count()) / 2;
       to_move     = std::min(to_move, left->count() - 1);
       left->rebalance_left_to_right(iter.node, to_move);
       iter.position += to_move;

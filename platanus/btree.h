@@ -183,7 +183,7 @@ class btree {
   static constexpr std::size_t kValueSize     = node_type::kValueSize;
 
   struct node_stats {
-    node_stats(ssize_t l, ssize_t i) : leaf_nodes(l), internal_nodes(i) {}
+    node_stats(std::size_t l, std::size_t i) : leaf_nodes(l), internal_nodes(i) {}
 
     node_stats& operator+=(const node_stats& x) {
       leaf_nodes += x.leaf_nodes;
@@ -191,8 +191,8 @@ class btree {
       return *this;
     }
 
-    ssize_t leaf_nodes;
-    ssize_t internal_nodes;
+    std::size_t leaf_nodes;
+    std::size_t internal_nodes;
   };
 
   using node_owner         = typename node_type::node_owner;

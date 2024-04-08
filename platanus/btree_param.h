@@ -18,7 +18,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
-#include <sys/types.h>
 #include <type_traits>
 #include <utility>
 

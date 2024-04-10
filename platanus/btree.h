@@ -1155,11 +1155,6 @@ IterType btree<P>::internal_find_unique(const key_type& key, IterType iter) cons
     std::pair<IterType, bool> res = internal_locate(key, iter);
     if (res.second) {
       return res.first;
-    } else /* TODO if constexpr (key_comp doesn't return int)*/ {
-      iter = internal_last(res.first);
-      if (iter.node && !compare_keys(key, iter.key())) {
-        return iter;
-      }
     }
   }
   return IterType(nullptr, 0);

@@ -239,16 +239,16 @@ class safe_btree {
     return insert_unique_impl(std::move(v));
   }
   template <class T>
-  iterator insert_unique_impl(const_iterator position, T&& v) {
-    tree_const_iterator tree_pos = position.iter();
+  iterator insert_unique_impl(iterator hint, T&& v) {
+    tree_iterator tree_pos = hint.iter();
     ++generation_;
     return iterator(this, tree_.insert_unique(tree_pos, std::forward<T>(v)));
   }
-  iterator insert_unique(const_iterator position, const value_type& v) {
-    return insert_unique_impl(position, v);
+  iterator insert_unique(iterator hint, const value_type& v) {
+    return insert_unique_impl(hint, v);
   }
-  iterator insert_unique(const_iterator position, value_type&& v) {
-    return insert_unique_impl(position, std::forward<value_type>(v));
+  iterator insert_unique(iterator hint, value_type&& v) {
+    return insert_unique_impl(hint, std::forward<value_type>(v));
   }
   template <typename InputIterator>
   void insert_unique(InputIterator b, InputIterator e) {

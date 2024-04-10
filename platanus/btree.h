@@ -347,18 +347,18 @@ class btree {
   // before position in the tree. If it does, then the insertion will take
   // amortized constant time. If not, the insertion will take amortized
   // logarithmic time as if a call to insert_unique(v) were made.
-  iterator insert_unique(const_iterator position, const value_type& v) {
-    return internal_insert_unique(position, v);
+  iterator insert_unique(iterator hint, const value_type& v) {
+    return internal_insert_unique(hint, v);
   }
-  iterator insert_unique(const_iterator position, value_type&& v) {
-    return internal_insert_unique(position, std::move(v));
+  iterator insert_unique(iterator hint, value_type&& v) {
+    return internal_insert_unique(hint, std::move(v));
   }
 
   // Insert a range of values into the btree.
   template <typename InputIterator>
   void insert_unique(InputIterator b, InputIterator e) {
     for (; b != e; ++b) {
-      insert_unique(cend(), *b);
+      insert_unique(end(), *b);
     }
   }
 
@@ -375,11 +375,11 @@ class btree {
   // before position in the tree. If it does, then the insertion will take
   // amortized constant time. If not, the insertion will take amortized
   // logarithmic time as if a call to insert_multi(v) were made.
-  iterator insert_multi(const_iterator position, const value_type& v) {
-    return internal_insert_multi(position, v);
+  iterator insert_multi(iterator hint, const value_type& v) {
+    return internal_insert_multi(hint, v);
   }
-  iterator insert_multi(const_iterator position, value_type&& v) {
-    return internal_insert_multi(position, std::move(v));
+  iterator insert_multi(iterator hint, value_type&& v) {
+    return internal_insert_multi(hint, std::move(v));
   }
 
   // Insert a range of values into the btree.
@@ -625,13 +625,13 @@ class btree {
   std::pair<iterator, bool> internal_insert_unique(T&& value);
 
   template <typename T>
-  iterator internal_insert_unique(const_iterator position, T&& v);
+  iterator internal_insert_unique(iterator position, T&& v);
 
   template <typename T>
   iterator internal_insert_multi(T&& value);
 
   template <typename T>
-  iterator internal_insert_multi(const_iterator position, T&& value);
+  iterator internal_insert_multi(iterator position, T&& value);
 
   // Returns an iterator pointing to the first value >= the value "iter" is
   // pointing at. Note that "iter" might be pointing to an invalid location as
@@ -727,26 +727,25 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(
 
 template <typename P>
 template <typename T>
-inline typename btree<P>::iterator btree<P>::internal_insert_unique(const_iterator hint, T&& v) {
-  iterator position = iterator{hint.node, hint.position};
+inline typename btree<P>::iterator btree<P>::internal_insert_unique(iterator hint, T&& v) {
   if (!empty()) {
     const key_type& key = params_type::key(v);
-    if (position == end() || compare_keys(key, position.key())) {
-      iterator prev = position;
-      if (position == begin() || compare_keys((--prev).key(), key)) {
-        // prev.key() < key < position.key()
-        return internal_insert(position, std::forward<T>(v));
+    if (hint == end() || compare_keys(key, hint.key())) {
+      iterator prev = hint;
+      if (hint == begin() || compare_keys((--prev).key(), key)) {
+        // prev.key() < key < hint.key()
+        return internal_insert(hint, std::forward<T>(v));
       }
-    } else if (compare_keys(position.key(), key)) {
-      iterator next = position;
+    } else if (compare_keys(hint.key(), key)) {
+      iterator next = hint;
       ++next;
       if (next == end() || compare_keys(key, next.key())) {
-        // position.key() < key < next.key()
+        // hint.key() < key < next.key()
         return internal_insert(next, std::forward<T>(v));
       }
     } else {
-      // position.key() == key
-      return position;
+      // hint.key() == key
+      return hint;
     }
   }
   return insert_unique(std::forward<T>(v)).first;
@@ -766,21 +765,20 @@ typename btree<P>::iterator btree<P>::internal_insert_multi(T&& value) {
 
 template <typename P>
 template <typename T>
-typename btree<P>::iterator btree<P>::internal_insert_multi(const_iterator const_iter, T&& v) {
-  auto position = iterator{const_iter.node, const_iter.position};
+typename btree<P>::iterator btree<P>::internal_insert_multi(iterator hint, T&& v) {
   if (!empty()) {
     const key_type& key = params_type::key(v);
-    if (position == end() || !compare_keys(position.key(), key)) {
-      iterator prev = position;
-      if (position == begin() || !compare_keys(key, (--prev).key())) {
-        // prev.key() <= key <= position.key()
-        return internal_insert(position, std::forward<T>(v));
+    if (hint == end() || !compare_keys(hint.key(), key)) {
+      iterator prev = hint;
+      if (hint == begin() || !compare_keys(key, (--prev).key())) {
+        // prev.key() <= key <= hint.key()
+        return internal_insert(hint, std::forward<T>(v));
       }
     } else {
-      iterator next = position;
+      iterator next = hint;
       ++next;
       if (next == end() || !compare_keys(next.key(), key)) {
-        // position.key() < key <= next.key()
+        // hint.key() < key <= next.key()
         return internal_insert(next, std::forward<T>(v));
       }
     }
@@ -794,7 +792,7 @@ void btree<P>::copy(const self_type& x) {
 
   // Assignment can avoid key comparisons because we know the order of the
   // values is the same order we'll store them in.
-  for (const_iterator iter = x.begin(); iter != x.end(); ++iter) {
+  for (const_iterator iter = x.cbegin(); iter != x.cend(); ++iter) {
     if (empty()) {
       insert_multi(*iter);
     } else {

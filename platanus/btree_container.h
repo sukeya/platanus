@@ -102,7 +102,7 @@ class btree_container {
     if (size() != x.size()) {
       return false;
     }
-    for (const_iterator i = begin(), xi = x.begin(); i != end(); ++i, ++xi) {
+    for (const_iterator i = cbegin(), xi = x.cbegin(); i != cend(); ++i, ++xi) {
       if (*i != *xi) {
         return false;
       }
@@ -168,11 +168,11 @@ class btree_unique_container : public btree_container<Tree> {
   // Insertion routines.
   std::pair<iterator, bool> insert(const value_type& x) { return this->tree_.insert_unique(x); }
   std::pair<iterator, bool> insert(value_type&& x) { return this->tree_.insert_unique(std::move(x)); }
-  iterator                  insert(const_iterator position, const value_type& x) {
-                     return this->tree_.insert_unique(position, x);
+  iterator                  insert(iterator hint, const value_type& x) {
+                     return this->tree_.insert_unique(hint, x);
   }
-  iterator                  insert(const_iterator position, value_type&& x) {
-                     return this->tree_.insert_unique(position, std::move(x));
+  iterator                  insert(iterator hint, value_type&& x) {
+                     return this->tree_.insert_unique(hint, std::move(x));
   }
   template <typename InputIterator>
   void insert(InputIterator b, InputIterator e) {

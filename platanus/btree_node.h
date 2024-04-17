@@ -81,14 +81,60 @@ class btree_node {
   using size_type          = typename Params::size_type;
   using difference_type    = typename Params::difference_type;
 
+  using allocator_type   = typename Params::allocator_type;
+  using allocator_traits = std::allocator_traits<allocator_type>;
+
+  using node_allocator_type   = typename allocator_traits::template rebind_alloc<btree_node>;
+  using node_allocator_traits = std::allocator_traits<node_allocator_type>;
+
+  class node_deleter {
+   public:
+    using pointer = typename node_allocator_traits::pointer;
+
+    node_deleter()                               = default;
+    node_deleter(const node_deleter&)            = default;
+    node_deleter(node_deleter&&)                 = default;
+    node_deleter& operator=(const node_deleter&) = default;
+    node_deleter& operator=(node_deleter&&)      = default;
+    ~node_deleter()                              = default;
+
+    explicit node_deleter(const node_allocator_type& alloc) : alloc_(alloc) {}
+
+    void operator()(pointer p) {
+      if (p == nullptr) {
+        return;
+      }
+      node_allocator_traits::destroy(alloc_, p);
+      node_allocator_traits::deallocate(alloc_, p, 1);
+    }
+
+    void swap(node_deleter& x) { btree_swap_helper(alloc_, x.alloc_); }
+
+   private:
+    node_allocator_type alloc_;
+  };
+
+  // node_owner owes to allocate and release the memory of the node.
+  using node_owner = std::unique_ptr<btree_node, node_deleter>;
+  // node_borrower can change the node's content but not the memory (allocation and release not
+  // allowed).
+  using node_borrower = btree_node*;
+
+  using children_allocator_type   = typename allocator_traits::template rebind_alloc<node_owner>;
+  using children_allocator_traits = std::allocator_traits<children_allocator_type>;
+
   static constexpr std::size_t kValueSize      = params_type::kValueSize;
   static constexpr std::size_t kTargetNodeSize = params_type::kTargetNodeSize;
 
   // Available space for values.
   static_assert(
-      kTargetNodeSize >= 3 * sizeof(void*), "ValueSize must be no less than 3 * sizeof(void*)"
+      kTargetNodeSize >= 3 * sizeof(void*),
+      "ValueSize must be no less than 2 * sizeof(void*) + 2 * sizeof(std::uint_least16_t) + "
+      "sizeof(allcator_type)"
   );
-  static constexpr std::size_t kNodeValueSpace = kTargetNodeSize - 3 * sizeof(void*);
+  static constexpr std::size_t kNodeValueSpace = kTargetNodeSize - 2 * sizeof(void*)
+                                                 - 2 * sizeof(std::uint_least16_t)
+                                                 - sizeof(children_allocator_type);
 
   static constexpr std::size_t kNodeTargetValues = kNodeValueSpace / kValueSize;
   // We need a minimum of 3 values per internal node in order to perform
@@ -108,49 +154,6 @@ class btree_node {
   using values_reverse_iterator       = typename values_type::reverse_iterator;
   using values_const_reverse_iterator = typename values_type::const_reverse_iterator;
 
-  using allocator_type   = typename Params::allocator_type;
-  using allocator_traits = std::allocator_traits<allocator_type>;
-
-  using node_allocator_type   = typename allocator_traits::template rebind_alloc<btree_node>;
-  using node_allocator_traits = std::allocator_traits<node_allocator_type>;
-
-  class node_deleter {
-   public:
-    using pointer = typename node_allocator_traits::pointer;
-
-    node_deleter()                               = default;
-    node_deleter(const node_deleter&)            = default;
-    node_deleter(node_deleter&&)                 = default;
-    node_deleter& operator=(const node_deleter&) = default;
-    node_deleter& operator=(node_deleter&&)      = default;
-    ~node_deleter()                              = default;
-
-    explicit node_deleter(node_allocator_type& alloc) : alloc_(&alloc) {}
-
-    void operator()(pointer p) {
-      if (p == nullptr) {
-        return;
-      }
-      assert(alloc_ != nullptr);
-      node_allocator_traits::destroy(*alloc_, p);
-      node_allocator_traits::deallocate(*alloc_, p, 1);
-    }
-
-    void swap(node_deleter& x) noexcept { btree_swap_helper(alloc_, x.alloc_); }
-
-   private:
-    node_allocator_type* alloc_;
-  };
-
-  // node_owner owes to allocate and release the memory of the node.
-  using node_owner = std::unique_ptr<btree_node, node_deleter>;
-  // node_borrower can change the node's content but not the memory (allocation and release not
-  // allowed).
-  using node_borrower = btree_node*;
-
-  using children_allocator_type   = typename allocator_traits::template rebind_alloc<node_owner>;
-  using children_allocator_traits = std::allocator_traits<children_allocator_type>;
-
   class children_deleter {
    public:
     using pointer = typename children_allocator_traits::pointer;
@@ -162,25 +165,24 @@ class btree_node {
     children_deleter& operator=(children_deleter&&)      = default;
     ~children_deleter()                                  = default;
 
-    explicit children_deleter(children_allocator_type& alloc) : alloc_(&alloc) {}
+    explicit children_deleter(const children_allocator_type& alloc) : alloc_(alloc) {}
 
     void operator()(pointer p) {
       if (p == nullptr) {
         return;
       }
-      assert(alloc_ != nullptr);
-      for (count_type i = 0; i < kValueSize + 1; ++i) {
-        if (not p[i]) {
-          children_allocator_traits::destroy(*alloc_, &p[i]);
+      for (count_type i = 0; i < kNodeChildren; ++i) {
+        if (p[i]) {
+          children_allocator_traits::destroy(alloc_, &p[i]);
         }
       }
-      children_allocator_traits::deallocate(*alloc_, p, kNodeChildren);
+      children_allocator_traits::deallocate(alloc_, p, kNodeChildren);
     }
 
-    void swap(children_deleter& x) noexcept { btree_swap_helper(alloc_, x.alloc_); }
+    void swap(children_deleter& x) { btree_swap_helper(alloc_, x.alloc_); }
 
    private:
-    children_allocator_type* alloc_;
+    children_allocator_type alloc_;
   };
 
   using children_ptr                    = std::unique_ptr<node_owner[], children_deleter>;
@@ -224,7 +226,7 @@ class btree_node {
       for (count_type i = 0; i < kNodeChildren; ++i) {
         children_allocator_traits::construct(children_alloc, &p[i], nullptr);
       }
-      children_ptr_ = children_ptr(p, children_deleter{children_alloc});
+      children_ptr_ = children_ptr{p, children_deleter{children_alloc}};
     }
   }
 
@@ -305,11 +307,10 @@ class btree_node {
   template <bool WithEqual = true>
   search_result binary_search_compare(
       const key_type& k, count_type s, count_type e, const key_compare& comp
-  ) const
-      noexcept(noexcept(comp(std::declval<const key_type&>(), k))) {
+  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k))) {
     while (s != e) {
       count_type mid = (s + e) / 2;
-      auto        c   = comp(key(mid), k);
+      auto       c   = comp(key(mid), k);
       if (c < 0) {
         s = mid + 1;
       } else if (c > 0) {
@@ -468,7 +469,7 @@ class btree_node {
   void swap(btree_node& src);
 
  private:
-  void set_count(count_type  v) noexcept {
+  void set_count(count_type v) noexcept {
     assert(0 <= v && v <= max_count());
     count_ = v;
   }
@@ -478,7 +479,9 @@ class btree_node {
     values_[i] = mutable_value_type{std::forward<Args>(args)...};
   }
   template <typename T>
-  void value_init(count_type i, T&& x) { values_[i] = std::forward<T>(x); }
+  void value_init(count_type i, T&& x) {
+    values_[i] = std::forward<T>(x);
+  }
 
  private:
   // The pointer to the array of values.
@@ -490,9 +493,9 @@ class btree_node {
   // A pointer to the node's parent.
   node_borrower parent_;
   // The position of the node in the node's parent.
-  count_type  position_;
+  count_type position_;
   // The count of the number of values in the node.
-  count_type  count_;
+  count_type count_;
 };
 
 ////

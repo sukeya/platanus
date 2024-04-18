@@ -30,6 +30,7 @@
 
 #include <cstdint>
 #include <iosfwd>
+#include <initializer_list>
 #include <utility>
 
 #include "btree.h"
@@ -271,6 +272,9 @@ class safe_btree {
       insert_unique(*b);
     }
   }
+  void insert_unique(std::initializer_list<value_type> list) {
+    insert_unique(list.begin(), list.end());
+  }
   iterator insert_multi(const value_type& v) {
     ++generation_;
     return iterator(this, tree_.insert_multi(v));
@@ -285,6 +289,9 @@ class safe_btree {
     for (; b != e; ++b) {
       insert_multi(*b);
     }
+  }
+  void insert_multi(std::initializer_list<value_type> list) {
+    insert_multi(list.begin(), list.end());
   }
 
   // Deletion routines.

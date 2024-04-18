@@ -211,6 +211,10 @@ class btree_unique_container : public btree_container<Tree> {
     this->tree_.insert_unique(b, e);
   }
 
+  void insert(std::initializer_list<value_type> list) {
+    this->tree_.insert_unique(list);
+  }
+
   // Deletion routines.
   size_type erase(const key_type& key) { return this->tree_.erase_unique(key); }
   // Erase the specified iterator from the btree. The iterator must be valid
@@ -383,6 +387,9 @@ class btree_multi_container : public btree_container<Tree> {
   template <typename InputIterator>
   void insert(InputIterator b, InputIterator e) {
     this->tree_.insert_multi(b, e);
+  }
+  void insert(std::initializer_list<value_type> list) {
+    this->tree_.insert_multi(list);
   }
 
   // Deletion routines.

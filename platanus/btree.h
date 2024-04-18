@@ -174,8 +174,8 @@ namespace platanus {
 
 template <typename Params>
 class btree {
-  using self_type         = btree<Params>;
-  using node_type         = btree_node<Params>;
+  using self_type = btree<Params>;
+  using node_type = btree_node<Params>;
 
   static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
   static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
@@ -241,6 +241,8 @@ class btree {
   }
 
   btree(const key_compare& comp, const allocator_type& alloc);
+  btree(const btree& x, const allocator_type& alloc) : btree(key_compare{}, alloc) { copy(x); }
+  btree(btree&& x, const allocator_type& alloc);
 
   node_allocator_type     get_node_allocator() const noexcept { return node_alloc_; }
   children_allocator_type get_children_allocator() const noexcept { return children_alloc_; }
@@ -259,10 +261,7 @@ class btree {
   }
   iterator end() noexcept {
     if (borrow_rightmost()) {
-      return iterator(
-          borrow_rightmost(),
-          borrow_readonly_rightmost()->values_count()
-      );
+      return iterator(borrow_rightmost(), borrow_readonly_rightmost()->values_count());
     } else {
       return iterator();
     }
@@ -331,14 +330,14 @@ class btree {
     return std::make_pair(lower_bound(key), upper_bound(key));
   }
   std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
-    return static_cast<std::pair<const_iterator, const_iterator>>(const_cast<btree*>(this)->equal_range(key));
+    return static_cast<std::pair<const_iterator, const_iterator>>(
+        const_cast<btree*>(this)->equal_range(key)
+    );
   }
 
   // Inserts a value into the btree only if it does not already exist. The
   // boolean return value indicates whether insertion succeeded or failed.
-  std::pair<iterator, bool> insert_unique(const value_type& v) {
-    return internal_insert_unique(v);
-  }
+  std::pair<iterator, bool> insert_unique(const value_type& v) { return internal_insert_unique(v); }
   std::pair<iterator, bool> insert_unique(value_type&& v) {
     return internal_insert_unique(std::move(v));
   }
@@ -459,7 +458,7 @@ class btree {
 
   key_compare key_comp() const noexcept { return comp_; }
   bool        compare_keys(const key_type& x, const key_type& y) const {
-          const auto& comp = ref_key_comp();
+           const auto& comp = ref_key_comp();
            return comp(x, y) < 0;
   }
 
@@ -697,24 +696,34 @@ template <typename P>
 btree<P>::btree(const self_type& x)
     : root_(),
       comp_(x.comp_),
-      node_alloc_(x.node_alloc_),
-      children_alloc_(x.children_alloc_),
+      node_alloc_(std::allocator_traits<node_allocator_type>::select_on_container_copy_construction(
+          x.node_alloc_
+      )),
+      children_alloc_(
+          std::allocator_traits<children_allocator_type>::select_on_container_copy_construction(
+              x.children_alloc_
+          )
+      ),
       rightmost_(x.rightmost_),
       size_(x.size_) {
   copy(x);
 }
 
 template <typename P>
+btree<P>::btree(self_type&& x, const allocator_type& alloc) : btree(std::move(x)) {
+  node_alloc_     = alloc;
+  children_alloc_ = alloc;
+}
+
+template <typename P>
 template <typename T>
-std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(
-    T&& value
-) {
+std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(T&& value) {
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
   }
 
-  auto key = params_type::key(value);
+  auto                      key  = params_type::key(value);
   std::pair<iterator, bool> res  = internal_locate(key, iterator(borrow_root(), 0));
   iterator&                 iter = res.first;
   if (res.second) {
@@ -941,7 +950,7 @@ void btree<P>::rebalance_or_split(iterator& iter) {
         // inserting at the end of the right node then we bias rebalancing to
         // fill up the left node.
         auto to_move = (left->max_count() - left->count())
-                      / (1 + (insert_position < left->max_count() ? 1 : 0));
+                       / (1 + (insert_position < left->max_count() ? 1 : 0));
         to_move = std::max(1, to_move);
 
         if (((insert_position - to_move) >= 0) || ((left->count() + to_move) < left->max_count())) {
@@ -968,7 +977,7 @@ void btree<P>::rebalance_or_split(iterator& iter) {
         // inserting at the beginning of the left node then we bias rebalancing
         // to fill up the right node.
         auto to_move = (right->max_count() - right->count()) / (1 + (insert_position > 0 ? 1 : 0));
-        to_move     = std::max(1, to_move);
+        to_move      = std::max(1, to_move);
 
         if ((insert_position <= (node->count() - to_move))
             || ((right->count() + to_move) < right->max_count())) {
@@ -1056,7 +1065,7 @@ bool btree<P>::try_merge_or_rebalance(iterator& iter) {
     // from the front of the tree.
     if ((right->count() > kMinNodeValues) && ((iter.node->count() == 0) || (iter.position > 0))) {
       auto to_move = (right->count() - iter.node->count()) / 2;
-      to_move     = std::min(to_move, right->count() - 1);
+      to_move      = std::min(to_move, right->count() - 1);
       iter.node->rebalance_right_to_left(right, to_move);
       return false;
     }
@@ -1070,7 +1079,7 @@ bool btree<P>::try_merge_or_rebalance(iterator& iter) {
     if ((left->count() > kMinNodeValues)
         && ((iter.node->count() == 0) || (iter.position < iter.node->count()))) {
       auto to_move = (left->count() - iter.node->count()) / 2;
-      to_move     = std::min(to_move, left->count() - 1);
+      to_move      = std::min(to_move, left->count() - 1);
       left->rebalance_left_to_right(iter.node, to_move);
       iter.position += to_move;
       return false;

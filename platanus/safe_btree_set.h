@@ -54,19 +54,28 @@ class safe_btree_set : public btree_unique_container<
   using super_type  = btree_unique_container<btree_type>;
 
  public:
+  using value_type = typename btree_type::value_type;
   using key_compare    = typename btree_type::key_compare;
   using value_compare  = typename btree_type::value_compare;
   using allocator_type = typename btree_type::allocator_type;
 
  public:
-  // Default constructor.
-  safe_btree_set(
-      const key_compare& comp = key_compare(), const allocator_type& alloc = allocator_type()
+  safe_btree_set()                            = default;
+  safe_btree_set(const self_type&)            = default;
+  safe_btree_set(self_type&&)                 = default;
+  safe_btree_set& operator=(const self_type&) = default;
+  safe_btree_set& operator=(self_type&&)      = default;
+  ~safe_btree_set()                           = default;
+
+  explicit safe_btree_set(
+      const key_compare& comp, const allocator_type& alloc = allocator_type()
   )
       : super_type(comp, alloc) {}
 
-  // Copy constructor.
-  safe_btree_set(const self_type& x) : super_type(x) {}
+  explicit safe_btree_set(
+      const allocator_type& alloc
+  )
+      : super_type(alloc) {}
 
   // Range constructor.
   template <class InputIterator>
@@ -77,6 +86,27 @@ class safe_btree_set : public btree_unique_container<
       const allocator_type& alloc = allocator_type()
   )
       : super_type(b, e, comp, alloc) {}
+
+  template <class InputIterator>
+  safe_btree_set(
+      InputIterator         b,
+      InputIterator         e,
+      const allocator_type& alloc
+  )
+      : super_type(b, e, alloc) {}
+
+  safe_btree_set(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  safe_btree_set(self_type&& x, const allocator_type& alloc)
+      : super_type(std::move(x), alloc) {}
+
+  safe_btree_set(
+      std::initializer_list<value_type> init,
+      const key_compare&                comp  = key_compare{},
+      const allocator_type&             alloc = allocator_type{}
+  )
+      : self_type{init.begin(), init.end(), comp, alloc} {}
+  safe_btree_set(std::initializer_list<value_type> init, const allocator_type& alloc)
+      : self_type{init.begin(), init.end(), alloc} {}
 };
 
 template <typename K, typename C, typename A, std::size_t N>

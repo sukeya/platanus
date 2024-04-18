@@ -28,7 +28,7 @@
 #ifndef PLATANUS_SAFE_BTREE_H__
 #define PLATANUS_SAFE_BTREE_H__
 
-#include <stddef.h>
+#include <cstdint>
 #include <iosfwd>
 #include <utility>
 
@@ -73,7 +73,7 @@ class safe_btree_iterator {
   }
 
   Tree*   tree() const { return tree_; }
-  int64_t generation() const { return generation_; }
+  std::int_least64_t generation() const { return generation_; }
 
   Iterator* mutable_iter() const {
     if (generation_ != tree_->generation()) {
@@ -136,7 +136,7 @@ class safe_btree_iterator {
 
  private:
   // The generation of the tree when "iter" was updated.
-  mutable int64_t generation_;
+  mutable std::int_least64_t generation_;
   // The key the iterator points to.
   mutable key_type key_;
   // The underlying iterator.
@@ -175,12 +175,27 @@ class safe_btree {
   using reverse_iterator       = std::reverse_iterator<iterator>;
 
  public:
-  // Default constructor.
+  safe_btree() : tree_(), generation_(1) {}
+  safe_btree(const self_type& x) : tree_(x.tree_), generation_(1) {}
+  safe_btree& operator=(const self_type& x) {
+    if (&x == this) {
+      // Don't copy onto ourselves.
+      return *this;
+    }
+    ++generation_;
+    tree_ = x.tree_;
+    return *this;
+  }
+
+  safe_btree(self_type&&)                 = default;
+  safe_btree& operator=(self_type&&)      = default;
+  ~safe_btree()                           = default;
+
   safe_btree(const key_compare& comp, const allocator_type& alloc)
       : tree_(comp, alloc), generation_(1) {}
 
-  // Copy constructor.
-  safe_btree(const self_type& x) : tree_(x.tree_), generation_(1) {}
+  safe_btree(const self_type& x, const allocator_type& alloc) : tree_(x.tree_, alloc), generation_(1) {}
+  safe_btree(self_type&& x, const allocator_type& alloc) : tree_(std::move(x.tree_), alloc), generation_(x.generation_) {}
 
   allocator_type get_allocator() const { return tree_.get_allocator(); }
 
@@ -271,15 +286,6 @@ class safe_btree {
       insert_multi(*b);
     }
   }
-  self_type& operator=(const self_type& x) {
-    if (&x == this) {
-      // Don't copy onto ourselves.
-      return *this;
-    }
-    ++generation_;
-    tree_ = x.tree_;
-    return *this;
-  }
 
   // Deletion routines.
   void erase(const iterator& begin, const iterator& end) {
@@ -321,7 +327,7 @@ class safe_btree {
   }
   void        dump(std::ostream& os) const { tree_.dump(os); }
   void        verify() const { tree_.verify(); }
-  int64_t     generation() const { return generation_; }
+  std::int_least64_t     generation() const { return generation_; }
   key_compare key_comp() const { return tree_.key_comp(); }
 
   // Size routines.
@@ -339,7 +345,7 @@ class safe_btree {
 
  private:
   btree_type tree_;
-  int64_t    generation_;
+  std::int_least64_t    generation_;
 };
 
 }  // namespace platanus

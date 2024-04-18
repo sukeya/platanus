@@ -450,6 +450,7 @@ class btree {
   void clear() {
     root_      = nullptr;
     rightmost_ = nullptr;
+    leftmost_  = nullptr;
     size_      = 0;
   }
 
@@ -559,10 +560,11 @@ class btree {
     return static_cast<const node_borrower>(const_cast<btree*>(this)->borrow_rightmost());
   }
   void set_rightmost(node_borrower node) noexcept { rightmost_ = node; }
+  void set_leftmost(node_borrower node) noexcept { leftmost_ = node; }
 
   // The leftmost node is stored as the parent of the root node.
   node_borrower borrow_leftmost() noexcept {
-    return borrow_readonly_root() ? borrow_root()->borrow_parent() : nullptr;
+    return leftmost_;
   }
   const node_borrower borrow_readonly_leftmost() const noexcept {
     return static_cast<const node_borrower>(const_cast<btree*>(this)->borrow_leftmost());
@@ -582,9 +584,8 @@ class btree {
     return node_type::make_node(false, parent, ref_node_alloc(), ref_children_alloc());
   }
   node_owner make_internal_root_node() {
-    return node_type::make_node(
+    return node_type::make_root_node(
         false,
-        borrow_root()->borrow_parent(),
         ref_node_alloc(),
         ref_children_alloc()
     );
@@ -593,7 +594,7 @@ class btree {
     return node_type::make_node(true, parent, ref_node_alloc(), ref_children_alloc());
   }
   node_owner make_leaf_root_node() {
-    return node_type::make_leaf_root_node(ref_node_alloc(), ref_children_alloc());
+    return node_type::make_root_node(true, ref_node_alloc(), ref_children_alloc());
   }
 
   // Rebalances or splits the node iter points to.
@@ -637,7 +638,7 @@ class btree {
   // iter.position == iter.node->count(). This routine simply moves iter up in
   // the tree to a valid location.
   template <typename IterType>
-  static IterType internal_last(IterType iter);
+  IterType internal_last(IterType iter);
 
   // Returns an iterator pointing to the leaf position at which key would
   // reside in the tree. This function returns either true (if the
@@ -677,6 +678,8 @@ class btree {
   node_owner              root_{};
   // A pointer to the rightmost node of the tree
   node_borrower rightmost_{nullptr};
+  // A pointer to the leftmost node of the tree
+  node_borrower leftmost_{nullptr};
   // The size of the tree.
   size_type size_{0};
 };
@@ -690,6 +693,7 @@ btree<P>::btree(const key_compare& comp, const allocator_type& alloc)
       node_alloc_(alloc),
       children_alloc_(alloc),
       rightmost_(nullptr),
+      leftmost_(nullptr),
       size_(0) {}
 
 template <typename P>
@@ -705,6 +709,7 @@ btree<P>::btree(const self_type& x)
           )
       ),
       rightmost_(x.rightmost_),
+      leftmost_(x.leftmost_),
       size_(x.size_) {
   copy(x);
 }
@@ -721,6 +726,7 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(T&
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
+    set_leftmost(borrow_root());
   }
 
   auto                      key  = params_type::key(value);
@@ -766,6 +772,7 @@ typename btree<P>::iterator btree<P>::internal_insert_multi(T&& value) {
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
+    set_leftmost(borrow_root());
   }
 
   auto key = params_type::key(value);
@@ -1030,7 +1037,8 @@ void btree<P>::rebalance_or_split(iterator& iter) {
 
 template <typename P>
 void btree<P>::merge_nodes(node_borrower left, node_borrower right) {
-  if (right->leaf() && borrow_readonly_rightmost() == right) {
+  if (borrow_readonly_rightmost() == right) {
+    assert(right->leaf());
     set_rightmost(left);
   }
   left->merge(right);
@@ -1114,9 +1122,6 @@ inline IterType btree<P>::internal_last(IterType iter) {
   while (iter.node && iter.position == iter.node->count()) {
     iter.position = iter.node->position();
     iter.node     = iter.node->borrow_parent();
-    if (iter.node->leaf()) {
-      iter.node = nullptr;
-    }
   }
   return iter;
 }

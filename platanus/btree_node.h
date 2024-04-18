@@ -202,12 +202,11 @@ class btree_node {
     return node_owner(node_ptr, node_deleter{node_alloc});
   }
 
-  static node_owner make_leaf_root_node(
+  static node_owner make_root_node(
+      bool                     is_leaf,
       node_allocator_type& node_alloc, children_allocator_type& children_alloc
   ) {
-    auto node_ptr = node_allocator_traits::allocate(node_alloc, 1);
-    node_allocator_traits::construct(node_alloc, node_ptr, true, node_ptr, children_alloc);
-    return node_owner(node_ptr, node_deleter{node_alloc});
+    return make_node(is_leaf, nullptr, node_alloc, children_alloc);
   }
 
  public:
@@ -258,10 +257,10 @@ class btree_node {
   // Getter for whether the node is the root of the tree. The parent of the
   // root of the tree is the leftmost node in the tree which is guaranteed to
   // be a leaf.
-  bool is_root() const noexcept { return borrow_readonly_parent()->leaf(); }
+  bool is_root() const noexcept { return borrow_readonly_parent() == nullptr; }
   void make_root() noexcept {
     assert(borrow_readonly_parent()->is_root());
-    parent_ = parent_->borrow_parent();
+    parent_ = nullptr;
   }
 
   // Getters for the key/value at position i in the node.

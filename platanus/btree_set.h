@@ -33,8 +33,8 @@ namespace platanus {
 // The btree_set class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Compare   = DefaultWeakComp,
-    typename Alloc     = std::allocator<Key>,
+    typename Compare           = DefaultWeakComp,
+    typename Alloc             = std::allocator<Key>,
     std::size_t TargetNodeSize = 512>
 class btree_set : public btree_unique_container<
                       btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
@@ -44,7 +44,7 @@ class btree_set : public btree_unique_container<
   using super_type  = btree_unique_container<btree_type>;
 
  public:
-  using value_type = typename btree_type::value_type;
+  using value_type     = typename btree_type::value_type;
   using key_compare    = typename btree_type::key_compare;
   using value_compare  = typename btree_type::value_compare;
   using allocator_type = typename btree_type::allocator_type;
@@ -60,8 +60,7 @@ class btree_set : public btree_unique_container<
   explicit btree_set(const key_compare& comp, const allocator_type& alloc = allocator_type())
       : super_type(comp, alloc) {}
 
-  explicit btree_set(const allocator_type& alloc)
-      : super_type(alloc) {}
+  explicit btree_set(const allocator_type& alloc) : super_type(alloc) {}
 
   // Range constructor.
   template <class InputIterator>
@@ -74,16 +73,11 @@ class btree_set : public btree_unique_container<
       : super_type(b, e, comp, alloc) {}
 
   template <class InputIterator>
-  btree_set(
-      InputIterator         b,
-      InputIterator         e,
-      const allocator_type& alloc
-  )
+  btree_set(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
   btree_set(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_set(self_type&& x, const allocator_type& alloc)
-      : super_type(std::move(x), alloc) {}
+  btree_set(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_set(
       std::initializer_list<value_type> init,
@@ -103,8 +97,8 @@ inline void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
 // The btree_multiset class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Compare   = DefaultWeakComp,
-    typename Alloc     = std::allocator<Key>,
+    typename Compare           = DefaultWeakComp,
+    typename Alloc             = std::allocator<Key>,
     std::size_t TargetNodeSize = 512>
 class btree_multiset
     : public btree_multi_container<btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
@@ -114,7 +108,7 @@ class btree_multiset
   using super_type  = btree_multi_container<btree_type>;
 
  public:
-  using value_type = typename btree_type::value_type;
+  using value_type     = typename btree_type::value_type;
   using key_compare    = typename btree_type::key_compare;
   using allocator_type = typename btree_type::allocator_type;
 
@@ -126,15 +120,10 @@ class btree_multiset
   btree_multiset& operator=(self_type&&)      = default;
   ~btree_multiset()                           = default;
 
-  explicit btree_multiset(
-      const key_compare& comp, const allocator_type& alloc = allocator_type()
-  )
+  explicit btree_multiset(const key_compare& comp, const allocator_type& alloc = allocator_type())
       : super_type(comp, alloc) {}
 
-  explicit btree_multiset(
-      const allocator_type& alloc
-  )
-      : super_type(alloc) {}
+  explicit btree_multiset(const allocator_type& alloc) : super_type(alloc) {}
 
   // Range constructor.
   template <class InputIterator>
@@ -147,16 +136,11 @@ class btree_multiset
       : super_type(b, e, comp, alloc) {}
 
   template <class InputIterator>
-  btree_multiset(
-      InputIterator         b,
-      InputIterator         e,
-      const allocator_type& alloc
-  )
+  btree_multiset(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
   btree_multiset(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_multiset(self_type&& x, const allocator_type& alloc)
-      : super_type(std::move(x), alloc) {}
+  btree_multiset(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_multiset(
       std::initializer_list<value_type> init,

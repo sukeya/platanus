@@ -355,7 +355,7 @@ void BM_MixedAddRem(int n) {
   StopBenchmarkTiming();
   assert(FLAGS_benchmark_values % 2 == 0);
 
-  T       container;
+  T            container;
   std::mt19937 rand(FLAGS_test_random_seed);
 
   vector<V> values = GenerateValues<V>(FLAGS_benchmark_values * 2);
@@ -474,13 +474,13 @@ using stl_multimap_int32  = multimap<int32_t, intptr_t>;
 using stl_multimap_int64  = multimap<int64_t, intptr_t>;
 using stl_multimap_string = multimap<string, intptr_t>;
 
-#define MY_BENCHMARK_TYPES2(value, name, size)                                                 \
+#define MY_BENCHMARK_TYPES2(value, name, size)                                                     \
   using btree##_##size##_set_##name = btree##_set<value, DefaultWeakComp, allocator<value>, size>; \
-  using btree##_##size##_map_##name =                                                          \
+  using btree##_##size##_map_##name =                                                              \
       btree##_map<value, int, DefaultWeakComp, allocator<value>, size>;                            \
-  using btree##_##size##_multiset_##name =                                                     \
+  using btree##_##size##_multiset_##name =                                                         \
       btree##_multiset<value, DefaultWeakComp, allocator<value>, size>;                            \
-  using btree##_##size##_multimap_##name =                                                     \
+  using btree##_##size##_multimap_##name =                                                         \
       btree##_multimap<value, int, DefaultWeakComp, allocator<value>, size>;
 
 #define MY_BENCHMARK_TYPES(value, name)   \

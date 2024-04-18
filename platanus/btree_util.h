@@ -19,8 +19,10 @@
 #include <utility>
 
 namespace std {
-inline void swap(const decltype(std::compare_weak_order_fallback)&, const decltype(std::compare_weak_order_fallback)&) {}
+inline void
+swap(const decltype(std::compare_weak_order_fallback)&, const decltype(std::compare_weak_order_fallback)&) {
 }
+}  // namespace std
 
 namespace platanus {
 
@@ -39,7 +41,7 @@ inline void btree_swap_helper(T& a, T& b) {
 
 template <class Key, class Compare>
 concept is_comp_weak_order = requires(Key lhd, Key rhd, Compare comp) {
-  {comp(lhd, rhd)} -> std::convertible_to<std::weak_ordering>;
+  { comp(lhd, rhd) } -> std::convertible_to<std::weak_ordering>;
 };
 
 using DefaultWeakComp = decltype(std::compare_weak_order_fallback);

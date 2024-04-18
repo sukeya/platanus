@@ -211,9 +211,7 @@ class btree_unique_container : public btree_container<Tree> {
     this->tree_.insert_unique(b, e);
   }
 
-  void insert(std::initializer_list<value_type> list) {
-    this->tree_.insert_unique(list);
-  }
+  void insert(std::initializer_list<value_type> list) { this->tree_.insert_unique(list); }
 
   // Deletion routines.
   size_type erase(const key_type& key) { return this->tree_.erase_unique(key); }
@@ -330,10 +328,7 @@ class btree_multi_container : public btree_container<Tree> {
   )
       : super_type(comp, alloc) {}
 
-  explicit btree_multi_container(
-      const allocator_type& alloc
-  )
-      : super_type(key_compare{}, alloc) {}
+  explicit btree_multi_container(const allocator_type& alloc) : super_type(key_compare{}, alloc) {}
 
   // Range constructor.
   template <class InputIterator>
@@ -348,11 +343,7 @@ class btree_multi_container : public btree_container<Tree> {
   }
 
   template <class InputIterator>
-  btree_multi_container(
-      InputIterator         b,
-      InputIterator         e,
-      const allocator_type& alloc
-  )
+  btree_multi_container(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(key_compare{}, alloc) {
     insert(b, e);
   }
@@ -388,9 +379,7 @@ class btree_multi_container : public btree_container<Tree> {
   void insert(InputIterator b, InputIterator e) {
     this->tree_.insert_multi(b, e);
   }
-  void insert(std::initializer_list<value_type> list) {
-    this->tree_.insert_multi(list);
-  }
+  void insert(std::initializer_list<value_type> list) { this->tree_.insert_multi(list); }
 
   // Deletion routines.
   size_type erase(const key_type& key) { return this->tree_.erase_multi(key); }

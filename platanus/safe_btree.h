@@ -73,7 +73,7 @@ class safe_btree_iterator {
     update();
   }
 
-  Tree*   tree() const { return tree_; }
+  Tree*              tree() const { return tree_; }
   std::int_least64_t generation() const { return generation_; }
 
   Iterator* mutable_iter() const {
@@ -188,15 +188,17 @@ class safe_btree {
     return *this;
   }
 
-  safe_btree(self_type&&)                 = default;
-  safe_btree& operator=(self_type&&)      = default;
-  ~safe_btree()                           = default;
+  safe_btree(self_type&&)            = default;
+  safe_btree& operator=(self_type&&) = default;
+  ~safe_btree()                      = default;
 
   safe_btree(const key_compare& comp, const allocator_type& alloc)
       : tree_(comp, alloc), generation_(1) {}
 
-  safe_btree(const self_type& x, const allocator_type& alloc) : tree_(x.tree_, alloc), generation_(1) {}
-  safe_btree(self_type&& x, const allocator_type& alloc) : tree_(std::move(x.tree_), alloc), generation_(x.generation_) {}
+  safe_btree(const self_type& x, const allocator_type& alloc)
+      : tree_(x.tree_, alloc), generation_(1) {}
+  safe_btree(self_type&& x, const allocator_type& alloc)
+      : tree_(std::move(x.tree_), alloc), generation_(x.generation_) {}
 
   allocator_type get_allocator() const { return tree_.get_allocator(); }
 
@@ -248,9 +250,7 @@ class safe_btree {
     generation_ += p.second;
     return std::make_pair(iterator(this, p.first), p.second);
   }
-  std::pair<iterator, bool> insert_unique(const value_type& v) {
-    return insert_unique_impl(v);
-  }
+  std::pair<iterator, bool> insert_unique(const value_type& v) { return insert_unique_impl(v); }
   std::pair<iterator, bool> insert_unique(value_type&& v) {
     return insert_unique_impl(std::move(v));
   }
@@ -260,9 +260,7 @@ class safe_btree {
     ++generation_;
     return iterator(this, tree_.insert_unique(tree_pos, std::forward<T>(v)));
   }
-  iterator insert_unique(iterator hint, const value_type& v) {
-    return insert_unique_impl(hint, v);
-  }
+  iterator insert_unique(iterator hint, const value_type& v) { return insert_unique_impl(hint, v); }
   iterator insert_unique(iterator hint, value_type&& v) {
     return insert_unique_impl(hint, std::forward<value_type>(v));
   }
@@ -332,10 +330,10 @@ class safe_btree {
     ++x.generation_;
     tree_.swap(x.tree_);
   }
-  void        dump(std::ostream& os) const { tree_.dump(os); }
-  void        verify() const { tree_.verify(); }
-  std::int_least64_t     generation() const { return generation_; }
-  key_compare key_comp() const { return tree_.key_comp(); }
+  void               dump(std::ostream& os) const { tree_.dump(os); }
+  void               verify() const { tree_.verify(); }
+  std::int_least64_t generation() const { return generation_; }
+  key_compare        key_comp() const { return tree_.key_comp(); }
 
   // Size routines.
   size_type     size() const { return tree_.size(); }
@@ -351,8 +349,8 @@ class safe_btree {
   double        overhead() const { return tree_.overhead(); }
 
  private:
-  btree_type tree_;
-  std::int_least64_t    generation_;
+  btree_type         tree_;
+  std::int_least64_t generation_;
 };
 
 }  // namespace platanus

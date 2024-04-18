@@ -381,10 +381,9 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
   // Insertion routines.
   template <class T>
   std::pair<iterator, bool> insert_impl(T&& x) {
-    auto                                            y    = T{x};
-    std::size_t                                     size = this->tree_.size();
-    std::pair<typename CheckerType::iterator, bool> checker_res =
-        this->checker_.insert(y);
+    auto                                            y           = T{x};
+    std::size_t                                     size        = this->tree_.size();
+    std::pair<typename CheckerType::iterator, bool> checker_res = this->checker_.insert(y);
     std::pair<iterator, bool> tree_res = this->tree_.insert(std::forward<T>(x));
     EXPECT_EQ(*tree_res.first, *checker_res.first);
     EXPECT_EQ(tree_res.second, checker_res.second);
@@ -397,10 +396,9 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
 
   template <class T>
   iterator insert_impl(iterator position, T&& x) {
-    auto                                            y    = T{x};
-    typename CheckerType::size_type                 size = this->tree_.size();
-    std::pair<typename CheckerType::iterator, bool> checker_res =
-        this->checker_.insert(y);
+    auto                                            y           = T{x};
+    typename CheckerType::size_type                 size        = this->tree_.size();
+    std::pair<typename CheckerType::iterator, bool> checker_res = this->checker_.insert(y);
     iterator tree_res = this->tree_.insert(position, std::forward<T>(x));
     EXPECT_EQ(*tree_res, *checker_res.first);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());

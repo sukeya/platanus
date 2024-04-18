@@ -43,8 +43,8 @@ namespace platanus {
 template <
     typename Key,
     typename Value,
-    typename Compare   = DefaultWeakComp,
-    typename Alloc     = std::allocator<std::pair<const Key, Value> >,
+    typename Compare           = DefaultWeakComp,
+    typename Alloc             = std::allocator<std::pair<const Key, Value> >,
     std::size_t TargetNodeSize = 512>
 class safe_btree_map
     : public btree_map_container<
@@ -55,7 +55,7 @@ class safe_btree_map
   using super_type  = btree_map_container<btree_type>;
 
  public:
-  using value_type = typename btree_type::value_type;
+  using value_type     = typename btree_type::value_type;
   using key_compare    = typename btree_type::key_compare;
   using value_compare  = typename btree_type::value_compare;
   using allocator_type = typename btree_type::allocator_type;
@@ -68,15 +68,10 @@ class safe_btree_map
   safe_btree_map& operator=(self_type&&)      = default;
   ~safe_btree_map()                           = default;
 
-  explicit safe_btree_map(
-      const key_compare& comp, const allocator_type& alloc = allocator_type()
-  )
+  explicit safe_btree_map(const key_compare& comp, const allocator_type& alloc = allocator_type())
       : super_type(comp, alloc) {}
 
-  explicit safe_btree_map(
-      const allocator_type& alloc
-  )
-      : super_type(alloc) {}
+  explicit safe_btree_map(const allocator_type& alloc) : super_type(alloc) {}
 
   // Range constructor.
   template <class InputIterator>
@@ -89,16 +84,11 @@ class safe_btree_map
       : super_type(b, e, comp, alloc) {}
 
   template <class InputIterator>
-  safe_btree_map(
-      InputIterator         b,
-      InputIterator         e,
-      const allocator_type& alloc
-  )
+  safe_btree_map(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
   safe_btree_map(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  safe_btree_map(self_type&& x, const allocator_type& alloc)
-      : super_type(std::move(x), alloc) {}
+  safe_btree_map(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   safe_btree_map(
       std::initializer_list<value_type> init,

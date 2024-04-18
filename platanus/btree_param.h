@@ -33,7 +33,7 @@ template <
     std::size_t ValueSize>
 requires is_comp_weak_order<Key, Compare>
 struct btree_common_params {
-  using key_compare = Compare;
+  using key_compare   = Compare;
   using value_compare = std::false_type;
 
   using allocator_type  = Alloc;

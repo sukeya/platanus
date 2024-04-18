@@ -76,7 +76,8 @@ void MultiSetTest() {
 template <typename K, int N>
 void MultiMapTest() {
   using TestAlloc = TestAllocator<K>;
-  BtreeMultiTest<btree_multimap<K, K, DefaultWeakComp, std::allocator<K>, N>, std::multimap<K, K> >();
+  BtreeMultiTest<btree_multimap<K, K, DefaultWeakComp, std::allocator<K>, N>, std::multimap<K, K> >(
+  );
   BtreeMultiMapTest<btree_multimap<K, K, DefaultWeakComp, std::allocator<K>, N> >();
   BtreeAllocatorTest<btree_multimap<K, K, DefaultWeakComp, TestAlloc, N> >();
 }

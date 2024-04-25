@@ -884,7 +884,6 @@ typename btree<P>::size_type btree<P>::erase(iterator begin, iterator end) {
   size_type count = distance(begin, end);
   for (size_type i = 0; i < count; i++) {
     begin = erase(begin);
-    verify();
   }
   return count;
 }
@@ -918,6 +917,7 @@ void btree<P>::swap(self_type& x) {
   btree_swap_helper(node_alloc_, x.node_alloc_);
   btree_swap_helper(children_alloc_, x.children_alloc_);
   btree_swap_helper(rightmost_, x.rightmost_);
+  btree_swap_helper(leftmost_, x.leftmost_);
   btree_swap_helper(size_, x.size_);
 }
 

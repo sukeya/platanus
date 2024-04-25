@@ -270,6 +270,14 @@ class btree_node {
     return reinterpret_cast<const_reference>(values_[i]);
   }
 
+  mutable_value_type&& extract_value(count_type i) {
+    return std::move(values_[i]);
+  }
+
+  void replace_value(count_type i, mutable_value_type&& v) {
+    values_[i] = std::move(v);
+  }
+
   // Swap value i in this node with value j in node x.
   void value_swap(count_type i, node_borrower x, count_type j) noexcept(noexcept(
       params_type::swap(std::declval<mutable_value_type&>(), std::declval<mutable_value_type&>())
@@ -302,7 +310,7 @@ class btree_node {
   }
 
   // Returns the position of the first value whose key is not less than k using
-  // binary search performed.
+  // binary search.
   template <bool WithEqual = true>
   search_result binary_search_compare(
       const key_type& k, count_type s, count_type e, const key_compare& comp
@@ -368,17 +376,6 @@ class btree_node {
   count_type max_values_count() const noexcept { return max_count(); }
   count_type max_children_count() const noexcept { return leaf() ? 0 : max_count() + 1; }
 
-  // Rotate the values in the range [first, last) to the left.
-  // As a result, the value pointed by middle will now be the first value and
-  // the value pointed by middle - 1 will be the last value.
-  // Example: let values be [0, 1, 2, 3, 4, 5], first = 1, middle = 3, last = 6,
-  // after rotate_value_left(1, 3, 6) the values will be [0, 3, 4, 5, 1, 2].
-  void rotate_values(count_type first, count_type middle, count_type last) {
-    assert(0 <= first && first <= middle && middle <= last && last <= max_values_count());
-    auto vbegin = begin_values();
-    std::rotate(vbegin + first, vbegin + middle, vbegin + last);
-  }
-
   // Shift the children in the range [first, last) to the right by shift.
   // CAUTION: This function  uninitializes [first, first + shift) in *this.
   void shift_children_right(count_type first, count_type last, count_type shift) {
@@ -387,11 +384,10 @@ class btree_node {
     auto begin = begin_children() + first;
     auto end   = begin_children() + last;
 
-    std::rotate(begin, end, end + shift);
+    std::move_backward(begin, end, end + shift);
     std::for_each(begin + shift, end + shift, [shift](node_owner& np) {
       np->set_position(np->position() + shift);
     });
-    std::fill_n(begin, shift, nullptr);
   }
 
   // Shift the children in the range [first, last) to the left by shift.
@@ -403,11 +399,10 @@ class btree_node {
     auto begin = begin_children() + first;
     auto end   = begin_children() + last;
 
-    std::rotate(begin - shift, begin, end);
+    std::move(begin, end, begin - shift);
     std::for_each(begin - shift, end - shift, [shift](node_owner& np) {
       np->set_position(np->position() - shift);
     });
-    std::fill_n(end - shift, shift, nullptr);
   }
 
   // Receive the children from [first, last) in *src and set them to [dest, dest + last - first) in
@@ -436,8 +431,28 @@ class btree_node {
     }
   }
 
-  // Rotate the values [values.begin() + i, values.end()) so that the last value is at position i.
-  void rotate_back_to(count_type i);
+  // Shift values from first to last by shift toward right.
+  void shift_values_right(count_type first, count_type last, count_type shift) {
+    assert(0 <= first);
+    assert(first <= last);
+    assert(0 <= shift);
+    assert(last + shift <= max_values_count());
+    auto begin = std::next(begin_values(), first);
+    auto end = std::next(begin_values(), last);
+    std::move_backward(begin, end, std::next(end, shift));
+  }
+
+  // Shift values from first to last by shift toward left.
+  void shift_values_left(count_type first, count_type last, count_type shift) {
+    assert(0 <= first);
+    assert(first <= last);
+    assert(last <= max_values_count());
+    assert(0 <= shift);
+    assert(0 <= first - shift);
+    auto begin = std::next(begin_values(), first);
+    auto end = std::next(begin_values(), last);
+    std::move(begin, end, std::prev(begin, shift));
+  }
 
   // Inserts the value x at position i, shifting all existing values and
   // children at positions >= i to the right by 1.
@@ -500,29 +515,25 @@ class btree_node {
 ////
 // btree_node methods
 template <typename P>
-inline void btree_node<P>::rotate_back_to(count_type i) {
-  assert(i <= count());
-  rotate_values(i, values_count(), values_count() + 1);
-  set_count(count() + 1);
-
-  if (!leaf()) {
-    ++i;
-    shift_children_right(i, children_count() - 1, 1);
-  }
-}
-
-template <typename P>
 template <typename T>
 inline void btree_node<P>::insert_value(count_type i, T&& x) {
-  value_init(values_count(), std::forward<T>(x));
-  rotate_back_to(i);
+  shift_values_right(i, values_count(), 1);
+  set_count(count() + 1);
+  if (!leaf()) {
+    shift_children_right(i + 1, children_count() - 1, 1);
+  }
+  value_init(i, std::forward<T>(x));
 }
 
 template <typename P>
 template <typename... Args>
 inline void btree_node<P>::emplace_value(count_type i, Args&&... args) {
-  value_init(values_count(), std::forward<Args>(args)...);
-  rotate_back_to(i);
+  shift_values_right(i, values_count(), 1);
+  set_count(count() + 1);
+  if (!leaf()) {
+    shift_children_right(i + 1, children_count() - 1, 1);
+  }
+  value_init(i, std::forward<Args>(args)...);
 }
 
 template <typename P>
@@ -537,7 +548,7 @@ inline void btree_node<P>::remove_value(count_type i) {
   auto old_values_count = values_count();
   set_count(count() - 1);
   if (i + 1 < old_values_count) {
-    rotate_values(i, i + 1, old_values_count);
+    shift_values_left(i + 1, old_values_count, 1);
   }
 }
 
@@ -552,13 +563,13 @@ void btree_node<P>::rebalance_right_to_left(node_borrower src, count_type to_mov
 
   // Move the delimiting value to the left node and the new delimiting value
   // from the right node.
-  value_swap(values_count(), borrow_parent(), position());
-  borrow_parent()->value_swap(position(), src, to_move - 1);
+  this->replace_value(values_count(), borrow_parent()->extract_value(position()));
+  borrow_parent()->replace_value(position(), src->extract_value(to_move - 1));
 
   // Move the values from the right to the left node.
-  std::swap_ranges(end_values() + 1, end_values() + to_move, src->begin_values());
+  std::move(src->begin_values(), src->begin_values() + to_move - 1, end_values() + 1);
   // Shift the values in the right node to their correct position.
-  src->rotate_values(0, to_move, src->count());
+  src->shift_values_left(to_move, src->values_count(), to_move);
 
   if (!leaf()) {
     // Move the child pointers from the right to the left node.
@@ -580,15 +591,15 @@ void btree_node<P>::rebalance_left_to_right(node_borrower dest, count_type to_mo
   assert(to_move >= 1);
   assert(to_move <= count());
 
-  dest->rotate_values(0, dest->values_count(), dest->values_count() + to_move);
+  dest->shift_values_right(0, dest->values_count(), to_move);
 
   // Move the delimiting value to the right node and the new delimiting value
   // from the left node.
-  dest->value_swap(to_move - 1, borrow_parent(), position());
-  borrow_parent()->value_swap(position(), this, values_count() - to_move);
+  dest->replace_value(to_move - 1, borrow_parent()->extract_value(position()));
+  borrow_parent()->replace_value(position(), this->extract_value(values_count() - to_move));
 
   // Move the values from the left to the right node.
-  std::swap_ranges(end_values() - to_move + 1, end_values(), dest->begin_values());
+  std::move(end_values() - to_move + 1, end_values(), dest->begin_values());
 
   if (!leaf()) {
     // Move the child pointers from the left to the right node.
@@ -630,8 +641,7 @@ void btree_node<P>::split(node_owner&& dest, count_type insert_position) {
 
   // The split key is the largest value in the left sibling.
   set_count(count() - 1);
-  borrow_parent()->emplace_value(position());
-  value_swap(values_count(), borrow_parent(), position());
+  borrow_parent()->insert_value(position(), this->extract_value(values_count()));
   borrow_parent()->set_child(position() + 1, std::move(dest));
 
   if (!leaf()) {
@@ -651,11 +661,10 @@ void btree_node<P>::merge(node_borrower src) {
   assert(position() + 1 == src->position());
 
   // Move the delimiting value to the left node.
-  value_init(values_count());
-  value_swap(values_count(), borrow_parent(), position());
+  this->replace_value(values_count(), borrow_parent()->extract_value(position()));
 
   // Move the values from the right to the left node.
-  std::swap_ranges(src->begin_values(), src->end_values(), end_values() + 1);
+  std::move(src->begin_values(), src->end_values(), end_values() + 1);
 
   if (!leaf()) {
     // Move the child pointers from the right to the left node.

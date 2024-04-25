@@ -867,12 +867,13 @@ class TestAllocator : public Alloc {
 
 template <typename T>
 void BtreeAllocatorTest() {
-  using value_type = typename T::value_type;
+  using value_type     = typename T::value_type;
+  using allocator_type = typename T::allocator_type;
 
   int64_t alloc1 = 0;
   int64_t alloc2 = 0;
-  T       b1(typename T::key_compare(), &alloc1);
-  T       b2(typename T::key_compare(), &alloc2);
+  auto    b1     = T{allocator_type{&alloc1}};
+  auto    b2     = T{allocator_type{&alloc2}};
 
   // This should swap the allocators!
   swap(b1, b2);

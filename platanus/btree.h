@@ -702,9 +702,9 @@ class btree {
   }
 
  private:
-  key_compare             comp_{};
-  node_allocator_type     node_alloc_{};
-  children_allocator_type children_alloc_{};
+  [[no_unique_address]] key_compare             comp_{};
+  [[no_unique_address]] node_allocator_type     node_alloc_{};
+  [[no_unique_address]] children_allocator_type children_alloc_{};
   node_owner              root_{};
   // A pointer to the rightmost node of the tree
   node_borrower rightmost_{nullptr};

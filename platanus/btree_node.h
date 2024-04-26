@@ -111,7 +111,7 @@ class btree_node {
     void swap(node_deleter& x) { btree_swap_helper(alloc_, x.alloc_); }
 
    private:
-    node_allocator_type alloc_;
+    [[no_unique_address]] node_allocator_type alloc_;
   };
 
   // node_owner owes to allocate and release the memory of the node.
@@ -182,7 +182,7 @@ class btree_node {
     void swap(children_deleter& x) { btree_swap_helper(alloc_, x.alloc_); }
 
    private:
-    children_allocator_type alloc_;
+    [[no_unique_address]] children_allocator_type alloc_;
   };
 
   using children_ptr                    = std::unique_ptr<node_owner[], children_deleter>;

@@ -31,7 +31,7 @@ template <
     typename Alloc,
     std::size_t TargetNodeSize,
     std::size_t ValueSize>
-requires is_comp_weak_order<Key, Compare>
+requires comp_requirement<Key, Compare>
 struct btree_common_params {
   using key_compare   = Compare;
   using value_compare = std::false_type;

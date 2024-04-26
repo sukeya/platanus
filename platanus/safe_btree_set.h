@@ -43,7 +43,7 @@ namespace platanus {
 // The safe_btree_set class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Compare           = DefaultWeakComp,
+    typename Compare           = std::less<Key>,
     typename Alloc             = std::allocator<Key>,
     std::size_t TargetNodeSize = 512>
 class safe_btree_set : public btree_unique_container<

@@ -34,16 +34,16 @@ namespace {
 template <typename K, int N>
 void SetTest() {
   using TestAlloc = TestAllocator<K>;
-  BtreeTest<safe_btree_set<K, DefaultWeakComp, std::allocator<K>, N>, std::set<K> >();
-  BtreeAllocatorTest<safe_btree_set<K, DefaultWeakComp, TestAlloc, N> >();
+  BtreeTest<safe_btree_set<K, std::less<K>, std::allocator<K>, N>, std::set<K> >();
+  BtreeAllocatorTest<safe_btree_set<K, std::less<K>, TestAlloc, N> >();
 }
 
 template <typename K, int N>
 void MapTest() {
   using TestAlloc = TestAllocator<K>;
-  BtreeTest<safe_btree_map<K, K, DefaultWeakComp, std::allocator<K>, N>, std::map<K, K> >();
-  BtreeAllocatorTest<safe_btree_map<K, K, DefaultWeakComp, TestAlloc, N> >();
-  BtreeMapTest<safe_btree_map<K, K, DefaultWeakComp, std::allocator<K>, N> >();
+  BtreeTest<safe_btree_map<K, K, std::less<K>, std::allocator<K>, N>, std::map<K, K> >();
+  BtreeAllocatorTest<safe_btree_map<K, K, std::less<K>, TestAlloc, N> >();
+  BtreeMapTest<safe_btree_map<K, K, std::less<K>, std::allocator<K>, N> >();
 }
 
 TEST(SafeBtree, set_int32_32) { SetTest<int32_t, 32>(); }

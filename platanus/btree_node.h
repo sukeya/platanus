@@ -311,10 +311,13 @@ class btree_node {
 
   // Returns the position of the first value whose key is not less than k using
   // binary search.
+  // If WithEqual = false, returns the position of the first value whose key is
+  // greater than k using binary search.
   template <bool WithEqual = true>
   search_result binary_search_compare(
       const key_type& k, count_type s, count_type e, const key_compare& comp
-  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k))) {
+  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k))) requires comp_return_weak_ordering<key_type, key_compare> {
+    bool is_exact_match = false;
     while (s != e) {
       count_type mid = (s + e) / 2;
       auto       c   = comp(key(mid), k);
@@ -324,18 +327,44 @@ class btree_node {
         e = mid;
       } else {
         if constexpr (WithEqual) {
-          // Need to return the first value whose key is not less than k, which
-          // requires continuing the binary search. Note that we are guaranteed
-          // that the result is an exact match because if "key(mid-1) < k" the
-          // call to binary_search_compare() will return "mid".
-          s = binary_search_compare(k, s, mid, comp).index();
-          return search_result(s, true);
+          is_exact_match = true;
+          e = mid;
         } else {
           s = mid + 1;
         }
       }
     }
-    return search_result(s, false);
+    return search_result(s, is_exact_match);
+  }
+
+  template <bool WithEqual = true>
+  search_result binary_search_compare(
+      const key_type& k, count_type s, count_type e, const key_compare& comp
+  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k))) requires comp_return_bool<key_type, key_compare> {
+    bool is_exact_match = false;
+    while (s != e) {
+      count_type mid = (s + e) / 2;
+      const auto& mid_key = key(mid);
+      if constexpr (WithEqual) {
+        if (comp(mid_key, k)) {
+          s = mid + 1;
+        } else {
+          // I know mid_key >= k, so check k >= mid_key.
+          // If is_exact_match is true, mid_key <= key(e) <= k.
+          if ((not is_exact_match) and (not comp(k, mid_key))) {
+            is_exact_match = true;
+          }
+          e = mid;
+        }
+      } else {
+        if (comp(k, mid_key)) {
+          e = mid;
+        } else {
+          s = mid + 1;
+        }
+      }
+    }
+    return search_result(s, is_exact_match);
   }
 
   // Returns the pointer to the front of the values array.

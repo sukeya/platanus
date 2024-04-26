@@ -486,7 +486,11 @@ class btree {
   key_compare key_comp() const noexcept { return comp_; }
   bool        compare_keys(const key_type& x, const key_type& y) const {
            const auto& comp = ref_key_comp();
-           return comp(x, y) < 0;
+           if constexpr(comp_return_weak_ordering<key_type, key_compare>) {
+            return comp(x, y) < 0;
+           } else {
+            return comp(x, y);
+           }
   }
 
   // Dump the btree to the specified ostream. Requires that operator<< is

@@ -43,7 +43,7 @@ namespace platanus {
 template <
     typename Key,
     typename Value,
-    typename Compare           = DefaultWeakComp,
+    typename Compare           = std::less<Key>,
     typename Alloc             = std::allocator<std::pair<const Key, Value> >,
     std::size_t TargetNodeSize = 512>
 class safe_btree_map

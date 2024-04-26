@@ -39,13 +39,23 @@ inline void btree_swap_helper(T& a, T& b) {
   swap(a, b);
 }
 
+template <class T>
+concept bool_or_weak_ordering = std::same_as<T, bool> || std::convertible_to<T, std::weak_ordering>;
+
 template <class Key, class Compare>
-concept is_comp_weak_order = requires(Key lhd, Key rhd, Compare comp) {
+concept comp_requirement = requires(Key lhd, Key rhd, Compare comp) {
+  { comp(lhd, rhd) } -> bool_or_weak_ordering;
+};
+
+template <class Key, class Compare>
+concept comp_return_weak_ordering = requires(Key lhd, Key rhd, Compare comp) {
   { comp(lhd, rhd) } -> std::convertible_to<std::weak_ordering>;
 };
 
-using DefaultWeakComp = decltype(std::compare_weak_order_fallback);
-
+template <class Key, class Compare>
+concept comp_return_bool = requires(Key lhd, Key rhd, Compare comp) {
+  { comp(lhd, rhd) } -> std::same_as<bool>;
+};
 }  // namespace platanus
 
 #endif  // PLATANUS_BTREE_UTIL_H_

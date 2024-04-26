@@ -286,22 +286,39 @@ class btree {
   }
 
   // Finds the first element whose key is not less than key.
-  iterator lower_bound(const key_type& key) {
+  template <bool IsUnique = true>
+  iterator internal_lower_bound(const key_type& key) {
     if (not borrow_readonly_root()) {
       return end();
     }
     auto iter = iterator(borrow_root(), 0);
     for (;;) {
-      iter.position = iter.node->lower_bound(key, ref_key_comp()).index();
+      auto result = iter.node->lower_bound(key, ref_key_comp());
+      iter.position = result.index();
       if (iter.node->leaf()) {
         break;
+      }
+      if constexpr (IsUnique) {
+        if (result.is_exact_match()) {
+          break;
+        }
       }
       iter.node = iter.node->borrow_child(iter.position);
     }
     return internal_end(internal_last(iter));
   }
-  const_iterator lower_bound(const key_type& key) const {
-    return static_cast<const_iterator>(const_cast<btree*>(this)->lower_bound(key));
+  iterator lower_bound_unique(const key_type& key) {
+    return internal_lower_bound(key);
+  }
+  const_iterator lower_bound_unique(const key_type& key) const {
+    return static_cast<const_iterator>(const_cast<btree*>(this)->lower_bound_unique(key));
+  }
+
+  iterator lower_bound_multi(const key_type& key) {
+    return internal_lower_bound<false>(key);
+  }
+  const_iterator lower_bound_multi(const key_type& key) const {
+    return static_cast<const_iterator>(const_cast<btree*>(this)->lower_bound_multi(key));
   }
 
   // Finds the first element whose key is greater than key.
@@ -326,12 +343,21 @@ class btree {
   // Finds the range of values which compare equal to key. The first member of
   // the returned pair is equal to lower_bound(key). The second member pair of
   // the pair is equal to upper_bound(key).
-  std::pair<iterator, iterator> equal_range(const key_type& key) {
-    return std::make_pair(lower_bound(key), upper_bound(key));
+  std::pair<iterator, iterator> equal_range_unique(const key_type& key) {
+    return std::make_pair(lower_bound_unique(key), upper_bound(key));
   }
-  std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
+  std::pair<const_iterator, const_iterator> equal_range_unique(const key_type& key) const {
     return static_cast<std::pair<const_iterator, const_iterator>>(
-        const_cast<btree*>(this)->equal_range(key)
+        const_cast<btree*>(this)->equal_range_unique(key)
+    );
+  }
+
+  std::pair<iterator, iterator> equal_range_multi(const key_type& key) {
+    return std::make_pair(lower_bound_multi(key), upper_bound(key));
+  }
+  std::pair<const_iterator, const_iterator> equal_range_multi(const key_type& key) const {
+    return static_cast<std::pair<const_iterator, const_iterator>>(
+        const_cast<btree*>(this)->equal_range_multi(key)
     );
   }
 
@@ -421,7 +447,7 @@ class btree {
     return internal_end(internal_find_unique(key, const_iterator(borrow_readonly_root(), 0)));
   }
   iterator find_multi(const key_type& key) {
-    iterator iter = lower_bound(key);
+    iterator iter = lower_bound_multi(key);
     if (iter != end() && !compare_keys(key, iter.key())) {
       return iter;
     } else {
@@ -443,7 +469,7 @@ class btree {
   }
   // Returns a count of the number of times the key appears in the btree.
   size_type count_multi(const key_type& key) const {
-    return distance(lower_bound(key), upper_bound(key));
+    return distance(lower_bound_multi(key), upper_bound(key));
   }
 
   // Clear the btree, deleting all of the values it contains.
@@ -901,7 +927,7 @@ typename btree<P>::size_type btree<P>::erase_unique(const key_type& key) {
 
 template <typename P>
 typename btree<P>::size_type btree<P>::erase_multi(const key_type& key) {
-  iterator begin = lower_bound(key);
+  iterator begin = lower_bound_multi(key);
   if (begin == end()) {
     // The key doesn't exist in the tree, return nothing done.
     return 0;

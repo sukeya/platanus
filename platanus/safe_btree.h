@@ -83,7 +83,7 @@ class safe_btree_iterator {
         // pointing to the 2nd of 2 values with the same key, then this will
         // reset it to point to the first. This is why we don't provide a
         // safe_btree_multi{set,map}.
-        iter_ = tree_->internal_btree()->lower_bound(key_);
+        iter_ = tree_->internal_btree()->lower_bound_unique(key_);
         update();
       } else if (-generation_ != tree_->generation()) {
         iter_       = tree_->internal_btree()->end();
@@ -216,20 +216,20 @@ class safe_btree {
   const_reverse_iterator crend() const { return const_reverse_iterator(cbegin()); }
 
   // Lookup routines.
-  iterator       lower_bound(const key_type& key) { return iterator(this, tree_.lower_bound(key)); }
+  iterator       lower_bound(const key_type& key) { return iterator(this, tree_.lower_bound_unique(key)); }
   const_iterator lower_bound(const key_type& key) const {
-    return const_iterator(this, tree_.lower_bound(key));
+    return const_iterator(this, tree_.lower_bound_unique(key));
   }
   iterator       upper_bound(const key_type& key) { return iterator(this, tree_.upper_bound(key)); }
   const_iterator upper_bound(const key_type& key) const {
     return const_iterator(this, tree_.upper_bound(key));
   }
   std::pair<iterator, iterator> equal_range(const key_type& key) {
-    std::pair<tree_iterator, tree_iterator> p = tree_.equal_range(key);
+    std::pair<tree_iterator, tree_iterator> p = tree_.equal_range_unique(key);
     return std::make_pair(iterator(this, p.first), iterator(this, p.second));
   }
   std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
-    std::pair<tree_const_iterator, tree_const_iterator> p = tree_.equal_range(key);
+    std::pair<tree_const_iterator, tree_const_iterator> p = tree_.equal_range_unique(key);
     return std::make_pair(const_iterator(this, p.first), const_iterator(this, p.second));
   }
   iterator       find_unique(const key_type& key) { return iterator(this, tree_.find_unique(key)); }

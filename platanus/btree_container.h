@@ -77,16 +77,6 @@ class btree_container {
   const_reverse_iterator rend() const { return crend(); }
   const_reverse_iterator crend() const { return tree_.crend(); }
 
-  // Lookup routines.
-  iterator       lower_bound(const key_type& key) { return tree_.lower_bound(key); }
-  const_iterator lower_bound(const key_type& key) const { return tree_.lower_bound(key); }
-  iterator       upper_bound(const key_type& key) { return tree_.upper_bound(key); }
-  const_iterator upper_bound(const key_type& key) const { return tree_.upper_bound(key); }
-  std::pair<iterator, iterator> equal_range(const key_type& key) { return tree_.equal_range(key); }
-  std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
-    return tree_.equal_range(key);
-  }
-
   // Utility routines.
   void clear() { tree_.clear(); }
   void swap(self_type& x) { tree_.swap(x.tree_); }
@@ -193,8 +183,23 @@ class btree_unique_container : public btree_container<Tree> {
       : self_type{init.begin(), init.end(), alloc} {}
 
   // Lookup routines.
+  iterator       lower_bound(const key_type& key) { return this->tree_.lower_bound_unique(key); }
+  const_iterator lower_bound(const key_type& key) const {
+    return static_cast<const_iterator>(const_cast<btree_unique_container*>(this)->lower_bound(key));
+  }
+  iterator       upper_bound(const key_type& key) { return this->tree_.upper_bound(key); }
+  const_iterator upper_bound(const key_type& key) const {
+    return static_cast<const_iterator>(const_cast<btree_unique_container*>(this)->upper_bound(key));
+  }
+  std::pair<iterator, iterator> equal_range(const key_type& key) { return this->tree_.equal_range_unique(key); }
+  std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
+    return static_cast<std::pair<const_iterator, const_iterator>>(const_cast<btree_unique_container*>(this)->equal_range(key));
+  }
+
   iterator       find(const key_type& key) { return this->tree_.find_unique(key); }
-  const_iterator find(const key_type& key) const { return this->tree_.find_unique(key); }
+  const_iterator find(const key_type& key) const {
+    return static_cast<const_iterator>(const_cast<btree_unique_container*>(this)->find(key));
+  }
   size_type      count(const key_type& key) const { return this->tree_.count_unique(key); }
 
   // Insertion routines.
@@ -281,21 +286,20 @@ class btree_map_container : public btree_unique_container<Tree> {
       : self_type{init.begin(), init.end(), alloc} {}
 
   // Insertion routines.
-  mapped_type& operator[](const key_type& key) {
-    auto iter = this->tree_.lower_bound(key);
-    if (iter != this->tree_.end() && key == iter->first) {
+  template <class T>
+  mapped_type& internal_operator(T&& key) {
+    auto iter = this->lower_bound(key);
+    if (iter != this->end() && key == iter->first) {
       return iter->second;
     } else {
-      return this->tree_.insert_unique(iter, std::make_pair(key, mapped_type{}))->second;
+      return this->insert(iter, std::make_pair(std::forward<T>(key), mapped_type{}))->second;
     }
   }
+  mapped_type& operator[](const key_type& key) {
+    return internal_operator(key);
+  }
   mapped_type& operator[](key_type&& key) {
-    auto iter = this->tree_.lower_bound(key);
-    if (iter != this->tree_.end() && key == iter->first) {
-      return iter->second;
-    } else {
-      return this->tree_.insert_unique(iter, std::make_pair(std::move(key), mapped_type{}))->second;
-    }
+    return internal_operator(std::move(key));
   }
 };
 
@@ -362,8 +366,23 @@ class btree_multi_container : public btree_container<Tree> {
       : self_type{init.begin(), init.end(), alloc} {}
 
   // Lookup routines.
+  iterator       lower_bound(const key_type& key) { return this->tree_.lower_bound_multi(key); }
+  const_iterator lower_bound(const key_type& key) const {
+    return static_cast<const_iterator>(const_cast<btree_multi_container*>(this)->lower_bound(key));
+  }
+  iterator       upper_bound(const key_type& key) { return this->tree_.upper_bound(key); }
+  const_iterator upper_bound(const key_type& key) const {
+    return static_cast<const_iterator>(const_cast<btree_multi_container*>(this)->upper_bound(key));
+  }
+  std::pair<iterator, iterator> equal_range(const key_type& key) { return this->tree_.equal_range_multi(key); }
+  std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
+    return static_cast<std::pair<const_iterator, const_iterator>>(const_cast<btree_multi_container*>(this)->equal_range(key));
+  }
+
   iterator       find(const key_type& key) { return this->tree_.find_multi(key); }
-  const_iterator find(const key_type& key) const { return this->tree_.find_multi(key); }
+  const_iterator find(const key_type& key) const {
+    return static_cast<const_iterator>(const_cast<btree_multi_container*>(this)->find(key));
+  }
   size_type      count(const key_type& key) const { return this->tree_.count_multi(key); }
 
   // Insertion routines.

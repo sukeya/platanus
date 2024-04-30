@@ -48,6 +48,19 @@ using std::vector;
 namespace platanus {
 namespace {
 
+struct StringComp {
+std::weak_ordering operator()(const std::string& lhd, const std::string& rhd) const noexcept {
+  auto result = lhd.compare(rhd);
+  if (result < 0) {
+    return std::weak_ordering::less;
+  } else if (result > 0) {
+    return std::weak_ordering::greater;
+  } else {
+    return std::weak_ordering::equivalent;
+  }
+}
+};
+
 struct BenchmarkRun {
   BenchmarkRun(const char* name, void (*func)(int));
   void Run();
@@ -474,42 +487,40 @@ using stl_multimap_int32  = multimap<int32_t, intptr_t>;
 using stl_multimap_int64  = multimap<int64_t, intptr_t>;
 using stl_multimap_string = multimap<string, intptr_t>;
 
-#define MY_BENCHMARK_TYPES2(value, name, size)                                                     \
-  using btree##_##size##_set_##name = btree##_set<value, DefaultWeakComp, allocator<value>, size>; \
+#define MY_BENCHMARK_TYPES2(value, name, comp, size)                                                     \
+  using btree##_##size##_set_##name = btree##_set<value, comp, allocator<value>, size>; \
   using btree##_##size##_map_##name =                                                              \
-      btree##_map<value, int, DefaultWeakComp, allocator<value>, size>;                            \
+      btree##_map<value, int, comp, allocator<value>, size>;                            \
   using btree##_##size##_multiset_##name =                                                         \
-      btree##_multiset<value, DefaultWeakComp, allocator<value>, size>;                            \
+      btree##_multiset<value, comp, allocator<value>, size>;                            \
   using btree##_##size##_multimap_##name =                                                         \
-      btree##_multimap<value, int, DefaultWeakComp, allocator<value>, size>;
+      btree##_multimap<value, int, comp, allocator<value>, size>;
 
-#define MY_BENCHMARK_TYPES(value, name)   \
-  MY_BENCHMARK_TYPES2(value, name, 128);  \
-  MY_BENCHMARK_TYPES2(value, name, 160);  \
-  MY_BENCHMARK_TYPES2(value, name, 192);  \
-  MY_BENCHMARK_TYPES2(value, name, 224);  \
-  MY_BENCHMARK_TYPES2(value, name, 256);  \
-  MY_BENCHMARK_TYPES2(value, name, 288);  \
-  MY_BENCHMARK_TYPES2(value, name, 320);  \
-  MY_BENCHMARK_TYPES2(value, name, 352);  \
-  MY_BENCHMARK_TYPES2(value, name, 384);  \
-  MY_BENCHMARK_TYPES2(value, name, 416);  \
-  MY_BENCHMARK_TYPES2(value, name, 448);  \
-  MY_BENCHMARK_TYPES2(value, name, 480);  \
-  MY_BENCHMARK_TYPES2(value, name, 512);  \
-  MY_BENCHMARK_TYPES2(value, name, 1024); \
-  MY_BENCHMARK_TYPES2(value, name, 1536); \
-  MY_BENCHMARK_TYPES2(value, name, 2048)
+#define MY_BENCHMARK_TYPES(value, name, comp)   \
+  MY_BENCHMARK_TYPES2(value, name, comp, 128);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 160);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 192);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 224);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 256);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 288);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 320);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 352);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 384);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 416);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 448);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 480);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 512);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 1024); \
+  MY_BENCHMARK_TYPES2(value, name, comp, 1536); \
+  MY_BENCHMARK_TYPES2(value, name, comp, 2048)
 
-MY_BENCHMARK_TYPES(int32_t, int32);
-MY_BENCHMARK_TYPES(int64_t, int64);
-MY_BENCHMARK_TYPES(string, string);
+MY_BENCHMARK_TYPES(int32_t, int32, less<int32_t>);
+MY_BENCHMARK_TYPES(int64_t, int64, less<int64_t>);
+MY_BENCHMARK_TYPES(string, string, StringComp);
 
 #define MY_BENCHMARK4(type, name, func)                  \
   void BM_##type##_##name(int n) { BM_##func<type>(n); } \
   BTREE_BENCHMARK(BM_##type##_##name)
-
-// Define NODESIZE_TESTING when running btree_perf.py.
 
 #ifdef NODESIZE_TESTING
 #define MY_BENCHMARK3(tree, type, name, func)    \

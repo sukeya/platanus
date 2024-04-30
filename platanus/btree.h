@@ -759,7 +759,7 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(T&
     set_leftmost(borrow_root());
   }
 
-  auto                      key  = params_type::key(value);
+  const auto&                      key  = params_type::key(value);
   std::pair<iterator, bool> res  = internal_locate(key, iterator(borrow_root(), 0));
   iterator&                 iter = res.first;
   if (res.second) {
@@ -805,8 +805,7 @@ typename btree<P>::iterator btree<P>::internal_insert_multi(T&& value) {
     set_leftmost(borrow_root());
   }
 
-  auto key = params_type::key(value);
-  return internal_insert(upper_bound(key), std::forward<T>(value));
+  return internal_insert(upper_bound(params_type::key(value)), std::forward<T>(value));
 }
 
 template <typename P>

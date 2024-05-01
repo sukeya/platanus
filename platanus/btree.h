@@ -973,7 +973,7 @@ template <typename P>
 void btree<P>::rebalance_or_split(iterator& iter) {
   node_borrower& node            = iter.node;
   auto&          insert_position = iter.position;
-  assert(node->count() == node->max_count());
+  assert(node->values_count() == node->max_values_count());
 
   // First try to make room on the node by rebalancing.
   auto parent = node->borrow_parent();
@@ -981,50 +981,50 @@ void btree<P>::rebalance_or_split(iterator& iter) {
     if (node->position() > 0) {
       // Try rebalancing with our left sibling.
       auto left = parent->borrow_child(node->position() - 1);
-      if (left->count() < left->max_count()) {
+      if (left->values_count() < left->max_values_count()) {
         // We bias rebalancing based on the position being inserted. If we're
         // inserting at the end of the right node then we bias rebalancing to
         // fill up the left node.
-        auto to_move = (left->max_count() - left->count())
-                       / (1 + (insert_position < left->max_count() ? 1 : 0));
+        auto to_move = (left->max_values_count() - left->values_count())
+                       / (1 + (insert_position < node->max_values_count() ? 1 : 0));
         to_move = std::max(1, to_move);
 
-        if (((insert_position - to_move) >= 0) || ((left->count() + to_move) < left->max_count())) {
+        if (((insert_position - to_move) >= 0) || ((left->values_count() + to_move) < left->max_values_count())) {
           left->rebalance_right_to_left(node, to_move);
 
-          assert(node->max_count() - node->count() == to_move);
+          assert(node->max_values_count() - node->values_count() == to_move);
           insert_position = insert_position - to_move;
           if (insert_position < 0) {
-            insert_position = insert_position + left->count() + 1;
+            insert_position = insert_position + left->values_count() + 1;
             node            = left;
           }
 
-          assert(node->count() < node->max_count());
+          assert(node->values_count() < node->max_values_count());
           return;
         }
       }
     }
 
-    if (node->position() < parent->count()) {
+    if (node->position() < parent->values_count()) {
       // Try rebalancing with our right sibling.
       auto right = parent->borrow_child(node->position() + 1);
-      if (right->count() < right->max_count()) {
+      if (right->values_count() < right->max_values_count()) {
         // We bias rebalancing based on the position being inserted. If we're
         // inserting at the beginning of the left node then we bias rebalancing
         // to fill up the right node.
-        auto to_move = (right->max_count() - right->count()) / (1 + (insert_position > 0 ? 1 : 0));
+        auto to_move = (right->max_values_count() - right->values_count()) / (1 + (insert_position > 0 ? 1 : 0));
         to_move      = std::max(1, to_move);
 
-        if ((insert_position <= (node->count() - to_move))
-            || ((right->count() + to_move) < right->max_count())) {
+        if ((insert_position <= (node->values_count() - to_move))
+            || ((right->values_count() + to_move) < right->max_values_count())) {
           node->rebalance_left_to_right(right, to_move);
 
-          if (insert_position > node->count()) {
-            insert_position = insert_position - node->count() - 1;
+          if (insert_position > node->values_count()) {
+            insert_position = insert_position - node->values_count() - 1;
             node            = right;
           }
 
-          assert(node->count() < node->max_count());
+          assert(node->values_count() < node->max_values_count());
           return;
         }
       }
@@ -1032,7 +1032,7 @@ void btree<P>::rebalance_or_split(iterator& iter) {
 
     // Rebalancing failed, make sure there is room on the parent node for a new
     // value.
-    if (parent->count() == parent->max_count()) {
+    if (parent->values_count() == parent->max_values_count()) {
       iterator parent_iter(node->borrow_parent(), node->position());
       rebalance_or_split(parent_iter);
     }
@@ -1058,8 +1058,8 @@ void btree<P>::rebalance_or_split(iterator& iter) {
     node->split(std::move(split_node), insert_position);
   }
 
-  if (insert_position > node->count()) {
-    insert_position = insert_position - node->count() - 1;
+  if (insert_position > node->values_count()) {
+    insert_position = insert_position - node->values_count() - 1;
     node            = node->borrow_parent()->borrow_child(node->position() + 1);
   }
 }

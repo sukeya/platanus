@@ -216,19 +216,19 @@ class safe_btree {
   const_reverse_iterator crend() const { return const_reverse_iterator(cbegin()); }
 
   // Lookup routines.
-  iterator       lower_bound(const key_type& key) { return iterator(this, tree_.lower_bound_unique(key)); }
-  const_iterator lower_bound(const key_type& key) const {
+  iterator       lower_bound_unique(const key_type& key) { return iterator(this, tree_.lower_bound_unique(key)); }
+  const_iterator lower_bound_unique(const key_type& key) const {
     return const_iterator(this, tree_.lower_bound_unique(key));
   }
   iterator       upper_bound(const key_type& key) { return iterator(this, tree_.upper_bound(key)); }
   const_iterator upper_bound(const key_type& key) const {
     return const_iterator(this, tree_.upper_bound(key));
   }
-  std::pair<iterator, iterator> equal_range(const key_type& key) {
+  std::pair<iterator, iterator> equal_range_unique(const key_type& key) {
     std::pair<tree_iterator, tree_iterator> p = tree_.equal_range_unique(key);
     return std::make_pair(iterator(this, p.first), iterator(this, p.second));
   }
-  std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
+  std::pair<const_iterator, const_iterator> equal_range_unique(const key_type& key) const {
     std::pair<tree_const_iterator, tree_const_iterator> p = tree_.equal_range_unique(key);
     return std::make_pair(const_iterator(this, p.first), const_iterator(this, p.second));
   }

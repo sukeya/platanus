@@ -22,16 +22,16 @@ namespace platanus {
 template <typename K, int N>
 void SetTest() {
   using TestAlloc = TestAllocator<K>;
-  BtreeTest<btree_set<K, std::less<K>, std::allocator<K>, N>, std::set<K> >();
-  BtreeAllocatorTest<btree_set<K, std::less<K>, TestAlloc, N> >();
+  BtreeTest<btree_set<K, std::ranges::less, std::allocator<K>, N>, std::set<K> >();
+  BtreeAllocatorTest<btree_set<K, std::ranges::less, TestAlloc, N> >();
 }
 
 template <typename K, int N>
 void MapTest() {
   using TestAlloc = TestAllocator<K>;
-  BtreeTest<btree_map<K, K, std::less<K>, std::allocator<K>, N>, std::map<K, K> >();
-  BtreeAllocatorTest<btree_map<K, K, std::less<K>, TestAlloc, N> >();
-  BtreeMapTest<btree_map<K, K, std::less<K>, std::allocator<K>, N> >();
+  BtreeTest<btree_map<K, K, std::ranges::less, std::allocator<K>, N>, std::map<K, K> >();
+  BtreeAllocatorTest<btree_map<K, K, std::ranges::less, TestAlloc, N> >();
+  BtreeMapTest<btree_map<K, K, std::ranges::less, std::allocator<K>, N> >();
 }
 
 TEST(Btree, set_int32_32) { SetTest<int32_t, 32>(); }
@@ -69,17 +69,17 @@ TEST(Btree, set_string_4096) { SetTest<std::string, 4096>(); }
 template <typename K, int N>
 void MultiSetTest() {
   using TestAlloc = TestAllocator<K>;
-  BtreeMultiTest<btree_multiset<K, std::less<K>, std::allocator<K>, N>, std::multiset<K> >();
-  BtreeAllocatorTest<btree_multiset<K, std::less<K>, TestAlloc, N> >();
+  BtreeMultiTest<btree_multiset<K, std::ranges::less, std::allocator<K>, N>, std::multiset<K> >();
+  BtreeAllocatorTest<btree_multiset<K, std::ranges::less, TestAlloc, N> >();
 }
 
 template <typename K, int N>
 void MultiMapTest() {
   using TestAlloc = TestAllocator<K>;
-  BtreeMultiTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N>, std::multimap<K, K> >(
+  BtreeMultiTest<btree_multimap<K, K, std::ranges::less, std::allocator<K>, N>, std::multimap<K, K> >(
   );
-  BtreeMultiMapTest<btree_multimap<K, K, std::less<K>, std::allocator<K>, N> >();
-  BtreeAllocatorTest<btree_multimap<K, K, std::less<K>, TestAlloc, N> >();
+  BtreeMultiMapTest<btree_multimap<K, K, std::ranges::less, std::allocator<K>, N> >();
+  BtreeAllocatorTest<btree_multimap<K, K, std::ranges::less, TestAlloc, N> >();
 }
 
 TEST(Btree, multiset_int32_512) { MultiSetTest<int32_t, 512>(); }
@@ -231,10 +231,10 @@ TEST(Btree, Comparison) {
 }
 
 TEST(Btree, RangeCtorSanity) {
-  using test_set  = btree_set<int, std::less<int>, std::allocator<int>, 512>;
-  using test_map  = btree_map<int, int, std::less<int>, std::allocator<int>, 512>;
-  using test_mset = btree_multiset<int, std::less<int>, std::allocator<int>, 512>;
-  using test_mmap = btree_multimap<int, int, std::less<int>, std::allocator<int>, 512>;
+  using test_set  = btree_set<int, std::ranges::less, std::allocator<int>, 512>;
+  using test_map  = btree_map<int, int, std::ranges::less, std::allocator<int>, 512>;
+  using test_mset = btree_multiset<int, std::ranges::less, std::allocator<int>, 512>;
+  using test_mmap = btree_multimap<int, int, std::ranges::less, std::allocator<int>, 512>;
   std::vector<int> ivec;
   ivec.push_back(1);
   std::map<int, int> imap;

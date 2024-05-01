@@ -38,7 +38,7 @@ namespace platanus {
 template <
     typename Key,
     typename Value,
-    typename Compare           = std::less<Key>,
+    typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<std::pair<const Key, Value> >,
     std::size_t TargetNodeSize = 512>
 class btree_map : public btree_map_container<
@@ -101,7 +101,7 @@ inline void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
 template <
     typename Key,
     typename Value,
-    typename Compare           = std::less<Key>,
+    typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<std::pair<const Key, Value> >,
     std::size_t TargetNodeSize = 512>
 class btree_multimap : public btree_multi_container<

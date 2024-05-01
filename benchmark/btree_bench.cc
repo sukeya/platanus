@@ -35,7 +35,7 @@ DEFINE_int32(benchmark_min_iters, 100, "Minimum test iterations");
 DEFINE_int32(benchmark_target_seconds, 1, "Attempt to benchmark for this many seconds");
 
 using std::allocator;
-using std::less;
+using std::ranges::less;
 using std::map;
 using std::max;
 using std::min;
@@ -514,8 +514,8 @@ using stl_multimap_string = multimap<string, intptr_t>;
   MY_BENCHMARK_TYPES2(value, name, comp, 1536); \
   MY_BENCHMARK_TYPES2(value, name, comp, 2048)
 
-MY_BENCHMARK_TYPES(int32_t, int32, less<int32_t>);
-MY_BENCHMARK_TYPES(int64_t, int64, less<int64_t>);
+MY_BENCHMARK_TYPES(int32_t, int32, less);
+MY_BENCHMARK_TYPES(int64_t, int64, less);
 MY_BENCHMARK_TYPES(string, string, StringComp);
 
 #define MY_BENCHMARK4(type, name, func)                  \

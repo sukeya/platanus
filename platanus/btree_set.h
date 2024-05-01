@@ -33,7 +33,7 @@ namespace platanus {
 // The btree_set class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Compare           = std::less<Key>,
+    typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
     std::size_t TargetNodeSize = 512>
 class btree_set : public btree_unique_container<
@@ -97,7 +97,7 @@ inline void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
 // The btree_multiset class is needed mainly for its constructors.
 template <
     typename Key,
-    typename Compare           = std::less<Key>,
+    typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
     std::size_t TargetNodeSize = 512>
 class btree_multiset

@@ -123,28 +123,21 @@ class btree_node {
   using children_allocator_type   = typename allocator_traits::template rebind_alloc<node_owner>;
   using children_allocator_traits = std::allocator_traits<children_allocator_type>;
 
-  static constexpr std::size_t kValueSize      = params_type::kValueSize;
-  static constexpr std::size_t kTargetNodeSize = params_type::kTargetNodeSize;
+  static constexpr std::size_t kMaxNumOfValues = params_type::kMaxNumOfValues;
 
   // Available space for values.
   static_assert(
-      kTargetNodeSize >= 3 * sizeof(void*),
-      "ValueSize must be no less than 2 * sizeof(void*) + 2 * sizeof(std::uint_least16_t) + "
-      "sizeof(allcator_type)"
+    kMaxNumOfValues >= 3,
+    "We need a minimum of 3 values per internal node in order to perform"
+    "splitting (1 value for the two nodes involved in the split and 1 value"
+    "propagated to the parent as the delimiter for the split)."
   );
-  static constexpr std::size_t kNodeValueSpace = kTargetNodeSize - 2 * sizeof(void*)
-                                                 - 2 * sizeof(std::uint_least16_t)
-                                                 - sizeof(children_allocator_type);
 
-  static constexpr std::size_t kNodeTargetValues = kNodeValueSpace / kValueSize;
-  // We need a minimum of 3 values per internal node in order to perform
-  // splitting (1 value for the two nodes involved in the split and 1 value
-  // propagated to the parent as the delimiter for the split).
-  static constexpr std::size_t kNodeValues   = kNodeTargetValues >= 3 ? kNodeTargetValues : 3;
-  static constexpr std::size_t kNodeChildren = kNodeValues + 1;
+  static constexpr std::size_t kNodeValues   = kMaxNumOfValues;
+  static constexpr std::size_t kNodeChildren = kMaxNumOfValues + 1;
 
   using search_result =
-      btree_node_search_result<std::bit_width(static_cast<std::size_t>(kNodeChildren - 1))>;
+      btree_node_search_result<std::bit_width(static_cast<std::size_t>(kNodeValues))>;
   using count_type        = typename search_result::count_type;
   using signed_count_type = typename search_result::signed_count_type;
 

@@ -29,8 +29,7 @@ template <
     typename Key,
     typename Compare,
     typename Alloc,
-    std::size_t TargetNodeSize,
-    std::size_t ValueSize>
+    std::size_t MaxNumOfValues>
 requires comp_requirement<Key, Compare>
 struct btree_common_params {
   using key_compare   = Compare;
@@ -41,24 +40,19 @@ struct btree_common_params {
   using size_type       = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  static constexpr std::size_t kTargetNodeSize = TargetNodeSize;
-  static constexpr std::size_t kValueSize      = ValueSize;
+  static constexpr std::size_t kMaxNumOfValues = MaxNumOfValues;
 };
 
 // A parameters structure for holding the type parameters for a btree_map.
-template <typename Key, typename Data, typename Compare, typename Alloc, std::size_t TargetNodeSize>
-struct btree_map_params
-    : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key) + sizeof(Data)> {
+template <typename Key, typename Data, typename Compare, typename Alloc, std::size_t MaxNumOfValues>
+struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues> {
   // Deprecated: use mapped_type instead.
   using data_type          = Data;
   using mapped_type        = Data;
   using value_type         = std::pair<const Key, mapped_type>;
   using mutable_value_type = std::pair<Key, mapped_type>;
 
-  static constexpr std::size_t kValueSize = sizeof(Key) + sizeof(mapped_type);
-
-  using key_compare =
-      typename btree_common_params<Key, Compare, Alloc, TargetNodeSize, kValueSize>::key_compare;
+  using key_compare = typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
   // TODO
   using value_compare   = std::false_type;
   using pointer         = value_type*;
@@ -72,18 +66,15 @@ struct btree_map_params
 };
 
 // A parameters structure for holding the type parameters for a btree_set.
-template <typename Key, typename Compare, typename Alloc, std::size_t TargetNodeSize>
-struct btree_set_params
-    : public btree_common_params<Key, Compare, Alloc, TargetNodeSize, sizeof(Key)> {
-  static constexpr std::size_t kValueSize = sizeof(Key);
-
+template <typename Key, typename Compare, typename Alloc, std::size_t MaxNumOfValues>
+struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues> {
   // Deprecated: use mapped_type instead.
   using data_type          = std::false_type;
   using mapped_type        = std::false_type;
   using value_type         = Key;
   using mutable_value_type = value_type;
-  using key_compare =
-      typename btree_common_params<Key, Compare, Alloc, TargetNodeSize, kValueSize>::key_compare;
+
+  using key_compare = typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
   using value_compare   = key_compare;
   using pointer         = value_type*;
   using const_pointer   = const value_type*;

@@ -17,12 +17,7 @@
 
 #include <compare>
 #include <utility>
-
-namespace std {
-inline void
-swap(const decltype(std::compare_weak_order_fallback)&, const decltype(std::compare_weak_order_fallback)&) {
-}
-}  // namespace std
+#include <concepts>
 
 namespace platanus {
 

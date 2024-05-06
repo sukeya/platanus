@@ -180,7 +180,6 @@ class btree {
   static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
   static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
   static constexpr std::size_t kMinNodeValues = kNodeValues / 2;
-  static constexpr std::size_t kValueSize     = node_type::kValueSize;
 
   struct node_stats {
     node_stats(std::size_t l, std::size_t i) : leaf_nodes(l), internal_nodes(i) {}
@@ -572,7 +571,7 @@ class btree {
     if (empty()) {
       return 0.0;
     }
-    return (bytes_used() - size() * kValueSize) / double(size());
+    return (bytes_used() - size() * sizeof(mapped_type)) / double(size());
   }
 
  private:

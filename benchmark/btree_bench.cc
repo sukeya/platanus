@@ -497,22 +497,14 @@ using stl_multimap_string = multimap<string, intptr_t>;
       btree##_multimap<value, int, comp, allocator<value>, size>;
 
 #define MY_BENCHMARK_TYPES(value, name, comp)   \
-  MY_BENCHMARK_TYPES2(value, name, comp, 128);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 160);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 192);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 224);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 256);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 288);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 320);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 352);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 384);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 416);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 448);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 480);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 512);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 1024); \
-  MY_BENCHMARK_TYPES2(value, name, comp, 1536); \
-  MY_BENCHMARK_TYPES2(value, name, comp, 2048)
+  MY_BENCHMARK_TYPES2(value, name, comp, 3);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 6);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 14);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 30);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 62);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 126);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 254);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 510);
 
 MY_BENCHMARK_TYPES(int32_t, int32, less);
 MY_BENCHMARK_TYPES(int64_t, int64, less);
@@ -524,26 +516,18 @@ MY_BENCHMARK_TYPES(string, string, StringComp);
 
 #ifdef NODESIZE_TESTING
 #define MY_BENCHMARK3(tree, type, name, func)    \
-  MY_BENCHMARK4(tree##_128_##type, name, func);  \
-  MY_BENCHMARK4(tree##_160_##type, name, func);  \
-  MY_BENCHMARK4(tree##_192_##type, name, func);  \
-  MY_BENCHMARK4(tree##_224_##type, name, func);  \
-  MY_BENCHMARK4(tree##_256_##type, name, func);  \
-  MY_BENCHMARK4(tree##_288_##type, name, func);  \
-  MY_BENCHMARK4(tree##_320_##type, name, func);  \
-  MY_BENCHMARK4(tree##_352_##type, name, func);  \
-  MY_BENCHMARK4(tree##_384_##type, name, func);  \
-  MY_BENCHMARK4(tree##_416_##type, name, func);  \
-  MY_BENCHMARK4(tree##_448_##type, name, func);  \
-  MY_BENCHMARK4(tree##_480_##type, name, func);  \
-  MY_BENCHMARK4(tree##_512_##type, name, func);  \
-  MY_BENCHMARK4(tree##_1024_##type, name, func); \
-  MY_BENCHMARK4(tree##_1536_##type, name, func); \
-  MY_BENCHMARK4(tree##_2048_##type, name, func)
+  MY_BENCHMARK4(tree##_3_##type, name, func);  \
+  MY_BENCHMARK4(tree##_6_##type, name, func);  \
+  MY_BENCHMARK4(tree##_14_##type, name, func);  \
+  MY_BENCHMARK4(tree##_30_##type, name, func);  \
+  MY_BENCHMARK4(tree##_62_##type, name, func);  \
+  MY_BENCHMARK4(tree##_126_##type, name, func);  \
+  MY_BENCHMARK4(tree##_254_##type, name, func);  \
+  MY_BENCHMARK4(tree##_510_##type, name, func);
 #else
 #define MY_BENCHMARK3(tree, type, name, func)   \
-  MY_BENCHMARK4(tree##_512_##type, name, func); \
-  MY_BENCHMARK4(tree##_2048_##type, name, func)
+  MY_BENCHMARK4(tree##_126_##type, name, func); \
+  MY_BENCHMARK4(tree##_510_##type, name, func)
 #endif
 
 #define MY_BENCHMARK2(type, name, func)  \

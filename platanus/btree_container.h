@@ -235,8 +235,6 @@ class btree_map_container : public btree_unique_container<Tree> {
 
  public:
   using key_type = typename Tree::key_type;
-  // Deprecated: use mapped_type instead.
-  using data_type      = typename Tree::data_type;
   using value_type     = typename Tree::value_type;
   using mapped_type    = typename Tree::mapped_type;
   using key_compare    = typename Tree::key_compare;

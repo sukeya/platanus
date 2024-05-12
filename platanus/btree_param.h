@@ -46,8 +46,6 @@ struct btree_common_params {
 // A parameters structure for holding the type parameters for a btree_map.
 template <typename Key, typename Data, typename Compare, typename Alloc, std::size_t MaxNumOfValues>
 struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues> {
-  // Deprecated: use mapped_type instead.
-  using data_type          = Data;
   using mapped_type        = Data;
   using value_type         = std::pair<const Key, mapped_type>;
   using mutable_value_type = std::pair<Key, mapped_type>;
@@ -68,8 +66,6 @@ struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNum
 // A parameters structure for holding the type parameters for a btree_set.
 template <typename Key, typename Compare, typename Alloc, std::size_t MaxNumOfValues>
 struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues> {
-  // Deprecated: use mapped_type instead.
-  using data_type          = std::false_type;
   using mapped_type        = std::false_type;
   using value_type         = Key;
   using mutable_value_type = value_type;

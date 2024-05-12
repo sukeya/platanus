@@ -157,8 +157,6 @@ class safe_btree {
  public:
   using params_type = typename btree_type::params_type;
   using key_type    = typename btree_type::key_type;
-  // Deprecated: use mapped_type instead.
-  using data_type              = typename btree_type::data_type;
   using mapped_type            = typename btree_type::mapped_type;
   using value_type             = typename btree_type::value_type;
   using key_compare            = typename btree_type::key_compare;

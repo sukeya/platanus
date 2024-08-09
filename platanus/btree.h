@@ -40,7 +40,6 @@
 #include "btree_util.h"
 
 namespace platanus {
-
 template <typename Params>
 class btree {
   using self_type = btree<Params>;
@@ -109,9 +108,6 @@ class btree {
   btree(const key_compare& comp, const allocator_type& alloc);
   btree(const btree& x, const allocator_type& alloc) : btree(key_compare{}, alloc) { copy(x); }
   btree(btree&& x, const allocator_type& alloc);
-
-  node_allocator_type     get_node_allocator() const noexcept { return node_alloc_; }
-  children_allocator_type get_children_allocator() const noexcept { return children_alloc_; }
 
   // Iterator routines.
   iterator begin() noexcept {
@@ -249,7 +245,7 @@ class btree {
   template <typename InputIterator>
   void insert_unique(InputIterator b, InputIterator e) {
     for (; b != e; ++b) {
-      insert_unique(end(), *b);
+      insert_unique(*b);
     }
   }
 
@@ -263,7 +259,7 @@ class btree {
   iterator insert_multi(value_type&& v) { return internal_insert_multi(std::move(v)); }
 
   // Insert with hint. Check to see if the value should be placed immediately
-  // before position in the tree. If it does, then the insertion will take
+  // before hint in the tree. If it does, then the insertion will take
   // amortized constant time. If not, the insertion will take amortized
   // logarithmic time as if a call to insert_multi(v) were made.
   iterator insert_multi(iterator hint, const value_type& v) {
@@ -277,7 +273,7 @@ class btree {
   template <typename InputIterator>
   void insert_multi(InputIterator b, InputIterator e) {
     for (; b != e; ++b) {
-      insert_multi(end(), *b);
+      insert_multi(*b);
     }
   }
 
@@ -350,13 +346,14 @@ class btree {
   void swap(self_type& x);
 
   key_compare key_comp() const noexcept { return comp_; }
-  bool        compare_keys(const key_type& x, const key_type& y) const {
-           const auto& comp = ref_key_comp();
-           if constexpr(comp_return_weak_ordering<key_type, key_compare>) {
-            return comp(x, y) < 0;
-           } else {
-            return comp(x, y);
-           }
+
+  bool compare_keys(const key_type& x, const key_type& y) const {
+    const auto& comp = ref_key_comp();
+    if constexpr(comp_return_weak_ordering<key_type, key_compare>) {
+      return comp(x, y) < 0;
+    } else {
+      return comp(x, y);
+    }
   }
 
   // Dump the btree to the specified ostream. Requires that operator<< is
@@ -370,7 +367,7 @@ class btree {
   // Verifies the structure of the btree.
   void verify() const;
 
-  // Size routines. Note that empty() is slightly faster than doing size()==0.
+  // Size routines.
   size_type size() const noexcept { return size_; }
   size_type max_size() const noexcept { return std::numeric_limits<size_type>::max(); }
   bool      empty() const noexcept {
@@ -418,12 +415,8 @@ class btree {
   }
 
   // The average number of bytes used per value stored in the btree.
-  static double average_bytes_per_value() noexcept {
-    // TODO The following comment may be wrong.
-    // Returns the number of bytes per value on a leaf node that is 75%
-    // full. Experimentally, this matches up nicely with the computed number of
-    // bytes per value in trees that had their values inserted in random order.
-    return sizeof(node_type) / (kNodeValues * 0.75);
+  double average_bytes_per_value() const noexcept {
+    return bytes_used() / size();
   }
 
   // The fullness of the btree. Computed as the number of elements in the btree
@@ -764,7 +757,7 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(T&
     set_leftmost(borrow_root());
   }
 
-  const auto&                      key  = params_type::key(value);
+  const auto&               key  = params_type::key(value);
   std::pair<iterator, bool> res  = internal_locate(key, iterator(borrow_root(), 0));
   iterator&                 iter = res.first;
   if (res.second) {
@@ -777,7 +770,7 @@ std::pair<typename btree<P>::iterator, bool> btree<P>::internal_insert_unique(T&
 
 template <typename P>
 template <typename T>
-inline typename btree<P>::iterator btree<P>::internal_insert_unique(iterator hint, T&& v) {
+typename btree<P>::iterator btree<P>::internal_insert_unique(iterator hint, T&& v) {
   if (!empty()) {
     const key_type& key = params_type::key(v);
     if (hint == end() || compare_keys(key, hint.key())) {
@@ -842,14 +835,16 @@ void btree<P>::copy(const self_type& x) {
 
   // Assignment can avoid key comparisons because we know the order of the
   // values is the same order we'll store them in.
-  for (const_iterator iter = x.cbegin(); iter != x.cend(); ++iter) {
-    if (empty()) {
-      insert_multi(*iter);
-    } else {
-      // If the btree is not empty, we can just insert the new value at the end
-      // of the tree!
-      internal_insert(end(), *iter);
-    }
+  const_iterator iter = x.cbegin();
+  if (iter != x.cend()) {
+    insert_multi(*iter);
+    ++iter;
+  }
+  while (iter != x.cend()) {
+    // If the btree is not empty, we can just insert the new value at the end
+    // of the tree!
+    internal_insert(end(), *iter);
+    ++iter;
   }
 }
 
@@ -1152,7 +1147,7 @@ void btree<P>::try_shrink() {
 
 template <typename P>
 template <typename IterType>
-inline IterType btree<P>::internal_last(IterType iter) {
+IterType btree<P>::internal_last(IterType iter) {
   while (iter.node && iter.position == iter.node->count()) {
     iter.position = iter.node->position();
     iter.node     = iter.node->borrow_parent();
@@ -1162,7 +1157,7 @@ inline IterType btree<P>::internal_last(IterType iter) {
 
 template <typename P>
 template <typename T>
-inline typename btree<P>::iterator btree<P>::internal_insert(iterator iter, T&& v) {
+typename btree<P>::iterator btree<P>::internal_insert(iterator iter, T&& v) {
   if (!iter.node->leaf()) {
     // We can't insert on an internal node. Instead, we'll insert after the
     // previous value which is guaranteed to be on a leaf node.
@@ -1180,7 +1175,7 @@ inline typename btree<P>::iterator btree<P>::internal_insert(iterator iter, T&& 
 
 template <typename P>
 template <typename IterType>
-inline std::pair<IterType, bool> btree<P>::internal_locate(const key_type& key, IterType iter)
+std::pair<IterType, bool> btree<P>::internal_locate(const key_type& key, IterType iter)
     const {
   for (;;) {
     node_search_result res = iter.node->lower_bound(key, ref_key_comp());

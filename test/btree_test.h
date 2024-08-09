@@ -31,62 +31,10 @@
 #include "gtest/gtest.h"
 #include "gflags/gflags.h"
 #include "platanus/btree_container.h"
-
-DECLARE_int32(test_values);
-DECLARE_int32(benchmark_values);
-
-namespace std {
-
-// Provide operator<< support for std::pair<T, U>.
-template <typename T, typename U>
-ostream& operator<<(ostream& os, const std::pair<T, U>& p) {
-  os << "(" << p.first << "," << p.second << ")";
-  return os;
-}
-
-// Provide pair equality testing that works as long as x.first is comparable to
-// y.first and x.second is comparable to y.second. Needed in the test for
-// comparing std::pair<T, U> to std::pair<const T, U>.
-template <typename T, typename U, typename V, typename W>
-bool operator==(const std::pair<T, U>& x, const std::pair<V, W>& y) {
-  return x.first == y.first && x.second == y.second;
-}
-
-// Partial specialization of remove_const that propagates the removal through
-// std::pair.
-template <typename T, typename U>
-struct remove_const<pair<T, U>> {
-  using type = pair<typename remove_const<T>::type, typename remove_const<U>::type>;
-};
-
-}  // namespace std
+#include "btree_test_flags.h"
+#include "util.h"
 
 namespace platanus {
-
-// Select the first member of a pair.
-template <class _Pair>
-struct select1st {
-  const typename _Pair::first_type& operator()(const _Pair& __x) const { return __x.first; }
-};
-
-// Utility class to provide an accessor for a key given a value. The default
-// behavior is to treat the value as a pair and return the first element.
-template <typename K, typename V>
-struct KeyOfValue {
-  using type = select1st<V>;
-};
-
-template <typename T>
-struct identity {
-  const T& operator()(const T& t) const { return t; }
-};
-
-// Partial specialization of KeyOfValue class for when the key and value are
-// the same type such as in set<> and btree_set<>.
-template <typename K>
-struct KeyOfValue<K, K> {
-  using type = identity<K>;
-};
 
 // Counts the number of occurances of "c" in a buffer.
 ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
@@ -477,85 +425,6 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
     }
   }
 };
-
-char* GenerateDigits(char buf[16], int val, int maxval) {
-  EXPECT_LE(val, maxval);
-  int p    = 15;
-  buf[p--] = 0;
-  while (maxval > 0) {
-    buf[p--] = '0' + (val % 10);
-    val /= 10;
-    maxval /= 10;
-  }
-  return buf + p + 1;
-}
-
-template <typename K>
-struct Generator {
-  int maxval;
-  Generator(int m) : maxval(m) {}
-  K operator()(int i) const {
-    EXPECT_LE(i, maxval);
-    return i;
-  }
-};
-
-template <>
-struct Generator<std::string> {
-  int maxval;
-  Generator(int m) : maxval(m) {}
-  std::string operator()(int i) const {
-    char buf[16];
-    return GenerateDigits(buf, i, maxval);
-  }
-};
-
-template <typename T, typename U>
-struct Generator<std::pair<T, U>> {
-  Generator<typename std::remove_const<T>::type> tgen;
-  Generator<typename std::remove_const<U>::type> ugen;
-
-  Generator(int m) : tgen(m), ugen(m) {}
-  std::pair<T, U> operator()(int i) const { return std::make_pair(tgen(i), ugen(i)); }
-};
-
-// Generate values for our tests and benchmarks. Value range is [0, maxval].
-const std::vector<int>& GenerateNumbers(int n, int maxval) {
-  static std::vector<int> values;
-  static std::set<int>    unique_values;
-
-  if (values.size() < n) {
-    for (int i = values.size(); i < n; i++) {
-      int value;
-      do {
-        value = rand() % (maxval + 1);
-      } while (unique_values.find(value) != unique_values.end());
-
-      values.push_back(value);
-      unique_values.insert(value);
-    }
-  }
-
-  return values;
-}
-
-// Generates values in the range
-// [0, 4 * min(FLAGS_benchmark_values, FLAGS_test_values)]
-template <typename V>
-std::vector<V> GenerateValues(int n) {
-  int two_times_max  = 2 * std::max(FLAGS_benchmark_values, FLAGS_test_values);
-  int four_times_max = 2 * two_times_max;
-  EXPECT_LE(n, two_times_max);
-  const std::vector<int>& nums = GenerateNumbers(n, four_times_max);
-  Generator<V>            gen(four_times_max);
-  std::vector<V>          vec;
-
-  for (int i = 0; i < n; i++) {
-    vec.push_back(gen(nums[i]));
-  }
-
-  return vec;
-}
 
 template <typename T, typename V>
 void DoTest(const char* name, T* b, const std::vector<V>& values) {

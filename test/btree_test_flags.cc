@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "gflags/gflags.h"
+#include "btree_test_flags.h"
 
 DEFINE_int32(test_values, 10000, "The number of values to use for tests.");
 DEFINE_int32(benchmark_values, 1000000, "The number of values to use for benchmarks.");

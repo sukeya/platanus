@@ -28,7 +28,7 @@
 #include "gflags/gflags.h"
 #include "platanus/btree_map.h"
 #include "platanus/btree_set.h"
-#include "../test/btree_test.h"
+#include "../test/util.h"
 
 DEFINE_int32(test_random_seed, 123456789, "Seed for srand()");
 DEFINE_int32(benchmark_max_iters, 10000000, "Maximum test iterations");

@@ -35,7 +35,7 @@
 #include <utility>
 
 #include "gflags/gflags.h"
-#include "../test/btree_test.h"
+#include "../test/util.h"
 
 DEFINE_int32(test_random_seed, 123456789, "Seed for srand()");
 DEFINE_int32(benchmark_max_iters, 1'000'000, "Maximum test iterations");

@@ -1,9 +1,15 @@
+add_library(btree_test_flags btree_test_flags.cc)
+target_link_libraries(btree_test_flags gflags)
+
+add_library(util util.cc)
+target_link_libraries(util GTest::gtest_main gflags btree_test_flags)
+
 set(tests 
   btree_test
   safe_btree_test
 )
 
 foreach(test ${tests})
-    add_executable(${test} ${test}.cc btree_test_flags.cc)
-    target_link_libraries(${test} GTest::gtest_main gflags platanus)
+    add_executable(${test} ${test}.cc)
+    target_link_libraries(${test} GTest::gtest_main gflags platanus btree_test_flags util)
 endforeach()

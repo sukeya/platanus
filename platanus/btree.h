@@ -572,6 +572,145 @@ class btree {
     return (bytes_used() - size() * sizeof(mapped_type)) / double(size());
   }
 
+  // Merges an B-tree. The given B-tree will have the intersection of two B-trees.
+  void merge_unique(self_type& rhd) {
+    auto lhd_min = params_type::key(*(begin()));
+    auto lhd_max = params_type::key(*(rbegin()));
+    auto rhd_min = params_type::key(*(rhd.begin()));
+    auto rhd_max = params_type::key(*(rhd.rbegin()));
+
+    if (lhd_min >= rhd_min) {
+      swap(rhd);
+    }
+
+    // If the value range of rhd is included in that of *this,
+    if (rhd_max <= lhd_max) {
+      // Store the keys removed from rhd temporarily.
+      std::vector<std::size_t> removed_indexes;
+
+      // Insert the intersection to *this.
+      std::size_t i = 0;
+      for (auto it = rhd.begin(); it != rhd.end(); ++it) {
+        auto [result_it, is_inserted] = insert_unique(std::move(*it));
+        if (is_inserted) {
+          removed_indexes.push_back(i);
+        }
+        ++i;
+      }
+
+      // Remove the keys inserted to *this.
+      for (auto it = removed_indexes.rbegin(); it != removed_indexes.rend(); ++it) {
+        iterator hint;
+        if (*it < rhd.size() / 2) {
+          hint = std::next(rhd.begin(), *it);
+        } else {
+          hint = std::prev(rhd.end(), rhd.size() - *it);
+        }
+        rhd.erase(hint);
+      }
+
+      return;
+    }
+
+    auto lhd_intersection_begin = lower_bound_unique(rhd_min);
+    auto rhd_intersection_end = rhd.upper_bound(lhd_max);
+    auto sizeof_left_side_of_diff = std::distance(begin(), lhd_intersection_begin);
+    auto sizeof_right_side_of_diff = std::distance(rhd_intersection_end, rhd.end());
+    if (sizeof_left_side_of_diff >= sizeof_right_side_of_diff) {
+      // Store the keys removed from rhd temporarily.
+      std::vector<std::size_t> removed_indexes;
+
+      auto it = rhd.begin();
+      std::size_t i = 0;
+      // Insert the intersection to *this.
+      for (; it != rhd_intersection_end; ++it) {
+        auto [result_it, is_inserted] = insert_unique(std::move(*it));
+        if (is_inserted) {
+          removed_indexes.push_back(i);
+        }
+        ++i;
+      }
+      // Insert the extra of rhd.
+      for (; it != rhd.end(); ++it) {
+        insert_unique(end(), std::move(*it));
+      }
+
+      // Remove the extra of rhd.
+      while ((not rhd.empty()) && params_type::key(*(rhd.rbegin())) > lhd_max) {
+        rhd.erase(std::prev(rhd.end()));
+      }
+      // Remove the keys inserted to *this.
+      for (auto it = removed_indexes.rbegin(); it != removed_indexes.rend(); ++it) {
+        iterator hint;
+        if (*it < rhd.size() / 2) {
+          hint = std::next(rhd.begin(), *it);
+        } else {
+          hint = std::prev(rhd.end(), rhd.size() - *it);
+        }
+        rhd.erase(hint);
+      }
+    } else {
+      // Insert the elements in [lhd_min, rhd_min) in *this;
+      for (auto it = begin(); it != lhd_intersection_begin; ++it) {
+        rhd.insert_unique(rhd.begin(), std::move(*it));
+      }
+
+      // Store the keys removed from *this temporarily.
+      std::vector<std::size_t> removed_rel_indexes;
+
+      // Insert the intersection to rhd.
+      std::size_t i = 0;
+      for (auto it = lhd_intersection_begin; it != end(); ++it) {
+        auto [result_it, is_inserted] = insert_unique(std::move(*it));
+        if (is_inserted) {
+          removed_rel_indexes.push_back(i);
+        }
+        ++i;
+      }
+
+      // Remove the inserted elements of *this.
+      std::ptrdiff_t intersection_size = size() - sizeof_left_side_of_diff;
+      for (auto it = removed_rel_indexes.rbegin(); it != removed_rel_indexes.rend(); ++it) {
+        iterator hint;
+        if (*it < intersection_size / 2) {
+          hint = std::next(lhd_intersection_begin, *it);
+        } else {
+          hint = std::prev(end(), intersection_size - *it);
+        }
+        erase(hint);
+      }
+      // Remove the elements in [lhd_min, rhd_min) in *this;
+      while ((not empty()) && params_type::key(*(begin())) < rhd_min) {
+        erase(begin());
+      }
+
+      swap(rhd);
+    }
+  }
+
+  void merge_multi(self_type& rhd) {
+    auto lhd_min = params_type::key(*(begin()));
+    auto lhd_max = params_type::key(*(rbegin()));
+    auto rhd_min = params_type::key(*(rhd.begin()));
+
+    if (lhd_min >= rhd_min) {
+      swap(rhd);
+    }
+
+    // Insert the intersection to *this.
+    auto rhd_intersection_end = rhd.upper_bound(lhd_max);
+    auto it = rhd.begin();
+    for (; it != rhd_intersection_end; ++it) {
+      insert_multi(std::move(*it));
+    }
+    // Insert the extra of rhd.
+    for (; it != rhd.end(); ++it) {
+      insert_multi(end(), std::move(*it));
+    }
+
+    rhd.clear();
+  }
+
  private:
   // Internal accessor routines.
   node_borrower       borrow_root() noexcept { return root_->borrow_myself(); }

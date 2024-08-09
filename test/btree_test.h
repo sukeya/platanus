@@ -774,6 +774,68 @@ void ConstTest() {
   EXPECT_GT(const_b.overhead(), 0);
 }
 
+template <typename T, typename C, typename V>
+void MergeTest(const std::vector<V>& values) {
+  T former, later;
+  C ans_former, ans_later;
+
+  for (std::size_t i = 0; i < values.size() / 2; ++i) {
+    former.insert(former.end(), values[i]);
+    ans_former.insert(ans_former.end(), values[i]);
+  }
+  for (std::size_t i = values.size() / 2; i < values.size(); ++i) {
+    later.insert(later.end(), values[i]);
+    ans_later.insert(ans_later.end(), values[i]);
+  }
+
+  printf(
+      "    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
+      "merge 1st half:",
+      former.fullness(),
+      former.overhead(),
+      double(former.bytes_used()) / former.size()
+  );
+  printf(
+      "    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
+      "merge 2st half:",
+      later.fullness(),
+      later.overhead(),
+      double(later.bytes_used()) / later.size()
+  );
+
+  former.merge(later);
+  ans_former.merge(ans_later);
+
+  assert(former.size() == ans_former.size());
+  {
+    auto it = former.begin();
+    auto ans_it = ans_former.begin();
+    while (it != former.end()) {
+      EXPECT_EQ(*it, *ans_it);
+      ++it;
+      ++ans_it;
+    }
+  }
+  assert(later.size() == ans_later.size());
+  {
+    auto it = later.begin();
+    auto ans_it = ans_later.begin();
+    while (it != later.end()) {
+      EXPECT_EQ(*it, *ans_it);
+      ++it;
+      ++ans_it;
+    }
+  }
+
+  printf(
+      "    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
+      "merged:    ",
+      former.fullness(),
+      former.overhead(),
+      double(former.bytes_used()) / former.size()
+  );
+}
+
 template <typename T, typename C>
 void BtreeTest() {
   ConstTest<T>();
@@ -794,6 +856,21 @@ void BtreeTest() {
 
   // Test key insertion/deletion in random order.
   DoTest("random:    ", &container, random_values);
+
+  // Test merging a B-tree with unique values.
+  MergeTest<T, C>(sorted_values);
+
+  std::vector<V> duplicate_values;
+  duplicate_values.reserve(sorted_values.size());
+  for (std::size_t i = 0; i < sorted_values.size() / 2; ++i) {
+    duplicate_values.push_back(sorted_values[i]);
+  }
+  for (std::size_t i = sorted_values.size() / 2; i < sorted_values.size(); ++i) {
+    duplicate_values.push_back(sorted_values[i]);
+  }
+
+  // Test merging a B-tree with duplicate values.
+  MergeTest<T, C>(duplicate_values);
 }
 
 template <typename T, typename C>
@@ -826,6 +903,12 @@ void BtreeMultiTest() {
   std::vector<V> identical_values(100);
   fill(identical_values.begin(), identical_values.end(), Generator<V>(2)(2));
   DoTest("identical: ", &container, identical_values);
+
+  // Test merging a B-tree with unique values.
+  MergeTest<T, C>(sorted_values);
+
+  // Test merging a B-tree with duplicate values.
+  MergeTest<T, C>(duplicate_values);
 }
 
 template <typename T, typename Alloc = std::allocator<T>>

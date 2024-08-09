@@ -314,6 +314,12 @@ class safe_btree {
     return res;
   }
 
+  void merge_unique(self_type& x) {
+    tree_.merge_unique(x.tree_);
+    ++generation_;
+    ++(x.generation_);
+  }
+
   // Access to the underlying btree.
   btree_type*       internal_btree() { return &tree_; }
   const btree_type* internal_btree() const { return &tree_; }

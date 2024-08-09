@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <map>
 #include <random>
@@ -471,6 +472,34 @@ void BM_FwdIter(int n) {
   sink(r);  // Keep compiler from optimizing away r.
 }
 
+template <typename T>
+void initialize_tree(T& t) {
+  using V = typename std::remove_const<typename T::value_type>::type;
+  t.clear();
+  vector<V> values = GenerateValues<V>(static_cast<int>(std::sqrt(FLAGS_benchmark_values)));
+
+  for (int i = 0; i < values.size(); i++) {
+    t.insert(values[i]);
+  }
+}
+
+// Merge two b-tree.
+template <typename T>
+void BM_Merge(int n) {
+  StopBenchmarkTiming();
+
+  T trunk, branch;
+
+  for (int i = 0; i < n; i++) {
+    initialize_tree(trunk);
+    initialize_tree(branch);
+
+    StartBenchmarkTiming();
+    trunk.merge(branch);
+    StopBenchmarkTiming();
+  }
+}
+
 using stl_set_int32  = set<int32_t>;
 using stl_set_int64  = set<int64_t>;
 using stl_set_string = set<string>;
@@ -488,13 +517,13 @@ using stl_multimap_int64  = multimap<int64_t, intptr_t>;
 using stl_multimap_string = multimap<string, intptr_t>;
 
 #define MY_BENCHMARK_TYPES2(value, name, comp, size)                                                     \
-  using btree##_##size##_set_##name = btree##_set<value, comp, allocator<value>, size>; \
-  using btree##_##size##_map_##name =                                                              \
-      btree##_map<value, int, comp, allocator<value>, size>;                            \
-  using btree##_##size##_multiset_##name =                                                         \
-      btree##_multiset<value, comp, allocator<value>, size>;                            \
-  using btree##_##size##_multimap_##name =                                                         \
-      btree##_multimap<value, int, comp, allocator<value>, size>;
+  using btree_##size##_set_##name = btree_set<value, comp, allocator<value>, size>; \
+  using btree_##size##_map_##name =                                                              \
+      btree_map<value, int, comp, allocator<value>, size>;                            \
+  using btree_##size##_multiset_##name =                                                         \
+      btree_multiset<value, comp, allocator<value>, size>;                            \
+  using btree_##size##_multimap_##name =                                                         \
+      btree_multimap<value, int, comp, allocator<value>, size>;
 
 #define MY_BENCHMARK_TYPES(value, name, comp)   \
   MY_BENCHMARK_TYPES2(value, name, comp, 3);  \
@@ -530,7 +559,7 @@ MY_BENCHMARK_TYPES(string, string, StringComp);
 
 #define MY_BENCHMARK2(type, name, func)  \
   MY_BENCHMARK4(stl_##type, name, func); \
-  MY_BENCHMARK3(btree, type, name, func)
+  MY_BENCHMARK3(btree, type, name, func);
 
 #define MY_BENCHMARK(type)                       \
   MY_BENCHMARK2(type, insert, Insert);           \
@@ -540,7 +569,8 @@ MY_BENCHMARK_TYPES(string, string, StringComp);
   MY_BENCHMARK2(type, queueaddrem, QueueAddRem); \
   MY_BENCHMARK2(type, mixedaddrem, MixedAddRem); \
   MY_BENCHMARK2(type, fifo, Fifo);               \
-  MY_BENCHMARK2(type, fwditer, FwdIter)
+  MY_BENCHMARK2(type, fwditer, FwdIter);         \
+  MY_BENCHMARK2(type, merge, Merge);
 
 MY_BENCHMARK(set_int32);
 MY_BENCHMARK(map_int32);

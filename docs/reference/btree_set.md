@@ -17,7 +17,7 @@ Parameter | Meaning
 `Key` | Type of a key
 `Compare` | Type of a func obj comparing two key in a weak order. If Key doesn't implement three-way comparison operator, the default type does using `<` and `=`.
 `Alloc` | Type of an allocator. The default is `std::allocator<Key>`.
-`MaxNumOfValues` | The size of a leaf node. The default is 512 byte.
+`MaxNumOfValues` | The max number of values per node. The default is 64.
 
 
 ## Member types

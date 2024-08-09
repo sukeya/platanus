@@ -24,7 +24,6 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 add_library(platanus INTERFACE)
-add_library(platanus::platanus ALIAS platanus)
 
 target_compile_features(platanus INTERFACE cxx_std_20)
 target_include_directories(platanus INTERFACE

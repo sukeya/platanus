@@ -411,7 +411,7 @@ void BM_MixedAddRem(int n) {
 }
 
 // Insertion at end, removal from the beginning.  This benchmark
-// counts two value constructors.
+// counts one value constructors.
 template <typename T>
 void BM_Fifo(int n) {
   using V = typename std::remove_const<typename T::value_type>::type;
@@ -542,7 +542,7 @@ MY_BENCHMARK_TYPES(string, string, StringComp);
   void BM_##type##_##name(int n) { BM_##func<type>(n); } \
   BTREE_BENCHMARK(BM_##type##_##name)
 
-#ifdef NODESIZE_TESTING
+#ifdef VALUES_SIZE_TEST
 #define MY_BENCHMARK3(tree, type, name, func)    \
   MY_BENCHMARK4(tree##_3_##type, name, func);  \
   MY_BENCHMARK4(tree##_8_##type, name, func);  \

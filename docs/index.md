@@ -26,12 +26,12 @@ Better cache locality translates into faster operations.
 ## Performance
 Generally speaking, `platunus` is slower than `cpp-btree` by approximately 13%, but is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% (the values are median and the node size of B-tree is 512 byte (default)).
 However, forwarding an iterator of `platanus` is extremely faster than doing that of STL, while FIFO of `platanus` is slower than that of STL by approximately 19%.
-So, you should check how the performance is improved.
+So, you should check how much the performance is improved.
 
 
 ## Installation
 platanus is an header only library, so you don't have to install it.
-when using CMake, you only have to link your program to `platanus`.
+When using CMake, you only have to link your program to `platanus`.
 For example, `target_link_libraries(your_program PUBLIC platanus)`.
 
 

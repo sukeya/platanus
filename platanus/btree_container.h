@@ -17,6 +17,7 @@
 
 #include <iosfwd>
 #include <initializer_list>
+#include <type_traits>
 #include <utility>
 
 #include "btree.h"
@@ -61,21 +62,19 @@ class btree_container {
   btree_container(const self_type& x, const allocator_type& alloc) : tree_(x.tree_, alloc) {}
   btree_container(self_type&& x, const allocator_type& alloc) : tree_(std::move(x.tree_), alloc) {}
 
-  allocator_type get_allocator() const { return tree_.get_allocator(); }
-
   // Iterator routines.
-  iterator               begin() { return tree_.begin(); }
-  const_iterator         begin() const { return cbegin(); }
-  const_iterator         cbegin() const { return tree_.cbegin(); }
-  iterator               end() { return tree_.end(); }
-  const_iterator         end() const { return cend(); }
-  const_iterator         cend() const { return tree_.cend(); }
-  reverse_iterator       rbegin() { return tree_.rbegin(); }
-  const_reverse_iterator rbegin() const { return crbegin(); }
-  const_reverse_iterator crbegin() const { return tree_.crbegin(); }
-  reverse_iterator       rend() { return tree_.rend(); }
-  const_reverse_iterator rend() const { return crend(); }
-  const_reverse_iterator crend() const { return tree_.crend(); }
+  iterator               begin() noexcept { return tree_.begin(); }
+  const_iterator         begin() const noexcept { return cbegin(); }
+  const_iterator         cbegin() const noexcept { return tree_.cbegin(); }
+  iterator               end() noexcept { return tree_.end(); }
+  const_iterator         end() const noexcept { return cend(); }
+  const_iterator         cend() const noexcept { return tree_.cend(); }
+  reverse_iterator       rbegin() noexcept { return tree_.rbegin(); }
+  const_reverse_iterator rbegin() const noexcept { return crbegin(); }
+  const_reverse_iterator crbegin() const noexcept { return tree_.crbegin(); }
+  reverse_iterator       rend() noexcept { return tree_.rend(); }
+  const_reverse_iterator rend() const noexcept { return crend(); }
+  const_reverse_iterator crend() const noexcept { return tree_.crend(); }
 
   // Utility routines.
   void clear() { tree_.clear(); }
@@ -84,38 +83,43 @@ class btree_container {
   void verify() const { tree_.verify(); }
 
   // Size routines.
-  size_type     size() const { return tree_.size(); }
-  size_type     max_size() const { return tree_.max_size(); }
-  bool          empty() const { return tree_.empty(); }
-  size_type     height() const { return tree_.height(); }
-  size_type     internal_nodes() const { return tree_.internal_nodes(); }
-  size_type     leaf_nodes() const { return tree_.leaf_nodes(); }
-  size_type     nodes() const { return tree_.nodes(); }
-  size_type     bytes_used() const { return tree_.bytes_used(); }
-  static double average_bytes_per_value() { return Tree::average_bytes_per_value(); }
-  double        fullness() const { return tree_.fullness(); }
-  double        overhead() const { return tree_.overhead(); }
+  size_type size() const noexcept { return tree_.size(); }
+  size_type max_size() const noexcept { return tree_.max_size(); }
+  bool      empty() const noexcept { return tree_.empty(); }
+  size_type height() const noexcept { return tree_.height(); }
+  size_type internal_nodes() const noexcept { return tree_.internal_nodes(); }
+  size_type leaf_nodes() const noexcept { return tree_.leaf_nodes(); }
+  size_type nodes() const noexcept { return tree_.nodes(); }
+  size_type bytes_used() const noexcept { return tree_.bytes_used(); }
+  double    average_bytes_per_value() const noexcept { return tree_.average_bytes_per_value(); }
+  double    fullness() const noexcept { return tree_.fullness(); }
+  double    overhead() const noexcept { return tree_.overhead(); }
 
-  bool operator==(const self_type& x) const {
-    if (size() != x.size()) {
+  key_compare key_comp() const noexcept { return tree_.key_comp(); }
+
+  friend bool operator==(const self_type& lhd, const self_type& rhd) noexcept {
+    if (lhd.size() != rhd.size()) {
       return false;
     }
-    for (const_iterator i = cbegin(), xi = x.cbegin(); i != cend(); ++i, ++xi) {
-      if (*i != *xi) {
+    for (const_iterator li = lhd.cbegin(), ri = rhd.cbegin(); li != lhd.cend(); ++li, ++ri) {
+      if (*li != *ri) {
         return false;
       }
     }
     return true;
   }
 
-  bool operator!=(const self_type& other) const { return !operator==(other); }
-
  protected:
   Tree tree_;
 };
 
 template <typename T>
-inline std::ostream& operator<<(std::ostream& os, const btree_container<T>& b) {
+bool operator!=(const btree_container<T>& lhd, const btree_container<T>& rhd) noexcept {
+   return not (lhd == rhd);
+}
+
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const btree_container<T>& b) {
   b.dump(os);
   return os;
 }
@@ -201,6 +205,7 @@ class btree_unique_container : public btree_container<Tree> {
     return static_cast<const_iterator>(const_cast<btree_unique_container*>(this)->find(key));
   }
   size_type      count(const key_type& key) const { return this->tree_.count_unique(key); }
+  bool           contains(const key_type& key) const { return find(key) != this->cend(); }
 
   // Insertion routines.
   std::pair<iterator, bool> insert(const value_type& x) { return this->tree_.insert_unique(x); }
@@ -385,6 +390,7 @@ class btree_multi_container : public btree_container<Tree> {
     return static_cast<const_iterator>(const_cast<btree_multi_container*>(this)->find(key));
   }
   size_type      count(const key_type& key) const { return this->tree_.count_multi(key); }
+  bool           contains(const key_type& key) const { return find(key) != this->cend(); }
 
   // Insertion routines.
   iterator insert(const value_type& x) { return this->tree_.insert_multi(x); }

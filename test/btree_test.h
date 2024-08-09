@@ -78,7 +78,7 @@ struct KeyOfValue {
 
 template <typename T>
 struct identity {
-  inline const T& operator()(const T& t) const { return t; }
+  const T& operator()(const T& t) const { return t; }
 };
 
 // Partial specialization of KeyOfValue class for when the key and value are
@@ -89,7 +89,7 @@ struct KeyOfValue<K, K> {
 };
 
 // Counts the number of occurances of "c" in a buffer.
-inline ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
+ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
   if (buf_begin == nullptr) return 0;
   if (buf_end <= buf_begin) return 0;
   ptrdiff_t num = 0;
@@ -100,11 +100,11 @@ inline ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
 }
 
 // for when the string is not null-terminated.
-inline ptrdiff_t strcount(const char* buf, size_t len, char c) {
+ptrdiff_t strcount(const char* buf, size_t len, char c) {
   return strcount(buf, buf + len, c);
 }
 
-inline ptrdiff_t strcount(const std::string& buf, char c) {
+ptrdiff_t strcount(const std::string& buf, char c) {
   return strcount(buf.c_str(), buf.size(), c);
 }
 
@@ -179,6 +179,7 @@ class base_checker {
     upper_bound(key);
     equal_range(key);
     count(key);
+    contains(key);
   }
   void erase_check(const key_type& key) {
     EXPECT_TRUE(tree_.find(key) == const_tree_.end());
@@ -222,6 +223,11 @@ class base_checker {
   size_type count(const key_type& key) const {
     size_type res = checker_.count(key);
     EXPECT_EQ(res, tree_.count(key));
+    return res;
+  }
+  bool contains(const key_type& key) const {
+    bool res = checker_.contains(key);
+    EXPECT_EQ(res, tree_.contains(key));
     return res;
   }
 
@@ -766,6 +772,7 @@ void ConstTest() {
   EXPECT_GT(const_b.max_size(), 0);
   EXPECT_EQ(const_b.height(), 1);
   EXPECT_EQ(const_b.count(key_of_value(value)), 1);
+  EXPECT_EQ(const_b.contains(key_of_value(value)), true);
   EXPECT_EQ(const_b.internal_nodes(), 0);
   EXPECT_EQ(const_b.leaf_nodes(), 1);
   EXPECT_EQ(const_b.nodes(), 1);

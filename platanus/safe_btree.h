@@ -198,8 +198,6 @@ class safe_btree {
   safe_btree(self_type&& x, const allocator_type& alloc)
       : tree_(std::move(x.tree_), alloc), generation_(x.generation_) {}
 
-  allocator_type get_allocator() const { return tree_.get_allocator(); }
-
   iterator               begin() { return iterator(this, tree_.begin()); }
   const_iterator         begin() const { return cbegin(); }
   const_iterator         cbegin() const { return const_iterator(this, tree_.cbegin()); }
@@ -234,12 +232,7 @@ class safe_btree {
   const_iterator find_unique(const key_type& key) const {
     return const_iterator(this, tree_.find_unique(key));
   }
-  iterator       find_multi(const key_type& key) { return iterator(this, tree_.find_multi(key)); }
-  const_iterator find_multi(const key_type& key) const {
-    return const_iterator(this, tree_.find_multi(key));
-  }
   size_type count_unique(const key_type& key) const { return tree_.count_unique(key); }
-  size_type count_multi(const key_type& key) const { return tree_.count_multi(key); }
 
   // Insertion routines.
   template <class T>
@@ -271,24 +264,6 @@ class safe_btree {
   void insert_unique(std::initializer_list<value_type> list) {
     insert_unique(list.begin(), list.end());
   }
-  iterator insert_multi(const value_type& v) {
-    ++generation_;
-    return iterator(this, tree_.insert_multi(v));
-  }
-  iterator insert_multi(iterator position, const value_type& v) {
-    tree_iterator tree_pos = position.iter();
-    ++generation_;
-    return iterator(this, tree_.insert_multi(tree_pos, v));
-  }
-  template <typename InputIterator>
-  void insert_multi(InputIterator b, InputIterator e) {
-    for (; b != e; ++b) {
-      insert_multi(*b);
-    }
-  }
-  void insert_multi(std::initializer_list<value_type> list) {
-    insert_multi(list.begin(), list.end());
-  }
 
   // Deletion routines.
   void erase(const iterator& begin, const iterator& end) {
@@ -305,11 +280,6 @@ class safe_btree {
   }
   size_type erase_unique(const key_type& key) {
     size_type res = tree_.erase_unique(key);
-    generation_ += res;
-    return res;
-  }
-  size_type erase_multi(const key_type& key) {
-    size_type res = tree_.erase_multi(key);
     generation_ += res;
     return res;
   }
@@ -340,17 +310,17 @@ class safe_btree {
   key_compare        key_comp() const { return tree_.key_comp(); }
 
   // Size routines.
-  size_type     size() const { return tree_.size(); }
-  size_type     max_size() const { return tree_.max_size(); }
-  bool          empty() const { return tree_.empty(); }
-  size_type     height() const { return tree_.height(); }
-  size_type     internal_nodes() const { return tree_.internal_nodes(); }
-  size_type     leaf_nodes() const { return tree_.leaf_nodes(); }
-  size_type     nodes() const { return tree_.nodes(); }
-  size_type     bytes_used() const { return tree_.bytes_used(); }
-  static double average_bytes_per_value() { return btree_type::average_bytes_per_value(); }
-  double        fullness() const { return tree_.fullness(); }
-  double        overhead() const { return tree_.overhead(); }
+  size_type size() const { return tree_.size(); }
+  size_type max_size() const { return tree_.max_size(); }
+  bool      empty() const { return tree_.empty(); }
+  size_type height() const { return tree_.height(); }
+  size_type internal_nodes() const { return tree_.internal_nodes(); }
+  size_type leaf_nodes() const { return tree_.leaf_nodes(); }
+  size_type nodes() const { return tree_.nodes(); }
+  size_type bytes_used() const { return tree_.bytes_used(); }
+  double    average_bytes_per_value() { return btree_type::average_bytes_per_value(); }
+  double    fullness() const { return tree_.fullness(); }
+  double    overhead() const { return tree_.overhead(); }
 
  private:
   btree_type         tree_;

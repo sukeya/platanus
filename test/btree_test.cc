@@ -35,34 +35,28 @@ void MapTest() {
 }
 
 TEST(Btree, set_int32_3) { SetTest<int32_t, 3>(); }
-TEST(Btree, set_int32_4) { SetTest<int32_t, 4>(); }
-TEST(Btree, set_int32_124) { SetTest<int32_t, 124>(); }
-TEST(Btree, set_int64_62) { SetTest<int64_t, 62>(); }
-TEST(Btree, set_string_15) { SetTest<std::string, 15>(); }
-TEST(Btree, set_pair_62) { SetTest<std::pair<int, int>, 62>(); }
-TEST(Btree, map_int32_62) { MapTest<int32_t, 62>(); }
-TEST(Btree, map_int64_31) { MapTest<int64_t, 31>(); }
-TEST(Btree, map_string_7) { MapTest<std::string, 7>(); }
-TEST(Btree, map_pair_31) { MapTest<std::pair<int, int>, 31>(); }
+TEST(Btree, set_int64_3) { SetTest<int64_t, 3>(); }
+TEST(Btree, set_string_3) { SetTest<std::string, 3>(); }
+TEST(Btree, set_pair_3) { SetTest<std::pair<int, int>, 3>(); }
+TEST(Btree, map_int32_3) { MapTest<int32_t, 3>(); }
+TEST(Btree, map_int64_3) { MapTest<int64_t, 3>(); }
+TEST(Btree, map_string_3) { MapTest<std::string, 3>(); }
+TEST(Btree, map_pair_3) { MapTest<std::pair<int, int>, 3>(); }
 
 // Large-node tests
-TEST(Btree, map_int32_124) { MapTest<int32_t, 124>(); }
-TEST(Btree, map_int32_125) { MapTest<int32_t, 125>(); }
-TEST(Btree, map_int32_126) { MapTest<int32_t, 126>(); }
-TEST(Btree, map_int32_127) { MapTest<int32_t, 127>(); }
+TEST(Btree, set_int32_64) { SetTest<int32_t, 64>(); }
+TEST(Btree, set_int32_128) { SetTest<int32_t, 128>(); }
+TEST(Btree, set_int32_256) { SetTest<int32_t, 256>(); }
+TEST(Btree, map_int32_64) { MapTest<int32_t, 64>(); }
 TEST(Btree, map_int32_128) { MapTest<int32_t, 128>(); }
+TEST(Btree, map_int32_256) { MapTest<int32_t, 256>(); }
 
-TEST(Btree, map_int32_248) { MapTest<int32_t, 248>(); }
-TEST(Btree, map_int32_496) { MapTest<int32_t, 496>(); }
-TEST(Btree, set_int32_248) { SetTest<int32_t, 248>(); }
-TEST(Btree, set_int32_496) { SetTest<int32_t, 496>(); }
-TEST(Btree, set_int32_952) { SetTest<int32_t, 952>(); }
-TEST(Btree, map_string_14) { MapTest<std::string, 14>(); }
-TEST(Btree, map_string_28) { MapTest<std::string, 28>(); }
-TEST(Btree, map_string_56) { MapTest<std::string, 56>(); }
-TEST(Btree, set_string_30) { SetTest<std::string, 30>(); }
-TEST(Btree, set_string_60) { SetTest<std::string, 60>(); }
-TEST(Btree, set_string_120) { SetTest<std::string, 120>(); }
+TEST(Btree, set_string_64) { SetTest<std::string, 64>(); }
+TEST(Btree, set_string_128) { SetTest<std::string, 128>(); }
+TEST(Btree, set_string_256) { SetTest<std::string, 256>(); }
+TEST(Btree, map_string_64) { MapTest<std::string, 64>(); }
+TEST(Btree, map_string_128) { MapTest<std::string, 128>(); }
+TEST(Btree, map_string_256) { MapTest<std::string, 256>(); }
 
 template <typename K, int N>
 void MultiSetTest() {
@@ -81,34 +75,28 @@ void MultiMapTest() {
 }
 
 TEST(Btree, multiset_int32_3) { MultiSetTest<int32_t, 3>(); }
-TEST(Btree, multiset_int32_4) { MultiSetTest<int32_t, 4>(); }
-TEST(Btree, multiset_int32_124) { MultiSetTest<int32_t, 124>(); }
-TEST(Btree, multiset_int64_62) { MultiSetTest<int64_t, 62>(); }
-TEST(Btree, multiset_string_15) { MultiSetTest<std::string, 15>(); }
-TEST(Btree, multiset_pair_62) { MultiSetTest<std::pair<int, int>, 62>(); }
-TEST(Btree, multimap_int32_62) { MultiMapTest<int32_t, 62>(); }
-TEST(Btree, multimap_int64_31) { MultiMapTest<int64_t, 31>(); }
-TEST(Btree, multimap_string_7) { MultiMapTest<std::string, 7>(); }
-TEST(Btree, multimap_pair_31) { MultiMapTest<std::pair<int, int>, 31>(); }
+TEST(Btree, multiset_int64_3) { MultiSetTest<int64_t, 3>(); }
+TEST(Btree, multiset_string_3) { MultiSetTest<std::string, 3>(); }
+TEST(Btree, multiset_pair_3) { MultiSetTest<std::pair<int, int>, 3>(); }
+TEST(Btree, multimap_int32_3) { MultiMapTest<int32_t, 3>(); }
+TEST(Btree, multimap_int64_3) { MultiMapTest<int64_t, 3>(); }
+TEST(Btree, multimap_string_3) { MultiMapTest<std::string, 3>(); }
+TEST(Btree, multimap_pair_3) { MultiMapTest<std::pair<int, int>, 3>(); }
 
 // Large-node tests
-TEST(Btree, multimap_int32_124) { MultiMapTest<int32_t, 124>(); }
-TEST(Btree, multimap_int32_125) { MultiMapTest<int32_t, 125>(); }
-TEST(Btree, multimap_int32_126) { MultiMapTest<int32_t, 126>(); }
-TEST(Btree, multimap_int32_127) { MultiMapTest<int32_t, 127>(); }
+TEST(Btree, multiset_int32_64) { MultiSetTest<int32_t, 64>(); }
+TEST(Btree, multiset_int32_128) { MultiSetTest<int32_t, 128>(); }
+TEST(Btree, multiset_int32_256) { MultiSetTest<int32_t, 256>(); }
+TEST(Btree, multimap_int32_64) { MultiMapTest<int32_t, 64>(); }
 TEST(Btree, multimap_int32_128) { MultiMapTest<int32_t, 128>(); }
+TEST(Btree, multimap_int32_256) { MultiMapTest<int32_t, 256>(); }
 
-TEST(Btree, multimap_int32_248) { MultiMapTest<int32_t, 248>(); }
-TEST(Btree, multimap_int32_496) { MultiMapTest<int32_t, 496>(); }
-TEST(Btree, multiset_int32_248) { MultiSetTest<int32_t, 248>(); }
-TEST(Btree, multiset_int32_496) { MultiSetTest<int32_t, 496>(); }
-TEST(Btree, multiset_int32_952) { MultiSetTest<int32_t, 952>(); }
-TEST(Btree, multimap_string_14) { MultiMapTest<std::string, 14>(); }
-TEST(Btree, multimap_string_28) { MultiMapTest<std::string, 28>(); }
-TEST(Btree, multimap_string_56) { MultiMapTest<std::string, 56>(); }
-TEST(Btree, multiset_string_30) { MultiSetTest<std::string, 30>(); }
-TEST(Btree, multiset_string_60) { MultiSetTest<std::string, 60>(); }
-TEST(Btree, multiset_string_120) { MultiSetTest<std::string, 120>(); }
+TEST(Btree, multiset_string_64) { MultiSetTest<std::string, 64>(); }
+TEST(Btree, multiset_string_128) { MultiSetTest<std::string, 128>(); }
+TEST(Btree, multiset_string_256) { MultiSetTest<std::string, 256>(); }
+TEST(Btree, multimap_string_64) { MultiMapTest<std::string, 64>(); }
+TEST(Btree, multimap_string_128) { MultiMapTest<std::string, 128>(); }
+TEST(Btree, multimap_string_256) { MultiMapTest<std::string, 256>(); }
 
 // Verify that swapping btrees swaps the key comparision functors.
 struct SubstringLess {
@@ -236,10 +224,10 @@ TEST(Btree, Comparison) {
 }
 
 TEST(Btree, RangeCtorSanity) {
-  using test_set  = btree_set<int, std::ranges::less, std::allocator<int>, 512>;
-  using test_map  = btree_map<int, int, std::ranges::less, std::allocator<int>, 512>;
-  using test_mset = btree_multiset<int, std::ranges::less, std::allocator<int>, 512>;
-  using test_mmap = btree_multimap<int, int, std::ranges::less, std::allocator<int>, 512>;
+  using test_set  = btree_set<int, std::ranges::less, std::allocator<int>>;
+  using test_map  = btree_map<int, int, std::ranges::less, std::allocator<int>>;
+  using test_mset = btree_multiset<int, std::ranges::less, std::allocator<int>>;
+  using test_mmap = btree_multimap<int, int, std::ranges::less, std::allocator<int>>;
   std::vector<int> ivec;
   ivec.push_back(1);
   std::map<int, int> imap;

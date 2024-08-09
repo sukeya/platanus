@@ -45,11 +45,11 @@ template <
     typename Key,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
-    std::size_t TargetNodeSize = 512>
+    std::size_t MaxNumOfValues = 64>
 class safe_btree_set : public btree_unique_container<
-                           safe_btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
-  using self_type   = safe_btree_set<Key, Compare, Alloc, TargetNodeSize>;
-  using params_type = btree_set_params<Key, Compare, Alloc, TargetNodeSize>;
+                           safe_btree<btree_set_params<Key, Compare, Alloc, MaxNumOfValues> > > {
+  using self_type   = safe_btree_set<Key, Compare, Alloc, MaxNumOfValues>;
+  using params_type = btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
   using btree_type  = safe_btree<params_type>;
   using super_type  = btree_unique_container<btree_type>;
 
@@ -100,7 +100,7 @@ class safe_btree_set : public btree_unique_container<
 };
 
 template <typename K, typename C, typename A, std::size_t N>
-inline void swap(safe_btree_set<K, C, A, N>& x, safe_btree_set<K, C, A, N>& y) {
+void swap(safe_btree_set<K, C, A, N>& x, safe_btree_set<K, C, A, N>& y) {
   x.swap(y);
 }
 

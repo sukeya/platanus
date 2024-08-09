@@ -35,11 +35,11 @@ template <
     typename Key,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
-    std::size_t TargetNodeSize = 512>
+    std::size_t MaxNumOfValues = 64>
 class btree_set : public btree_unique_container<
-                      btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
-  using self_type   = btree_set<Key, Compare, Alloc, TargetNodeSize>;
-  using params_type = btree_set_params<Key, Compare, Alloc, TargetNodeSize>;
+                      btree<btree_set_params<Key, Compare, Alloc, MaxNumOfValues> > > {
+  using self_type   = btree_set<Key, Compare, Alloc, MaxNumOfValues>;
+  using params_type = btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
   using btree_type  = btree<params_type>;
   using super_type  = btree_unique_container<btree_type>;
 
@@ -90,7 +90,7 @@ class btree_set : public btree_unique_container<
 };
 
 template <typename K, typename C, typename A, std::size_t N>
-inline void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
+void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
   x.swap(y);
 }
 
@@ -99,11 +99,11 @@ template <
     typename Key,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
-    std::size_t TargetNodeSize = 512>
+    std::size_t MaxNumOfValues = 64>
 class btree_multiset
-    : public btree_multi_container<btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
-  using self_type   = btree_multiset<Key, Compare, Alloc, TargetNodeSize>;
-  using params_type = btree_set_params<Key, Compare, Alloc, TargetNodeSize>;
+    : public btree_multi_container<btree<btree_set_params<Key, Compare, Alloc, MaxNumOfValues> > > {
+  using self_type   = btree_multiset<Key, Compare, Alloc, MaxNumOfValues>;
+  using params_type = btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
   using btree_type  = btree<params_type>;
   using super_type  = btree_multi_container<btree_type>;
 
@@ -153,7 +153,7 @@ class btree_multiset
 };
 
 template <typename K, typename C, typename A, std::size_t N>
-inline void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y) {
+void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y) {
   x.swap(y);
 }
 

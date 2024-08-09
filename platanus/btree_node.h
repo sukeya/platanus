@@ -536,7 +536,7 @@ class btree_node {
 // btree_node methods
 template <typename P>
 template <typename T>
-inline void btree_node<P>::insert_value(count_type i, T&& x) {
+void btree_node<P>::insert_value(count_type i, T&& x) {
   shift_values_right(i, values_count(), 1);
   set_count(count() + 1);
   if (!leaf()) {
@@ -547,7 +547,7 @@ inline void btree_node<P>::insert_value(count_type i, T&& x) {
 
 template <typename P>
 template <typename... Args>
-inline void btree_node<P>::emplace_value(count_type i, Args&&... args) {
+void btree_node<P>::emplace_value(count_type i, Args&&... args) {
   shift_values_right(i, values_count(), 1);
   set_count(count() + 1);
   if (!leaf()) {
@@ -557,7 +557,7 @@ inline void btree_node<P>::emplace_value(count_type i, Args&&... args) {
 }
 
 template <typename P>
-inline void btree_node<P>::remove_value(count_type i) {
+void btree_node<P>::remove_value(count_type i) {
   if (!leaf()) {
     assert(borrow_child(i + 1)->count() == 0);
     if (i + 2 < children_count()) {

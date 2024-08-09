@@ -40,11 +40,11 @@ template <
     typename Value,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<std::pair<const Key, Value> >,
-    std::size_t TargetNodeSize = 512>
+    std::size_t MaxNumOfValues = 64>
 class btree_map : public btree_map_container<
-                      btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
-  using self_type   = btree_map<Key, Value, Compare, Alloc, TargetNodeSize>;
-  using params_type = btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize>;
+                      btree<btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues> > > {
+  using self_type   = btree_map<Key, Value, Compare, Alloc, MaxNumOfValues>;
+  using params_type = btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
   using btree_type  = btree<params_type>;
   using super_type  = btree_map_container<btree_type>;
 
@@ -93,7 +93,7 @@ class btree_map : public btree_map_container<
 };
 
 template <typename K, typename V, typename C, typename A, std::size_t N>
-inline void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
+void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
   x.swap(y);
 }
 
@@ -103,11 +103,11 @@ template <
     typename Value,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<std::pair<const Key, Value> >,
-    std::size_t TargetNodeSize = 512>
+    std::size_t MaxNumOfValues = 64>
 class btree_multimap : public btree_multi_container<
-                           btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
-  using self_type   = btree_multimap<Key, Value, Compare, Alloc, TargetNodeSize>;
-  using params_type = btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize>;
+                           btree<btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues> > > {
+  using self_type   = btree_multimap<Key, Value, Compare, Alloc, MaxNumOfValues>;
+  using params_type = btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
   using btree_type  = btree<params_type>;
   using super_type  = btree_multi_container<btree_type>;
 
@@ -159,7 +159,7 @@ class btree_multimap : public btree_multi_container<
 };
 
 template <typename K, typename V, typename C, typename A, std::size_t N>
-inline void swap(btree_multimap<K, V, C, A, N>& x, btree_multimap<K, V, C, A, N>& y) {
+void swap(btree_multimap<K, V, C, A, N>& x, btree_multimap<K, V, C, A, N>& y) {
   x.swap(y);
 }
 

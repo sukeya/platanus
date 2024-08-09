@@ -29,7 +29,7 @@ namespace platanus {
 // is to have a special swap helper function whose name doesn't
 // collide with other swap functions defined by the btree classes.
 template <typename T>
-inline void btree_swap_helper(T& a, T& b) {
+void btree_swap_helper(T& a, T& b) {
   using std::swap;
   swap(a, b);
 }

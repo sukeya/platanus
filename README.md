@@ -19,16 +19,23 @@ target_link_libraries(foo platanus::platanus)
 We recommend using CMake, but you can also use by downloading source codes.
 In this case, copy the `platanus` directory in the uncompressed directory to your source directory.
 
-## How to use
-See [Google's usage instructions](http://code.google.com/p/cpp-btree/wiki/UsageInstructions).
+## Documentation
+Below the `docs` directory, there are the reference of all classes this library provides.
+You might also want to see [Google's usage instructions](http://code.google.com/p/cpp-btree/wiki/UsageInstructions).
 
 ## Test
-If you want to test, Download and install the following libraries.
+If you want to test, download and install the following libraries.
 
 - [googletest](https://github.com/google/googletest)
 - [gflags](https://github.com/google/googletest)
 
-Then, run `cmake -S . -B build -DBUILD_TESTS=ON`.
+Then, run the following commands in the top directory of `platanus`.
+```
+cmake -S . -B build/debug -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+cd build/debug/test
+./btree_test
+./safe_btree_test
+```
 
 ## License
 platanus is licensed under [Apache License, Version 2.0](COPYING).

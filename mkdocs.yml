@@ -1,0 +1,7 @@
+site_name: platanus
+site_url: https://sukeya.github.io/platanus/
+nav:
+  - Home: index.md
+  - Reference :
+    - btree_set: reference/btree_set.md
+theme: readthedocs

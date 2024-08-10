@@ -51,7 +51,7 @@ struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNum
   using mutable_value_type = std::pair<Key, mapped_type>;
 
   using key_compare = typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
-  // TODO
+  // TODO implement value_compare
   using value_compare   = std::false_type;
   using pointer         = value_type*;
   using const_pointer   = const value_type*;

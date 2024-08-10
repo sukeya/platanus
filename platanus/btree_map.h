@@ -49,9 +49,10 @@ class btree_map : public btree_map_container<
   using super_type  = btree_map_container<btree_type>;
 
  public:
-  using value_type     = typename btree_type::value_type;
-  using key_compare    = typename btree_type::key_compare;
-  using allocator_type = typename btree_type::allocator_type;
+  using value_type     = typename super_type::value_type;
+  using key_compare    = typename super_type::key_compare;
+  using value_compare  = typename super_type::value_compare;
+  using allocator_type = typename super_type::allocator_type;
 
  public:
   btree_map()                            = default;

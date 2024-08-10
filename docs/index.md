@@ -16,11 +16,12 @@ Better cache locality translates into faster operations.
 
 
 ## Feature
-* satisfying alignment requirement.
-* supporting stateful comparer.
-* the standard C++ container-like interface.
+* satisfying alignment requirement,
+* supporting stateful comparer,
+* the standard C++ container-like interface,
 * supporting CMake,
-* easier to read than the original.
+* easier to read than the original,
+* supporting three-way comparison operator.
 
 
 ## Performance

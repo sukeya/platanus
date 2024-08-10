@@ -1,39 +1,41 @@
-# btree_set
+# btree_map
 
 ```cpp
 template <
     typename Key,
+    typename Value,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
     std::size_t MaxNumOfValues = 512>
-class btree_set;
+class btree_map;
 ```
 
 
 ## Template parameters
 
 | Parameter | Meaning | 
-| --- | --- | 
-| `Key` | Type of a key | 
-| `Compare` | Type of a func obj comparing two key in a weak order. If Key doesn't implement three-way comparison operator, the default type does using `<` and `=`. | 
-| `Alloc` | Type of an allocator. The default is `std::allocator<Key>`. | 
+| --- | --- |
+| `Key` | Type of a key |
+| `Value` | Type of a value |
+| `Compare` | Type of a func obj comparing two key in a weak order. If Key doesn't implement three-way comparison operator, the default type does using `<` and `=`. |
+| `Alloc` | Type of an allocator. The default is `std::allocator<Key>`. |
 | `MaxNumOfValues` | The max number of values per node. The default is 64. |
 
 
 ## Member types
 
-| Type | Meaning | 
+| Type | Meaning |
 | --- | --- |
-| key_type | Type of key, i.e. `Key` | 
-| value_type | Type of value, i.e. `Key` |
-| key_compare | Type of comparer of key, i.e. `Compare` | 
-| value_compare | Type of comparer of value, i.e. `Compare` | 
+| key_type | Type of key, i.e. `Key` |
+| value_type | Type of value, i.e. `std::pair<const Key, Value>` |
+| mapped_type | Type of mapped value, i.e. `Value` |
+| key_compare | Type of comparer of key, i.e. `Compare` |
 | allocator_type | Type of allocator, i.e. `Alloc` |
-| pointer | Type of pointer to value, i.e. `Key*` |
-| const_pointer | Type of pointer to const value, i.e. `const Key*` |
-| reference | Type of reference to value, i.e. `Key&` |
-| const_reference | Type of reference to const value, i.e. `const Key&` |
-| size_type | Unsigned integer type of size of `btree_set`, i.e. `std::size_t` |
+| pointer | Type of pointer to value, i.e. `value_type*` |
+| const_pointer | Type of pointer to const value, i.e. `const value_type*` |
+| reference | Type of reference to value, i.e. `value_type&` |
+| const_reference | Type of reference to const value, i.e. `const value_type&` |
+| size_type | Unsigned integer type of size of `btree_map`, i.e. `std::size_t` |
 | difference_type | Signed integer type of the difference of two iterators |
 | iterator | Type of iterator |
 | const_iterator | Type of const iterator |
@@ -45,20 +47,20 @@ class btree_set;
 ### Constructor
 ```cpp
 // (1)
-btree_set();
+btree_map();
 // (2)
-btree_set(const btree_set&);
+btree_map(const btree_map&);
 // (3)
-btree_set(btree_set&&);
+btree_map(btree_map&&);
 
 // (4)
-explicit btree_set(const key_compare& comp, const allocator_type& alloc = allocator_type());
+explicit btree_map(const key_compare& comp, const allocator_type& alloc = allocator_type());
 // (5)
-explicit btree_set(const allocator_type& alloc);
+explicit btree_map(const allocator_type& alloc);
 
 // (6)
 template <class InputIterator>
-btree_set(
+btree_map(
     InputIterator         b,
     InputIterator         e,
     const key_compare&    comp  = key_compare(),
@@ -66,39 +68,39 @@ btree_set(
 );
 // (7)
 template <class InputIterator>
-btree_set(InputIterator b, InputIterator e, const allocator_type& alloc);
+btree_map(InputIterator b, InputIterator e, const allocator_type& alloc);
 
 // (8)
-btree_set(const btree_set& x, const allocator_type& alloc);
+btree_map(const btree_map& x, const allocator_type& alloc);
 // (9)
-btree_set(btree_set&& x, const allocator_type& alloc);
+btree_map(btree_map&& x, const allocator_type& alloc);
 
 // (10)
-btree_set(
+btree_map(
     std::initializer_list<value_type> init,
     const key_compare&                comp  = key_compare{},
     const allocator_type&             alloc = allocator_type{}
 );
 // (11)
-btree_set(std::initializer_list<value_type> init, const allocator_type& alloc);
+btree_map(std::initializer_list<value_type> init, const allocator_type& alloc);
 
 // (12)
-btree_set& operator=(const btree_set& x);
+btree_map& operator=(const btree_map& x);
 // (13)
-btree_set& operator=(btree_set&&) = default;
+btree_map& operator=(btree_map&&) = default;
 ```
 
-1. Constructs an empty `btree_set`.
+1. Constructs an empty `btree_map`.
 1. Copy constructor. The allocator is copied by `std::allocator_traits::select_on_container_copy_construction`.
 1. Move constructor. The allocator is copied by `operator=`.
-1. Constructs an empty `btree_set` with `comp` and `alloc`.
-1. Constructs an empty `btree_set` with `alloc`.
-1. Constructs a `btree_set` with `comp` and `alloc` by inserting values from `b` to `e` (`e` isn't included).
-1. Constructs a `btree_set` with `alloc` by inserting values from `b` to `e` (`e` isn't included).
+1. Constructs an empty `btree_map` with `comp` and `alloc`.
+1. Constructs an empty `btree_map` with `alloc`.
+1. Constructs a `btree_map` with `comp` and `alloc` by inserting values from `b` to `e` (`e` isn't included).
+1. Constructs a `btree_map` with `alloc` by inserting values from `b` to `e` (`e` isn't included).
 1. Constructs a copy of `x` with `alloc`.
-1. Constructs a `btree_set` to which `x` is moved with `alloc`.
-1. Constructs a `btree_set` with `comp` and `alloc` from an initializer list.
-1. Constructs a `btree_set` with `alloc` from an initializer list.
+1. Constructs a `btree_map` to which `x` is moved with `alloc`.
+1. Constructs a `btree_map` with `comp` and `alloc` from an initializer list.
+1. Constructs a `btree_map` with `alloc` from an initializer list.
 1. Assigns a copy of `x` and return `*this`. If `x` is `*this`, does nothing.
 1. Default move assignment operator.
 
@@ -153,16 +155,22 @@ const_reverse_iterator crend() const;
 // (1)
 void clear();
 // (2)
-void swap(btree_set& x);
+void swap(btree_map& x);
 // (3)
-void merge(btree_set& x);
+void merge(btree_map& x);
 // (4)
-void merge(btree_set&& x);
+void merge(btree_map&& x);
+// (5)
+mapped_type& operator[](const key_type& key);
+// (6)
+mapped_type& operator[](key_type&& key);
 ```
 1. Clear `*this`, i.e., delete all values in `*this`.
 1. Swap `*this` for `x`.
-1. Merge another `btree_set`. The duplicated values will not be merged to `*this`.
-1. Same as 3. This function is provided to receive an rvalue `btree_set`, so no rvalue-specific optimization is done.
+1. Merge another `btree_map`. The duplicated values will not be merged to `*this`.
+1. Same as 3. This function is provided to receive an rvalue `btree_map`, so no rvalue-specific optimization is done.
+1. Return the reference of the value mapped to `key`. If `key` doesn't exist, insert `key` and default constructed `mapped_value`.
+1. The rvalue version of 5.
 
 
 #### `insert`
@@ -308,6 +316,6 @@ Smaller values indicate space wastage.
 ### Swap
 ```cpp
 template <typename K, typename C, typename A, std::size_t N>
-void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y);
+void swap(btree_map<K, C, A, N>& x, btree_map<K, C, A, N>& y);
 ```
 Swap `x` for `y` using `std::swap` to swap each member variable of `x` for that of `y`.

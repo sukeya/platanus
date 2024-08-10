@@ -1,4 +1,4 @@
-# btree_set
+# btree_multiset
 
 ```cpp
 template <
@@ -6,7 +6,7 @@ template <
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
     std::size_t MaxNumOfValues = 512>
-class btree_set;
+class btree_multiset;
 ```
 
 
@@ -33,7 +33,7 @@ class btree_set;
 | const_pointer | Type of pointer to const value, i.e. `const Key*` |
 | reference | Type of reference to value, i.e. `Key&` |
 | const_reference | Type of reference to const value, i.e. `const Key&` |
-| size_type | Unsigned integer type of size of `btree_set`, i.e. `std::size_t` |
+| size_type | Unsigned integer type of size of `btree_multiset`, i.e. `std::size_t` |
 | difference_type | Signed integer type of the difference of two iterators |
 | iterator | Type of iterator |
 | const_iterator | Type of const iterator |
@@ -45,20 +45,20 @@ class btree_set;
 ### Constructor
 ```cpp
 // (1)
-btree_set();
+btree_multiset();
 // (2)
-btree_set(const btree_set&);
+btree_multiset(const btree_multiset&);
 // (3)
-btree_set(btree_set&&);
+btree_multiset(btree_multiset&&);
 
 // (4)
-explicit btree_set(const key_compare& comp, const allocator_type& alloc = allocator_type());
+explicit btree_multiset(const key_compare& comp, const allocator_type& alloc = allocator_type());
 // (5)
-explicit btree_set(const allocator_type& alloc);
+explicit btree_multiset(const allocator_type& alloc);
 
 // (6)
 template <class InputIterator>
-btree_set(
+btree_multiset(
     InputIterator         b,
     InputIterator         e,
     const key_compare&    comp  = key_compare(),
@@ -66,39 +66,39 @@ btree_set(
 );
 // (7)
 template <class InputIterator>
-btree_set(InputIterator b, InputIterator e, const allocator_type& alloc);
+btree_multiset(InputIterator b, InputIterator e, const allocator_type& alloc);
 
 // (8)
-btree_set(const btree_set& x, const allocator_type& alloc);
+btree_multiset(const btree_multiset& x, const allocator_type& alloc);
 // (9)
-btree_set(btree_set&& x, const allocator_type& alloc);
+btree_multiset(btree_multiset&& x, const allocator_type& alloc);
 
 // (10)
-btree_set(
+btree_multiset(
     std::initializer_list<value_type> init,
     const key_compare&                comp  = key_compare{},
     const allocator_type&             alloc = allocator_type{}
 );
 // (11)
-btree_set(std::initializer_list<value_type> init, const allocator_type& alloc);
+btree_multiset(std::initializer_list<value_type> init, const allocator_type& alloc);
 
 // (12)
-btree_set& operator=(const btree_set& x);
+btree_multiset& operator=(const btree_multiset& x);
 // (13)
-btree_set& operator=(btree_set&&) = default;
+btree_multiset& operator=(btree_multiset&&) = default;
 ```
 
-1. Constructs an empty `btree_set`.
+1. Constructs an empty `btree_multiset`.
 1. Copy constructor. The allocator is copied by `std::allocator_traits::select_on_container_copy_construction`.
 1. Move constructor. The allocator is copied by `operator=`.
-1. Constructs an empty `btree_set` with `comp` and `alloc`.
-1. Constructs an empty `btree_set` with `alloc`.
-1. Constructs a `btree_set` with `comp` and `alloc` by inserting values from `b` to `e` (`e` isn't included).
-1. Constructs a `btree_set` with `alloc` by inserting values from `b` to `e` (`e` isn't included).
+1. Constructs an empty `btree_multiset` with `comp` and `alloc`.
+1. Constructs an empty `btree_multiset` with `alloc`.
+1. Constructs a `btree_multiset` with `comp` and `alloc` by inserting values from `b` to `e` (`e` isn't included).
+1. Constructs a `btree_multiset` with `alloc` by inserting values from `b` to `e` (`e` isn't included).
 1. Constructs a copy of `x` with `alloc`.
-1. Constructs a `btree_set` to which `x` is moved with `alloc`.
-1. Constructs a `btree_set` with `comp` and `alloc` from an initializer list.
-1. Constructs a `btree_set` with `alloc` from an initializer list.
+1. Constructs a `btree_multiset` to which `x` is moved with `alloc`.
+1. Constructs a `btree_multiset` with `comp` and `alloc` from an initializer list.
+1. Constructs a `btree_multiset` with `alloc` from an initializer list.
 1. Assigns a copy of `x` and return `*this`. If `x` is `*this`, does nothing.
 1. Default move assignment operator.
 
@@ -153,16 +153,16 @@ const_reverse_iterator crend() const;
 // (1)
 void clear();
 // (2)
-void swap(btree_set& x);
+void swap(btree_multiset& x);
 // (3)
-void merge(btree_set& x);
+void merge(btree_multiset& x);
 // (4)
-void merge(btree_set&& x);
+void merge(btree_multiset&& x);
 ```
 1. Clear `*this`, i.e., delete all values in `*this`.
 1. Swap `*this` for `x`.
-1. Merge another `btree_set`. The duplicated values will not be merged to `*this`.
-1. Same as 3. This function is provided to receive an rvalue `btree_set`, so no rvalue-specific optimization is done.
+1. Merge another `btree_multiset`. The duplicated values will not be merged to `*this`.
+1. Same as 3. This function is provided to receive an rvalue `btree_multiset`, so no rvalue-specific optimization is done.
 
 
 #### `insert`
@@ -233,15 +233,15 @@ size_type      count(const key_type& key) const;
 bool           contains(const key_type& key) const;
 ```
 
-1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns an iterator which points to the minimum value in all values which are not less than `key`.
+1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns an iterator which points to the first value in all values which are not less than `key`.
 1. The `const` version of 1.
-1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns an iterator which points to the minimum value in all values which are greater than `key`.
+1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns an iterator which points to the first value in all values which are greater than `key`.
 1. The `const` version of 3.
 1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns a pair of the iterators which point to the fist value in all values which are equal to `key` and the value next to the last value in them in order.
 1. The `const` version of 5.
 1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns an iterator which points to the fist value in all values which are equal to `key`.
 1. The `const` version of 7.
-1. If `*this` is empty or `key` isn't found, returns `0`. Otherwise, returns `1`.
+1. If `*this` is empty or `key` isn't found, returns `0`. Otherwise, returns the number of `key`.
 1. If `*this` is empty or `key` isn't found, returns `false`. Otherwise, returns `true`.
 
 
@@ -308,6 +308,6 @@ Smaller values indicate space wastage.
 ### Swap
 ```cpp
 template <typename K, typename C, typename A, std::size_t N>
-void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y);
+void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y);
 ```
 Swap `x` for `y` using `std::swap` to swap each member variable of `x` for that of `y`.

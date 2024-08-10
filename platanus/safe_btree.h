@@ -155,8 +155,8 @@ class safe_btree {
   using tree_const_iterator = typename btree_type::const_iterator;
 
  public:
-  using params_type = typename btree_type::params_type;
-  using key_type    = typename btree_type::key_type;
+  using params_type            = typename btree_type::params_type;
+  using key_type               = typename btree_type::key_type;
   using mapped_type            = typename btree_type::mapped_type;
   using value_type             = typename btree_type::value_type;
   using key_compare            = typename btree_type::key_compare;
@@ -212,7 +212,9 @@ class safe_btree {
   const_reverse_iterator crend() const { return const_reverse_iterator(cbegin()); }
 
   // Lookup routines.
-  iterator       lower_bound_unique(const key_type& key) { return iterator(this, tree_.lower_bound_unique(key)); }
+  iterator lower_bound_unique(const key_type& key) {
+    return iterator(this, tree_.lower_bound_unique(key));
+  }
   const_iterator lower_bound_unique(const key_type& key) const {
     return const_iterator(this, tree_.lower_bound_unique(key));
   }

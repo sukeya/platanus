@@ -31,4 +31,4 @@ const std::vector<int>& GenerateNumbers(int n, int maxval) {
 
   return values;
 }
-}
+}  // namespace platanus

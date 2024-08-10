@@ -13,7 +13,6 @@
 // limitations under the License.
 //
 
-
 #ifndef PLATANUS_BTREE_H__
 #define PLATANUS_BTREE_H__
 
@@ -67,8 +66,8 @@ class btree {
   using node_search_result = typename node_type::search_result;
 
  public:
-  using params_type = Params;
-  using key_type    = typename Params::key_type;
+  using params_type            = Params;
+  using key_type               = typename Params::key_type;
   using mapped_type            = typename Params::mapped_type;
   using value_type             = typename Params::value_type;
   using key_compare            = typename Params::key_compare;
@@ -155,7 +154,7 @@ class btree {
     }
     auto iter = iterator(borrow_root(), 0);
     for (;;) {
-      auto result = iter.node->lower_bound(key, ref_key_comp());
+      auto result   = iter.node->lower_bound(key, ref_key_comp());
       iter.position = result.index();
       if (iter.node->leaf()) {
         break;
@@ -169,16 +168,12 @@ class btree {
     }
     return internal_end(internal_last(iter));
   }
-  iterator lower_bound_unique(const key_type& key) {
-    return internal_lower_bound(key);
-  }
+  iterator       lower_bound_unique(const key_type& key) { return internal_lower_bound(key); }
   const_iterator lower_bound_unique(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<btree*>(this)->lower_bound_unique(key));
   }
 
-  iterator lower_bound_multi(const key_type& key) {
-    return internal_lower_bound<false>(key);
-  }
+  iterator       lower_bound_multi(const key_type& key) { return internal_lower_bound<false>(key); }
   const_iterator lower_bound_multi(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<btree*>(this)->lower_bound_multi(key));
   }
@@ -349,7 +344,7 @@ class btree {
 
   bool compare_keys(const key_type& x, const key_type& y) const {
     const auto& comp = ref_key_comp();
-    if constexpr(comp_return_weak_ordering<key_type, key_compare>) {
+    if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
       return comp(x, y) < 0;
     } else {
       return comp(x, y);
@@ -371,8 +366,8 @@ class btree {
   size_type size() const noexcept { return size_; }
   size_type max_size() const noexcept { return std::numeric_limits<size_type>::max(); }
   bool      empty() const noexcept {
-         assert((size() == 0) == (borrow_readonly_root() == nullptr));
-         return size() == 0;
+    assert((size() == 0) == (borrow_readonly_root() == nullptr));
+    return size() == 0;
   }
 
   // The height of the btree. An empty tree will have height 0.
@@ -415,9 +410,7 @@ class btree {
   }
 
   // The average number of bytes used per value stored in the btree.
-  double average_bytes_per_value() const noexcept {
-    return bytes_used() / size();
-  }
+  double average_bytes_per_value() const noexcept { return bytes_used() / size(); }
 
   // The fullness of the btree. Computed as the number of elements in the btree
   // divided by the maximum number of elements a tree with the current number
@@ -474,16 +467,16 @@ class btree {
       return;
     }
 
-    auto lhd_intersection_begin = lower_bound_unique(rhd_min);
-    auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-    auto sizeof_left_side_of_diff = std::distance(begin(), lhd_intersection_begin);
+    auto lhd_intersection_begin    = lower_bound_unique(rhd_min);
+    auto rhd_intersection_end      = rhd.upper_bound(lhd_max);
+    auto sizeof_left_side_of_diff  = std::distance(begin(), lhd_intersection_begin);
     auto sizeof_right_side_of_diff = std::distance(rhd_intersection_end, rhd.end());
     if (sizeof_left_side_of_diff >= sizeof_right_side_of_diff) {
       // Store the keys removed from rhd temporarily.
       std::vector<std::size_t> removed_indexes;
 
-      auto it = rhd.begin();
-      std::size_t i = 0;
+      auto        it = rhd.begin();
+      std::size_t i  = 0;
       // Insert the intersection to *this.
       for (; it != rhd_intersection_end; ++it) {
         auto [result_it, is_inserted] = insert_unique(std::move(*it));
@@ -561,7 +554,7 @@ class btree {
 
     // Insert the intersection to *this.
     auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-    auto it = rhd.begin();
+    auto it                   = rhd.begin();
     for (; it != rhd_intersection_end; ++it) {
       insert_multi(std::move(*it));
     }
@@ -591,9 +584,7 @@ class btree {
   void set_leftmost(node_borrower node) noexcept { leftmost_ = node; }
 
   // The leftmost node is stored as the parent of the root node.
-  node_borrower borrow_leftmost() noexcept {
-    return leftmost_;
-  }
+  node_borrower       borrow_leftmost() noexcept { return leftmost_; }
   const node_borrower borrow_readonly_leftmost() const noexcept {
     return static_cast<const node_borrower>(const_cast<btree*>(this)->borrow_leftmost());
   }
@@ -612,11 +603,7 @@ class btree {
     return node_type::make_node(false, parent, ref_node_alloc(), ref_children_alloc());
   }
   node_owner make_internal_root_node() {
-    return node_type::make_root_node(
-        false,
-        ref_node_alloc(),
-        ref_children_alloc()
-    );
+    return node_type::make_root_node(false, ref_node_alloc(), ref_children_alloc());
   }
   node_owner make_leaf_node(node_borrower parent) {
     return node_type::make_node(true, parent, ref_node_alloc(), ref_children_alloc());
@@ -703,7 +690,7 @@ class btree {
   [[no_unique_address]] key_compare             comp_{};
   [[no_unique_address]] node_allocator_type     node_alloc_{};
   [[no_unique_address]] children_allocator_type children_alloc_{};
-  node_owner              root_{};
+  node_owner                                    root_{};
   // A pointer to the rightmost node of the tree
   node_borrower rightmost_{nullptr};
   // A pointer to the leftmost node of the tree
@@ -989,7 +976,8 @@ void btree<P>::rebalance_or_split(iterator& iter) {
                        / (1 + (insert_position < node->max_values_count() ? 1 : 0));
         to_move = std::max(1, to_move);
 
-        if (((insert_position - to_move) >= 0) || ((left->values_count() + to_move) < left->max_values_count())) {
+        if (((insert_position - to_move) >= 0)
+            || ((left->values_count() + to_move) < left->max_values_count())) {
           left->rebalance_right_to_left(node, to_move);
 
           assert(node->max_values_count() - node->values_count() == to_move);
@@ -1012,8 +1000,9 @@ void btree<P>::rebalance_or_split(iterator& iter) {
         // We bias rebalancing based on the position being inserted. If we're
         // inserting at the beginning of the left node then we bias rebalancing
         // to fill up the right node.
-        auto to_move = (right->max_values_count() - right->values_count()) / (1 + (insert_position > 0 ? 1 : 0));
-        to_move      = std::max(1, to_move);
+        auto to_move = (right->max_values_count() - right->values_count())
+                       / (1 + (insert_position > 0 ? 1 : 0));
+        to_move = std::max(1, to_move);
 
         if ((insert_position <= (node->values_count() - to_move))
             || ((right->values_count() + to_move) < right->max_values_count())) {
@@ -1175,8 +1164,7 @@ typename btree<P>::iterator btree<P>::internal_insert(iterator iter, T&& v) {
 
 template <typename P>
 template <typename IterType>
-std::pair<IterType, bool> btree<P>::internal_locate(const key_type& key, IterType iter)
-    const {
+std::pair<IterType, bool> btree<P>::internal_locate(const key_type& key, IterType iter) const {
   for (;;) {
     node_search_result res = iter.node->lower_bound(key, ref_key_comp());
     iter.position          = res.index();

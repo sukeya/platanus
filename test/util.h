@@ -37,7 +37,6 @@ struct remove_const<pair<T, U>> {
 };
 }  // namespace std
 
-
 namespace platanus {
 char* GenerateDigits(char buf[16], int val, int maxval);
 
@@ -97,7 +96,6 @@ struct select1st {
   const typename _Pair::first_type& operator()(const _Pair& __x) const { return __x.first; }
 };
 
-
 // Utility class to provide an accessor for a key given a value. The default
 // behavior is to treat the value as a pair and return the first element.
 template <typename K, typename V>
@@ -117,6 +115,6 @@ struct KeyOfValue<K, K> {
   using type = identity<K>;
 };
 
-}
+}  // namespace platanus
 
 #endif

@@ -36,7 +36,6 @@ DEFINE_int32(benchmark_min_iters, 100, "Minimum test iterations");
 DEFINE_int32(benchmark_target_seconds, 1, "Attempt to benchmark for this many seconds");
 
 using std::allocator;
-using std::ranges::less;
 using std::map;
 using std::max;
 using std::min;
@@ -45,21 +44,22 @@ using std::multiset;
 using std::set;
 using std::string;
 using std::vector;
+using std::ranges::less;
 
 namespace platanus {
 namespace {
 
 struct StringComp {
-std::weak_ordering operator()(const std::string& lhd, const std::string& rhd) const noexcept {
-  auto result = lhd.compare(rhd);
-  if (result < 0) {
-    return std::weak_ordering::less;
-  } else if (result > 0) {
-    return std::weak_ordering::greater;
-  } else {
-    return std::weak_ordering::equivalent;
+  std::weak_ordering operator()(const std::string& lhd, const std::string& rhd) const noexcept {
+    auto result = lhd.compare(rhd);
+    if (result < 0) {
+      return std::weak_ordering::less;
+    } else if (result > 0) {
+      return std::weak_ordering::greater;
+    } else {
+      return std::weak_ordering::equivalent;
+    }
   }
-}
 };
 
 struct BenchmarkRun {
@@ -516,22 +516,19 @@ using stl_multimap_int32  = multimap<int32_t, intptr_t>;
 using stl_multimap_int64  = multimap<int64_t, intptr_t>;
 using stl_multimap_string = multimap<string, intptr_t>;
 
-#define MY_BENCHMARK_TYPES2(value, name, comp, size)                                                     \
-  using btree_##size##_set_##name = btree_set<value, comp, allocator<value>, size>; \
-  using btree_##size##_map_##name =                                                              \
-      btree_map<value, int, comp, allocator<value>, size>;                            \
-  using btree_##size##_multiset_##name =                                                         \
-      btree_multiset<value, comp, allocator<value>, size>;                            \
-  using btree_##size##_multimap_##name =                                                         \
-      btree_multimap<value, int, comp, allocator<value>, size>;
+#define MY_BENCHMARK_TYPES2(value, name, comp, size)                                          \
+  using btree_##size##_set_##name      = btree_set<value, comp, allocator<value>, size>;      \
+  using btree_##size##_map_##name      = btree_map<value, int, comp, allocator<value>, size>; \
+  using btree_##size##_multiset_##name = btree_multiset<value, comp, allocator<value>, size>; \
+  using btree_##size##_multimap_##name = btree_multimap<value, int, comp, allocator<value>, size>;
 
-#define MY_BENCHMARK_TYPES(value, name, comp)   \
-  MY_BENCHMARK_TYPES2(value, name, comp, 3);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 8);  \
+#define MY_BENCHMARK_TYPES(value, name, comp)  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 3);   \
+  MY_BENCHMARK_TYPES2(value, name, comp, 8);   \
   MY_BENCHMARK_TYPES2(value, name, comp, 16);  \
   MY_BENCHMARK_TYPES2(value, name, comp, 32);  \
   MY_BENCHMARK_TYPES2(value, name, comp, 64);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 128);  \
+  MY_BENCHMARK_TYPES2(value, name, comp, 128); \
   MY_BENCHMARK_TYPES2(value, name, comp, 256);
 
 MY_BENCHMARK_TYPES(int32_t, int32, less);
@@ -543,16 +540,16 @@ MY_BENCHMARK_TYPES(string, string, StringComp);
   BTREE_BENCHMARK(BM_##type##_##name)
 
 #ifdef VALUES_SIZE_TEST
-#define MY_BENCHMARK3(tree, type, name, func)    \
-  MY_BENCHMARK4(tree##_3_##type, name, func);  \
-  MY_BENCHMARK4(tree##_8_##type, name, func);  \
+#define MY_BENCHMARK3(tree, type, name, func)   \
+  MY_BENCHMARK4(tree##_3_##type, name, func);   \
+  MY_BENCHMARK4(tree##_8_##type, name, func);   \
   MY_BENCHMARK4(tree##_16_##type, name, func);  \
   MY_BENCHMARK4(tree##_32_##type, name, func);  \
   MY_BENCHMARK4(tree##_64_##type, name, func);  \
-  MY_BENCHMARK4(tree##_128_##type, name, func);  \
+  MY_BENCHMARK4(tree##_128_##type, name, func); \
   MY_BENCHMARK4(tree##_256_##type, name, func);
 #else
-#define MY_BENCHMARK3(tree, type, name, func)   \
+#define MY_BENCHMARK3(tree, type, name, func)  \
   MY_BENCHMARK4(tree##_64_##type, name, func); \
   MY_BENCHMARK4(tree##_128_##type, name, func);
 #endif

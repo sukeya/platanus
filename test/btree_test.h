@@ -48,13 +48,9 @@ ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
 }
 
 // for when the string is not null-terminated.
-ptrdiff_t strcount(const char* buf, size_t len, char c) {
-  return strcount(buf, buf + len, c);
-}
+ptrdiff_t strcount(const char* buf, size_t len, char c) { return strcount(buf, buf + len, c); }
 
-ptrdiff_t strcount(const std::string& buf, char c) {
-  return strcount(buf.c_str(), buf.size(), c);
-}
+ptrdiff_t strcount(const std::string& buf, char c) { return strcount(buf.c_str(), buf.size(), c); }
 
 // The base class for a sorted associative container checker. TreeType is the
 // container type to check and CheckerType is the container type to check
@@ -295,8 +291,8 @@ class base_checker {
   }
   size_type max_size() const { return tree_.max_size(); }
   bool      empty() const {
-         EXPECT_EQ(tree_.empty(), checker_.empty());
-         return tree_.empty();
+    EXPECT_EQ(tree_.empty(), checker_.empty());
+    return tree_.empty();
   }
   size_type height() const { return tree_.height(); }
   size_type internal_nodes() const { return tree_.internal_nodes(); }
@@ -684,7 +680,7 @@ void MergeTest(const std::vector<V>& values) {
 
   assert(former.size() == ans_former.size());
   {
-    auto it = former.begin();
+    auto it     = former.begin();
     auto ans_it = ans_former.begin();
     while (it != former.end()) {
       EXPECT_EQ(*it, *ans_it);
@@ -694,7 +690,7 @@ void MergeTest(const std::vector<V>& values) {
   }
   assert(later.size() == ans_later.size());
   {
-    auto it = later.begin();
+    auto it     = later.begin();
     auto ans_it = ans_later.begin();
     while (it != later.end()) {
       EXPECT_EQ(*it, *ans_it);

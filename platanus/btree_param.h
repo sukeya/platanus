@@ -25,11 +25,7 @@
 
 namespace platanus {
 
-template <
-    typename Key,
-    typename Compare,
-    typename Alloc,
-    std::size_t MaxNumOfValues>
+template <typename Key, typename Compare, typename Alloc, std::size_t MaxNumOfValues>
 requires comp_requirement<Key, Compare>
 struct btree_common_params {
   using key_compare   = Compare;
@@ -50,7 +46,8 @@ struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNum
   using value_type         = std::pair<const Key, mapped_type>;
   using mutable_value_type = std::pair<Key, mapped_type>;
 
-  using key_compare = typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
+  using key_compare =
+      typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
   // TODO implement value_compare
   using value_compare   = std::false_type;
   using pointer         = value_type*;
@@ -70,7 +67,8 @@ struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNum
   using value_type         = Key;
   using mutable_value_type = value_type;
 
-  using key_compare = typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
+  using key_compare =
+      typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
   using value_compare   = key_compare;
   using pointer         = value_type*;
   using const_pointer   = const value_type*;

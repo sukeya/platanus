@@ -115,7 +115,7 @@ class btree_container {
 
 template <typename T>
 bool operator!=(const btree_container<T>& lhd, const btree_container<T>& rhd) noexcept {
-   return not (lhd == rhd);
+  return not(lhd == rhd);
 }
 
 template <typename T>
@@ -195,17 +195,21 @@ class btree_unique_container : public btree_container<Tree> {
   const_iterator upper_bound(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<btree_unique_container*>(this)->upper_bound(key));
   }
-  std::pair<iterator, iterator> equal_range(const key_type& key) { return this->tree_.equal_range_unique(key); }
+  std::pair<iterator, iterator> equal_range(const key_type& key) {
+    return this->tree_.equal_range_unique(key);
+  }
   std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
-    return static_cast<std::pair<const_iterator, const_iterator>>(const_cast<btree_unique_container*>(this)->equal_range(key));
+    return static_cast<std::pair<const_iterator, const_iterator>>(
+        const_cast<btree_unique_container*>(this)->equal_range(key)
+    );
   }
 
   iterator       find(const key_type& key) { return this->tree_.find_unique(key); }
   const_iterator find(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<btree_unique_container*>(this)->find(key));
   }
-  size_type      count(const key_type& key) const { return this->tree_.count_unique(key); }
-  bool           contains(const key_type& key) const { return find(key) != this->cend(); }
+  size_type count(const key_type& key) const { return this->tree_.count_unique(key); }
+  bool      contains(const key_type& key) const { return find(key) != this->cend(); }
 
   // Insertion routines.
   std::pair<iterator, bool> insert(const value_type& x) { return this->tree_.insert_unique(x); }
@@ -242,7 +246,7 @@ class btree_map_container : public btree_unique_container<Tree> {
   using super_type = btree_unique_container<Tree>;
 
  public:
-  using key_type = typename Tree::key_type;
+  using key_type       = typename Tree::key_type;
   using value_type     = typename Tree::value_type;
   using mapped_type    = typename Tree::mapped_type;
   using key_compare    = typename Tree::key_compare;
@@ -301,12 +305,8 @@ class btree_map_container : public btree_unique_container<Tree> {
       return this->insert(iter, std::make_pair(std::forward<T>(key), mapped_type{}))->second;
     }
   }
-  mapped_type& operator[](const key_type& key) {
-    return internal_operator(key);
-  }
-  mapped_type& operator[](key_type&& key) {
-    return internal_operator(std::move(key));
-  }
+  mapped_type& operator[](const key_type& key) { return internal_operator(key); }
+  mapped_type& operator[](key_type&& key) { return internal_operator(std::move(key)); }
 };
 
 // A common base class for btree_multiset and btree_multimap.
@@ -380,17 +380,21 @@ class btree_multi_container : public btree_container<Tree> {
   const_iterator upper_bound(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<btree_multi_container*>(this)->upper_bound(key));
   }
-  std::pair<iterator, iterator> equal_range(const key_type& key) { return this->tree_.equal_range_multi(key); }
+  std::pair<iterator, iterator> equal_range(const key_type& key) {
+    return this->tree_.equal_range_multi(key);
+  }
   std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
-    return static_cast<std::pair<const_iterator, const_iterator>>(const_cast<btree_multi_container*>(this)->equal_range(key));
+    return static_cast<std::pair<const_iterator, const_iterator>>(
+        const_cast<btree_multi_container*>(this)->equal_range(key)
+    );
   }
 
   iterator       find(const key_type& key) { return this->tree_.find_multi(key); }
   const_iterator find(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<btree_multi_container*>(this)->find(key));
   }
-  size_type      count(const key_type& key) const { return this->tree_.count_multi(key); }
-  bool           contains(const key_type& key) const { return find(key) != this->cend(); }
+  size_type count(const key_type& key) const { return this->tree_.count_multi(key); }
+  bool      contains(const key_type& key) const { return find(key) != this->cend(); }
 
   // Insertion routines.
   iterator insert(const value_type& x) { return this->tree_.insert_multi(x); }

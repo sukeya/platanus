@@ -64,9 +64,9 @@ class btree_node_search_result {
 template <typename Params>
 class btree_node {
  public:
-  using params_type = Params;
-  using self_type   = btree_node<Params>;
-  using key_type    = typename Params::key_type;
+  using params_type        = Params;
+  using self_type          = btree_node<Params>;
+  using key_type           = typename Params::key_type;
   using mapped_type        = typename Params::mapped_type;
   using value_type         = typename Params::value_type;
   using mutable_value_type = typename Params::mutable_value_type;
@@ -125,10 +125,10 @@ class btree_node {
 
   // Available space for values.
   static_assert(
-    kMaxNumOfValues >= 3,
-    "We need a minimum of 3 values per internal node in order to perform"
-    "splitting (1 value for the two nodes involved in the split and 1 value"
-    "propagated to the parent as the delimiter for the split)."
+      kMaxNumOfValues >= 3,
+      "We need a minimum of 3 values per internal node in order to perform"
+      "splitting (1 value for the two nodes involved in the split and 1 value"
+      "propagated to the parent as the delimiter for the split)."
   );
 
   static constexpr std::size_t kNodeValues   = kMaxNumOfValues;
@@ -194,8 +194,7 @@ class btree_node {
   }
 
   static node_owner make_root_node(
-      bool                     is_leaf,
-      node_allocator_type& node_alloc, children_allocator_type& children_alloc
+      bool is_leaf, node_allocator_type& node_alloc, children_allocator_type& children_alloc
   ) {
     return make_node(is_leaf, nullptr, node_alloc, children_alloc);
   }
@@ -233,9 +232,9 @@ class btree_node {
   // Getter for the position of this node in its parent.
   count_type position() const noexcept { return position_; }
   void       set_position(count_type v) noexcept {
-          assert(borrow_parent() != nullptr);
-          assert(0 <= v && v < borrow_parent()->max_children_count());
-          position_ = v;
+    assert(borrow_parent() != nullptr);
+    assert(0 <= v && v < borrow_parent()->max_children_count());
+    position_ = v;
   }
 
   // Getter/setter for the number of values stored in this node.
@@ -261,13 +260,9 @@ class btree_node {
     return reinterpret_cast<const_reference>(values_[i]);
   }
 
-  mutable_value_type&& extract_value(count_type i) {
-    return std::move(values_[i]);
-  }
+  mutable_value_type&& extract_value(count_type i) { return std::move(values_[i]); }
 
-  void replace_value(count_type i, mutable_value_type&& v) {
-    values_[i] = std::move(v);
-  }
+  void replace_value(count_type i, mutable_value_type&& v) { values_[i] = std::move(v); }
 
   // Swap value i in this node with value j in node x.
   void value_swap(count_type i, node_borrower x, count_type j) noexcept(noexcept(
@@ -283,10 +278,10 @@ class btree_node {
   }
   node_owner extract_child(count_type i) noexcept { return std::move(children_ptr_[i]); }
   void       set_child(count_type i, node_owner&& new_child) noexcept {
-          children_ptr_[i]              = std::move(new_child);
-          auto borrowed_new_child       = borrow_child(i);
-          borrowed_new_child->parent_   = borrow_myself();
-          borrowed_new_child->position_ = i;
+    children_ptr_[i]              = std::move(new_child);
+    auto borrowed_new_child       = borrow_child(i);
+    borrowed_new_child->parent_   = borrow_myself();
+    borrowed_new_child->position_ = i;
   }
 
   // Returns the position of the first value whose key is not less than k.
@@ -307,7 +302,9 @@ class btree_node {
   template <bool WithEqual = true>
   search_result binary_search_compare(
       const key_type& k, count_type s, count_type e, const key_compare& comp
-  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k))) requires comp_return_weak_ordering<key_type, key_compare> {
+  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k)))
+  requires comp_return_weak_ordering<key_type, key_compare>
+  {
     bool is_exact_match = false;
     while (s != e) {
       count_type mid = (s + e) / 2;
@@ -319,7 +316,7 @@ class btree_node {
       } else {
         if constexpr (WithEqual) {
           is_exact_match = true;
-          e = mid;
+          e              = mid;
         } else {
           s = mid + 1;
         }
@@ -331,10 +328,12 @@ class btree_node {
   template <bool WithEqual = true>
   search_result binary_search_compare(
       const key_type& k, count_type s, count_type e, const key_compare& comp
-  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k))) requires comp_return_bool<key_type, key_compare> {
+  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k)))
+  requires comp_return_bool<key_type, key_compare>
+  {
     bool is_exact_match = false;
     while (s != e) {
-      count_type mid = (s + e) / 2;
+      count_type  mid     = (s + e) / 2;
       const auto& mid_key = key(mid);
       if constexpr (WithEqual) {
         if (comp(mid_key, k)) {
@@ -458,7 +457,7 @@ class btree_node {
     assert(0 <= shift);
     assert(last + shift <= max_values_count());
     auto begin = std::next(begin_values(), first);
-    auto end = std::next(begin_values(), last);
+    auto end   = std::next(begin_values(), last);
     std::move_backward(begin, end, std::next(end, shift));
   }
 
@@ -470,7 +469,7 @@ class btree_node {
     assert(0 <= shift);
     assert(0 <= first - shift);
     auto begin = std::next(begin_values(), first);
-    auto end = std::next(begin_values(), last);
+    auto end   = std::next(begin_values(), last);
     std::move(begin, end, std::prev(begin, shift));
   }
 

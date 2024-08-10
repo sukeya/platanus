@@ -43,29 +43,27 @@ DEFINE_int32(benchmark_min_iters, 100, "Minimum test iterations");
 DEFINE_int32(benchmark_target_seconds, 1, "Attempt to benchmark for this many seconds");
 
 using std::allocator;
+using std::deque;
+using std::list;
 using std::max;
 using std::min;
 using std::string;
 using std::vector;
-using std::deque;
-using std::list;
 
 namespace platanus {
 struct node {
   static constexpr int N = 10;
+
   float a[N];
 };
 
 template <>
 struct Generator<node> {
-  int maxval;
-  std::random_device seed_gen;
-  std::mt19937 engine;
-  std::uniform_real_distribution<float> dist;
   Generator(int m) : maxval(m) {
     engine = std::mt19937(seed_gen());
-    dist = std::uniform_real_distribution<float>(0, maxval);
+    dist   = std::uniform_real_distribution<float>(0, maxval);
   }
+
   node operator()(int) {
     node n;
     for (int i = 0; i < node::N; ++i) {
@@ -73,35 +71,40 @@ struct Generator<node> {
     }
     return n;
   }
+
+  int                                   maxval;
+  std::random_device                    seed_gen;
+  std::mt19937                          engine;
+  std::uniform_real_distribution<float> dist;
 };
 
 namespace {
 struct StringComp {
-bool operator()(const std::string& lhd, const std::string& rhd) const noexcept {
-  auto result = lhd.compare(rhd);
-  if (result < 0) {
-    return true;
-  } else {
-    return false;
+  bool operator()(const std::string& lhd, const std::string& rhd) const noexcept {
+    auto result = lhd.compare(rhd);
+    if (result < 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
-}
 };
 
 struct NodeComp {
-float sum(const node& n) const noexcept {
-  float result = 0;
-  for (int i = 0; i < node::N; ++i) {
-    result += n.a[i];
+  float sum(const node& n) const noexcept {
+    float result = 0;
+    for (int i = 0; i < node::N; ++i) {
+      result += n.a[i];
+    }
+    return result;
   }
-  return result;
-}
-bool operator()(const node& lhd, const node& rhd) const noexcept {
-  if (sum(lhd) < sum(rhd)) {
-    return true;
-  } else {
-    return false;
+  bool operator()(const node& lhd, const node& rhd) const noexcept {
+    if (sum(lhd) < sum(rhd)) {
+      return true;
+    } else {
+      return false;
+    }
   }
-}
 };
 
 struct BenchmarkRun {
@@ -377,30 +380,30 @@ void BM_FwdIter(int n) {
   sink(r);  // Keep compiler from optimizing away r.
 }
 
-using vector_int32 = vector<int32_t>;
-using vector_int64 = vector<int64_t>;
+using vector_int32  = vector<int32_t>;
+using vector_int64  = vector<int64_t>;
 using vector_string = vector<string>;
-using vector_node = vector<node>;
+using vector_node   = vector<node>;
 
-using deque_int32 = deque<int32_t>;
-using deque_int64 = deque<int64_t>;
+using deque_int32  = deque<int32_t>;
+using deque_int64  = deque<int64_t>;
 using deque_string = deque<string>;
-using deque_node = deque<node>;
+using deque_node   = deque<node>;
 
-using list_int32 = list<int32_t>;
-using list_int64 = list<int64_t>;
+using list_int32  = list<int32_t>;
+using list_int64  = list<int64_t>;
 using list_string = list<string>;
-using list_node = list<node>;
+using list_node   = list<node>;
 
 #define MY_BENCHMARK2(type, name, func)                  \
   void BM_##type##_##name(int n) { BM_##func<type>(n); } \
   BTREE_BENCHMARK(BM_##type##_##name)
 
-#define MY_BENCHMARK(type)                       \
-  MY_BENCHMARK2(type, insert, Insert);           \
-  MY_BENCHMARK2(type, lookup, Lookup);           \
-  MY_BENCHMARK2(type, delete, Delete);           \
-  MY_BENCHMARK2(type, fifo, Fifo);               \
+#define MY_BENCHMARK(type)             \
+  MY_BENCHMARK2(type, insert, Insert); \
+  MY_BENCHMARK2(type, lookup, Lookup); \
+  MY_BENCHMARK2(type, delete, Delete); \
+  MY_BENCHMARK2(type, fifo, Fifo);     \
   MY_BENCHMARK2(type, fwditer, FwdIter)
 
 MY_BENCHMARK(vector_int64);

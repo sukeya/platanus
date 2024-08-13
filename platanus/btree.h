@@ -1154,7 +1154,7 @@ typename btree<P>::iterator btree<P>::internal_insert(iterator iter, T&& v) {
     ++iter.position;
   }
   if (iter.node->count() == iter.node->max_count()) {
-    // Make room in the leaf for the new item.
+    // Make a room in the leaf for the new item.
     rebalance_or_split(iter);
   }
   set_size(size() + 1);

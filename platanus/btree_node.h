@@ -225,7 +225,7 @@ class btree_node {
     return static_cast<const btree_node*>(this);
   }
 
-  // Getter/setter for whether this is a leaf node or not. This value doesn't
+  // If *this is a leaf node, return true: otherwise, false. This value doesn't
   // change after the node is created.
   bool leaf() const noexcept { return children_ptr_ ? false : true; }
 
@@ -537,35 +537,23 @@ template <typename P>
 template <typename T>
 void btree_node<P>::insert_value(count_type i, T&& x) {
   shift_values_right(i, values_count(), 1);
-  set_count(count() + 1);
-  if (!leaf()) {
-    shift_children_right(i + 1, children_count() - 1, 1);
-  }
   value_init(i, std::forward<T>(x));
+  set_count(count() + 1);
 }
 
 template <typename P>
 template <typename... Args>
 void btree_node<P>::emplace_value(count_type i, Args&&... args) {
   shift_values_right(i, values_count(), 1);
-  set_count(count() + 1);
-  if (!leaf()) {
-    shift_children_right(i + 1, children_count() - 1, 1);
-  }
   value_init(i, std::forward<Args>(args)...);
+  set_count(count() + 1);
 }
 
 template <typename P>
 void btree_node<P>::remove_value(count_type i) {
-  if (!leaf()) {
-    assert(borrow_child(i + 1)->count() == 0);
-    if (i + 2 < children_count()) {
-      shift_children_left(i + 2, children_count(), 1);
-    }
-  }
-
   auto old_values_count = values_count();
   set_count(count() - 1);
+  // Shift values behind the removed value left.
   if (i + 1 < old_values_count) {
     shift_values_left(i + 1, old_values_count, 1);
   }
@@ -661,6 +649,8 @@ void btree_node<P>::split(node_owner&& dest, count_type insert_position) {
   // The split key is the largest value in the left sibling.
   set_count(count() - 1);
   borrow_parent()->insert_value(position(), this->extract_value(values_count()));
+  // Insert dest as a child of parent.
+  borrow_parent()->shift_children_right(position() + 1, borrow_parent()->children_count() - 1, 1);
   borrow_parent()->set_child(position() + 1, std::move(dest));
 
   if (!leaf()) {
@@ -693,6 +683,11 @@ void btree_node<P>::merge(node_borrower src) {
   // Fixup the counts on the src and dest nodes.
   set_count(1 + count() + src->count());
   src->set_count(0);
+
+  // Shift children behind the removed child left.
+  if (position() + 2 < borrow_parent()->children_count()) {
+    borrow_parent()->shift_children_left(position() + 2, borrow_parent()->children_count(), 1);
+  }
 
   // Remove the value on the parent node.
   borrow_parent()->remove_value(position());

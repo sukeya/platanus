@@ -5,4 +5,4 @@ if (VALUES_SIZE_TEST)
 endif()
 
 add_executable(stl_bench stl_bench.cc stl_test_flags.cc)
-target_link_libraries(stl_bench gflags GTest::gtest_main platanus util)
+target_link_libraries(stl_bench gflags platanus util)

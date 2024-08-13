@@ -21,14 +21,6 @@ ostream& operator<<(ostream& os, const std::pair<T, U>& p) {
   return os;
 }
 
-// Provide pair equality testing that works as long as x.first is comparable to
-// y.first and x.second is comparable to y.second. Needed in the test for
-// comparing std::pair<T, U> to std::pair<const T, U>.
-template <typename T, typename U, typename V, typename W>
-bool operator==(const std::pair<T, U>& x, const std::pair<V, W>& y) {
-  return x.first == y.first && x.second == y.second;
-}
-
 // Partial specialization of remove_const that propagates the removal through
 // std::pair.
 template <typename T, typename U>
@@ -91,9 +83,9 @@ std::vector<V> GenerateValues(int n) {
 }
 
 // Select the first member of a pair.
-template <class _Pair>
+template <class Pair>
 struct select1st {
-  const typename _Pair::first_type& operator()(const _Pair& __x) const { return __x.first; }
+  const typename Pair::first_type& operator()(const Pair& x) const { return x.first; }
 };
 
 // Utility class to provide an accessor for a key given a value. The default

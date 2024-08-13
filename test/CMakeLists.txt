@@ -11,5 +11,5 @@ set(tests
 
 foreach(test ${tests})
     add_executable(${test} ${test}.cc)
-    target_link_libraries(${test} GTest::gtest_main gflags platanus btree_test_flags util)
+    target_link_libraries(${test} gflags platanus util)
 endforeach()

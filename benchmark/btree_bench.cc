@@ -146,7 +146,7 @@ void BenchmarkRun::Run() {
     }
     iters = min(iters, FLAGS_benchmark_max_iters);
   }
-  fprintf(stdout, "%s\t%ld\t%d\n", benchmark_name, accum_micros * 1000 / iters, iters);
+  fprintf(stdout, "%s\t%lld\t%d\n", benchmark_name, accum_micros * 1000 / iters, iters);
   current_benchmark = nullptr;
 }
 

@@ -661,14 +661,14 @@ void MergeTest(const std::vector<V>& values) {
   }
 
   printf(
-      "    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
+      "      %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
       "merge 1st half:",
       former.fullness(),
       former.overhead(),
       double(former.bytes_used()) / former.size()
   );
   printf(
-      "    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
+      "      %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
       "merge 2st half:",
       later.fullness(),
       later.overhead(),
@@ -700,7 +700,7 @@ void MergeTest(const std::vector<V>& values) {
   }
 
   printf(
-      "    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
+      "      %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
       "merged:    ",
       former.fullness(),
       former.overhead(),
@@ -730,6 +730,7 @@ void BtreeTest() {
   DoTest("random:    ", &container, random_values);
 
   // Test merging a B-tree with unique values.
+  printf("    sorted:\n");
   MergeTest<T, C>(sorted_values);
 
   std::vector<V> duplicate_values;
@@ -742,6 +743,7 @@ void BtreeTest() {
   }
 
   // Test merging a B-tree with duplicate values.
+  printf("    duplicated:\n");
   MergeTest<T, C>(duplicate_values);
 }
 
@@ -777,9 +779,11 @@ void BtreeMultiTest() {
   DoTest("identical: ", &container, identical_values);
 
   // Test merging a B-tree with unique values.
+  printf("    sorted:\n");
   MergeTest<T, C>(sorted_values);
 
   // Test merging a B-tree with duplicate values.
+  printf("    duplicated:\n");
   MergeTest<T, C>(duplicate_values);
 }
 

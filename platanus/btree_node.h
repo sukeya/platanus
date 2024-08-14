@@ -568,13 +568,13 @@ void btree_node<P>::rebalance_right_to_left(node_borrower src, count_type to_mov
   assert(to_move >= 1);
   assert(to_move <= src->count());
 
-  // Move the delimiting value to the left node and the new delimiting value
-  // from the right node.
+  // Move the delimiting value to the left node.
   this->replace_value(values_count(), borrow_parent()->extract_value(position()));
-  borrow_parent()->replace_value(position(), src->extract_value(to_move - 1));
 
   // Move the values from the right to the left node.
   std::move(src->begin_values(), src->begin_values() + to_move - 1, end_values() + 1);
+  // Move the new delimiting value from the right node.
+  borrow_parent()->replace_value(position(), src->extract_value(to_move - 1));
   // Shift the values in the right node to their correct position.
   src->shift_values_left(to_move, src->values_count(), to_move);
 
@@ -600,13 +600,13 @@ void btree_node<P>::rebalance_left_to_right(node_borrower dest, count_type to_mo
 
   dest->shift_values_right(0, dest->values_count(), to_move);
 
-  // Move the delimiting value to the right node and the new delimiting value
-  // from the left node.
+  // Move the delimiting value to the right node.
   dest->replace_value(to_move - 1, borrow_parent()->extract_value(position()));
-  borrow_parent()->replace_value(position(), this->extract_value(values_count() - to_move));
 
   // Move the values from the left to the right node.
   std::move(end_values() - to_move + 1, end_values(), dest->begin_values());
+  // Move the new delimiting value from the left node.
+  borrow_parent()->replace_value(position(), this->extract_value(values_count() - to_move));
 
   if (!leaf()) {
     // Move the child pointers from the left to the right node.
@@ -617,7 +617,6 @@ void btree_node<P>::rebalance_left_to_right(node_borrower dest, count_type to_mo
         begin_children() + children_count() - to_move,
         to_move
     );
-    std::fill_n(rbegin_children(), to_move, nullptr);
   }
 
   // Fixup the counts on the src and dest nodes.
@@ -634,17 +633,17 @@ void btree_node<P>::split(node_owner&& dest, count_type insert_position) {
   // inserting at the beginning of the left node then bias the split to put
   // more values on the right node. If we're inserting at the end of the
   // right node then bias the split to put more values on the left node.
+  count_type to_move = 0;
   if (insert_position == 0) {
-    dest->set_count(count() - 1);
-  } else if (insert_position == max_children_count() - 1) {
-    dest->set_count(0);
-  } else {
-    dest->set_count(count() / 2);
+    to_move = count() - 1;
+  } else if (insert_position != max_children_count() - 1) {
+    to_move = count() / 2;
   }
-  set_count(count() - dest->count());
-  assert(count() >= 1);
+  assert(count() - to_move >= 1);
 
-  std::move(end_values(), end_values() + dest->count(), dest->begin_values());
+  std::move(end_values() - to_move, end_values(), dest->begin_values());
+  set_count(count() - to_move);
+  dest->set_count(to_move);
 
   // The split key is the largest value in the left sibling.
   set_count(count() - 1);
@@ -659,7 +658,6 @@ void btree_node<P>::split(node_owner&& dest, count_type insert_position) {
       assert(borrow_child(children_count() + i) != nullptr);
     }
     dest->receive_children_n(dest->begin_children(), this, end_children(), dest->count() + 1);
-    std::fill_n(end_children(), dest->count() + 1, nullptr);
   }
 }
 

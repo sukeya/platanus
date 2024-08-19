@@ -291,8 +291,8 @@ class base_checker {
   }
   size_type max_size() const { return tree_.max_size(); }
   bool      empty() const {
-    EXPECT_EQ(tree_.empty(), checker_.empty());
-    return tree_.empty();
+         EXPECT_EQ(tree_.empty(), checker_.empty());
+         return tree_.empty();
   }
   size_type height() const { return tree_.height(); }
   size_type internal_nodes() const { return tree_.internal_nodes(); }
@@ -452,7 +452,10 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_LE(b_copy.internal_nodes(), const_b.internal_nodes());
   EXPECT_LE(b_copy.leaf_nodes(), const_b.leaf_nodes());
   for (int i = 0; i < values.size(); ++i) {
-    EXPECT_EQ(*b_copy.find(key_of_value(values[i])), static_cast<typename T::value_type>(values[i]));
+    EXPECT_EQ(
+        *b_copy.find(key_of_value(values[i])),
+        static_cast<typename T::value_type>(values[i])
+    );
   }
 
   // Test range constructor.
@@ -462,7 +465,10 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_LE(b_range.internal_nodes(), const_b.internal_nodes());
   EXPECT_LE(b_range.leaf_nodes(), const_b.leaf_nodes());
   for (int i = 0; i < values.size(); ++i) {
-    EXPECT_EQ(*b_range.find(key_of_value(values[i])), static_cast<typename T::value_type>(values[i]));
+    EXPECT_EQ(
+        *b_range.find(key_of_value(values[i])),
+        static_cast<typename T::value_type>(values[i])
+    );
   }
 
   // Test range insertion for values that already exist.
@@ -477,7 +483,10 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_EQ(b_range.internal_nodes(), b_copy.internal_nodes());
   EXPECT_EQ(b_range.leaf_nodes(), b_copy.leaf_nodes());
   for (int i = 0; i < values.size(); ++i) {
-    EXPECT_EQ(*b_range.find(key_of_value(values[i])), static_cast<typename T::value_type>(values[i]));
+    EXPECT_EQ(
+        *b_range.find(key_of_value(values[i])),
+        static_cast<typename T::value_type>(values[i])
+    );
   }
 
   // Test assignment to self. Nothing should change.
@@ -501,7 +510,10 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_EQ(b_copy.size(), 0);
   EXPECT_EQ(b_range.size(), const_b.size());
   for (int i = 0; i < values.size(); ++i) {
-    EXPECT_EQ(*b_range.find(key_of_value(values[i])), static_cast<typename T::value_type>(values[i]));
+    EXPECT_EQ(
+        *b_range.find(key_of_value(values[i])),
+        static_cast<typename T::value_type>(values[i])
+    );
   }
   b_range.swap(b_copy);
 

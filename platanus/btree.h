@@ -366,8 +366,8 @@ class btree {
   size_type size() const noexcept { return size_; }
   size_type max_size() const noexcept { return std::numeric_limits<size_type>::max(); }
   bool      empty() const noexcept {
-    assert((size() == 0) == (borrow_readonly_root() == nullptr));
-    return size() == 0;
+         assert((size() == 0) == (borrow_readonly_root() == nullptr));
+         return size() == 0;
   }
 
   // The height of the btree. An empty tree will have height 0.
@@ -466,7 +466,6 @@ class btree {
 
       return;
     }
-
 
     // Store the keys removed from rhd temporarily.
     std::vector<std::size_t> removed_indexes;

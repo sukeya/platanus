@@ -152,7 +152,8 @@ class btree_node {
     children_deleter& operator=(children_deleter&&)      = default;
     ~children_deleter()                                  = default;
 
-    explicit children_deleter(const children_allocator_type& alloc) : children_allocator_type(alloc) {}
+    explicit children_deleter(const children_allocator_type& alloc)
+        : children_allocator_type(alloc) {}
 
     void operator()(pointer p) {
       if (p != nullptr) {
@@ -224,9 +225,9 @@ class btree_node {
   // Getter for the position of this node in its parent.
   count_type position() const noexcept { return position_; }
   void       set_position(count_type v) noexcept {
-    assert(borrow_parent() != nullptr);
-    assert(0 <= v && v < borrow_parent()->max_children_count());
-    position_ = v;
+          assert(borrow_parent() != nullptr);
+          assert(0 <= v && v < borrow_parent()->max_children_count());
+          position_ = v;
   }
 
   // Getter/setter for the number of values stored in this node.
@@ -270,10 +271,10 @@ class btree_node {
   }
   node_owner extract_child(count_type i) noexcept { return std::move(children_ptr_[i]); }
   void       set_child(count_type i, node_owner&& new_child) noexcept {
-    children_ptr_[i]              = std::move(new_child);
-    auto borrowed_new_child       = borrow_child(i);
-    borrowed_new_child->parent_   = borrow_myself();
-    borrowed_new_child->position_ = i;
+          children_ptr_[i]              = std::move(new_child);
+          auto borrowed_new_child       = borrow_child(i);
+          borrowed_new_child->parent_   = borrow_myself();
+          borrowed_new_child->position_ = i;
   }
 
   // Returns the position of the first value whose key is not less than k.
@@ -294,9 +295,8 @@ class btree_node {
   template <bool WithEqual = true>
   search_result binary_search_compare(
       const key_type& k, count_type s, count_type e, const key_compare& comp
-  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k)))
-  requires comp_return_weak_ordering<key_type, key_compare>
-  {
+  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k))
+  ) requires comp_return_weak_ordering<key_type, key_compare> {
     bool is_exact_match = false;
     while (s != e) {
       count_type mid = (s + e) / 2;
@@ -320,9 +320,8 @@ class btree_node {
   template <bool WithEqual = true>
   search_result binary_search_compare(
       const key_type& k, count_type s, count_type e, const key_compare& comp
-  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k)))
-  requires comp_return_bool<key_type, key_compare>
-  {
+  ) const noexcept(noexcept(comp(std::declval<const key_type&>(), k))
+  ) requires comp_return_bool<key_type, key_compare> {
     bool is_exact_match = false;
     while (s != e) {
       count_type  mid     = (s + e) / 2;

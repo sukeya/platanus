@@ -667,6 +667,39 @@ void MergeTest(const std::vector<V>& values) {
     former.insert(former.end(), values[i]);
     ans_former.insert(ans_former.end(), values[i]);
   }
+
+  // empty test
+  EXPECT_EQ(later.size() == 0);
+
+  former.merge(later);
+  EXPECT_EQ(former.size() == values.size() / 2);
+  {
+    auto it     = former.begin();
+    auto ans_it = ans_former.begin();
+    while (it != former.end()) {
+      EXPECT_EQ(*it, *ans_it);
+      ++it;
+      ++ans_it;
+    }
+  }
+  EXPECT_EQ(later.size() == 0);
+
+  later.merge(former);
+  EXPECT_EQ(later.size() == values.size() / 2);
+  {
+    auto it     = later.begin();
+    auto ans_it = ans_former.begin();
+    while (it != later.end()) {
+      EXPECT_EQ(*it, *ans_it);
+      ++it;
+      ++ans_it;
+    }
+  }
+  EXPECT_EQ(former.size() == 0);
+
+  // reset
+  former.swap(later);
+
   for (std::size_t i = values.size() / 2; i < values.size(); ++i) {
     later.insert(later.end(), values[i]);
     ans_later.insert(ans_later.end(), values[i]);

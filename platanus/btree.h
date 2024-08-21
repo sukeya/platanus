@@ -78,8 +78,8 @@ class btree {
   using const_reference        = typename Params::const_reference;
   using size_type              = typename Params::size_type;
   using difference_type        = typename Params::difference_type;
-  using iterator               = btree_iterator<node_type, reference, pointer>;
-  using const_iterator         = typename iterator::const_iterator;
+  using iterator               = btree_iterator<node_type, false>;
+  using const_iterator         = btree_iterator<node_type, true>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using reverse_iterator       = std::reverse_iterator<iterator>;
 
@@ -429,17 +429,29 @@ class btree {
 
   // Merges an B-tree. The given B-tree will have the intersection of two B-trees.
   void merge_unique(self_type& rhd) {
+    if (empty()) {
+      swap(rhd);
+      return;
+    }
+    if (rhd.empty()) {
+      return;
+    }
+
     auto lhd_min = params_type::key(*(begin()));
     auto lhd_max = params_type::key(*(rbegin()));
     auto rhd_min = params_type::key(*(rhd.begin()));
     auto rhd_max = params_type::key(*(rhd.rbegin()));
 
-    if (lhd_min >= rhd_min) {
+    const auto& comp = ref_key_comp();
+
+    // If lhd_min >= rhd_min,
+    if (!comp(lhd_min, rhd_min)) {
       swap(rhd);
     }
 
     // If the value range of rhd is included in that of *this,
-    if (rhd_max <= lhd_max) {
+    // rhd_max <= lhd_max
+    if (!comp(lhd_max, rhd_max)) {
       // Store the keys removed from rhd temporarily.
       std::vector<std::size_t> removed_indexes;
 
@@ -487,7 +499,7 @@ class btree {
     }
 
     // Remove the extra of rhd.
-    while ((not rhd.empty()) && params_type::key(*(rhd.rbegin())) > lhd_max) {
+    while (!rhd.empty() && comp(lhd_max, params_type::key(*(rhd.rbegin())))) {
       rhd.erase(std::prev(rhd.end()));
     }
     // Remove the keys inserted to *this.
@@ -503,11 +515,20 @@ class btree {
   }
 
   void merge_multi(self_type& rhd) {
+    if (empty()) {
+      swap(rhd);
+      return;
+    }
+    if (rhd.empty()) {
+      return;
+    }
+
     auto lhd_min = params_type::key(*(begin()));
     auto lhd_max = params_type::key(*(rbegin()));
     auto rhd_min = params_type::key(*(rhd.begin()));
 
-    if (lhd_min >= rhd_min) {
+    // If lhd_min >= rhd_min,
+    if (!comp(lhd_min, rhd_min)) {
       swap(rhd);
     }
 
@@ -662,18 +683,17 @@ class btree {
 // btree methods
 template <typename P>
 btree<P>::btree(const key_compare& comp, const allocator_type& alloc)
-    : root_(),
-      comp_(comp),
+    : comp_(comp),
       node_alloc_(alloc),
       children_alloc_(alloc),
+      root_(),
       rightmost_(nullptr),
       leftmost_(nullptr),
       size_(0) {}
 
 template <typename P>
 btree<P>::btree(const self_type& x)
-    : root_(),
-      comp_(x.comp_),
+    : comp_(x.comp_),
       node_alloc_(std::allocator_traits<node_allocator_type>::select_on_container_copy_construction(
           x.node_alloc_
       )),
@@ -682,6 +702,7 @@ btree<P>::btree(const self_type& x)
               x.children_alloc_
           )
       ),
+      root_(),
       rightmost_(x.rightmost_),
       leftmost_(x.leftmost_),
       size_(x.size_) {

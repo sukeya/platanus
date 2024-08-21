@@ -298,8 +298,8 @@ class btree_map_container : public btree_unique_container<Tree> {
   // Insertion routines.
   template <class T>
   mapped_type& internal_operator(T&& key) {
-    auto iter = this->lower_bound(key);
-    if (iter != this->end() && key == iter->first) {
+    auto iter = this->find(key);
+    if (iter != this->end()) {
       return iter->second;
     } else {
       return this->insert(iter, std::make_pair(std::forward<T>(key), mapped_type{}))->second;
@@ -307,6 +307,17 @@ class btree_map_container : public btree_unique_container<Tree> {
   }
   mapped_type& operator[](const key_type& key) { return internal_operator(key); }
   mapped_type& operator[](key_type&& key) { return internal_operator(std::move(key)); }
+
+  mapped_type& at(const key_type& key) {
+    auto it = this->find(key);
+    if (it == this->end()) {
+      throw std::out_of_range("platanus::btree_map.at : Not found key.");
+    }
+    return it->second;
+  }
+  const mapped_type& at(const key_type& key) const {
+    return static_cast<const mapped_type&>(const_cast<self_type*>(this)->at(key));
+  }
 };
 
 // A common base class for btree_multiset and btree_multimap.

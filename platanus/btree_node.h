@@ -137,6 +137,7 @@ class btree_node {
   // node_borrower can change the node's content but not the memory (allocation and release not
   // allowed).
   using node_borrower = btree_node*;
+  using node_readonly_borrower = btree_node const *;
 
   using children_allocator_type   = typename allocator_traits::template rebind_alloc<node_owner>;
   using children_allocator_traits = std::allocator_traits<children_allocator_type>;
@@ -235,8 +236,8 @@ class btree_node {
   constexpr count_type max_count() const noexcept { return kNodeValues; }
 
   // Getter for the parent of this node.
-  node_borrower       borrow_parent() const noexcept { return parent_; }
-  const node_borrower borrow_readonly_parent() const noexcept { return parent_; }
+  node_borrower          borrow_parent() const noexcept { return parent_; }
+  node_readonly_borrower borrow_readonly_parent() const noexcept { return parent_; }
   // Getter for whether the node is the root of the tree. The parent of the
   // root of the tree is the leftmost node in the tree which is guaranteed to
   // be a leaf.
@@ -265,8 +266,8 @@ class btree_node {
   }
 
   // Getters/setter for the child at position i in the node.
-  node_borrower       borrow_child(count_type i) const noexcept { return children_ptr_[i].get(); }
-  const node_borrower borrow_readonly_child(count_type i) const noexcept {
+  node_borrower          borrow_child(count_type i) const noexcept { return children_ptr_[i].get(); }
+  node_readonly_borrower borrow_readonly_child(count_type i) const noexcept {
     return children_ptr_[i].get();
   }
   node_owner extract_child(count_type i) noexcept { return std::move(children_ptr_[i]); }

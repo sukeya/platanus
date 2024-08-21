@@ -243,4 +243,98 @@ TEST(Btree, RangeCtorSanity) {
   EXPECT_EQ(1, tmap.size());
 }
 
+struct Vec2i {
+  static constexpr int N = 2;
+
+  int a[N];
+};
+
+template <>
+struct Generator<Vec2i> {
+  Generator(int m) : maxval(m) {
+    engine = std::mt19937(seed_gen());
+    dist   = std::uniform_int_distribution<int>(0, maxval);
+  }
+
+  node operator()(int) {
+    Vec2i v;
+    for (int i = 0; i < Vec2i::N; ++i) {
+      v.a[i] = dist(engine);
+    }
+    return v;
+  }
+
+  int                                maxval;
+  std::random_device                 seed_gen;
+  std::mt19937                       engine;
+  std::uniform_int_distribution<int> dist;
+};
+
+struct Vec2iComp {
+  static constexpr int N = Vec2i::N;
+
+  bool comp(const Vec2i& lhd, const Vec2i& rhd, int i) const noexcept {
+    assert(0 <= i && i <= N);
+
+    if (i == N) {
+      return false;
+    }
+    if (lhd.a[i] < rhd.a[i]) {
+      return true;
+    } else if (lhd.a[i] == rhd.a[i]) {
+      return comp(lhd, rhd, i + 1);
+    } else {
+      return false;
+    }
+  }
+
+  bool operator()(const Vec2i& lhd, const Vec2i& rhd) const noexcept {
+    return comp(lhd, rhd, 0);
+  }
+};
+
+TEST(Btree, set_vec2i_64) {
+  static constexpr int N = 64;
+
+  using K = Vec2i;
+  using TestAlloc = TestAllocator<K>;
+
+  BtreeTest<btree_set<K, Vec2iComp, std::allocator<K>, N>, std::set<K, Vec2iComp>>();
+  BtreeAllocatorTest<btree_set<K, Vec2iComp, TestAlloc, N>>();
+}
+
+TEST(Btree, map_vec2i_64) {
+  static constexpr int N = 64;
+
+  using K = Vec2i;
+  using TestAlloc = TestAllocator<K>;
+
+  BtreeTest<btree_map<K, K, Vec2iComp, std::allocator<K>, N>, std::map<K, K, Vec2iComp>>();
+  BtreeAllocatorTest<btree_map<K, K, Vec2iComp, TestAlloc, N>>();
+  BtreeMapTest<btree_map<K, K, Vec2iComp, std::allocator<K>, N>>();
+}
+
+TEST(Btree, multiset_vec2i_64) {
+  static constexpr int N = 64;
+
+  using K = Vec2i;
+  using TestAlloc = TestAllocator<K>;
+
+  BtreeMultiTest<btree_multiset<K, Vec2iComp, std::allocator<K>, N>, std::multiset<K, Vec2iComp>>();
+  BtreeAllocatorTest<btree_multiset<K, Vec2iComp, TestAlloc, N>>();
+}
+
+TEST(Btree, multimap_vec2i_64) {
+  static constexpr int N = 64;
+
+  using K = Vec2i;
+  using TestAlloc = TestAllocator<K>;
+
+  BtreeMultiTest<
+      btree_multimap<K, K, Vec2iComp, std::allocator<K>, N>,
+      std::multimap<K, K, Vec2iComp>>();
+  BtreeMultiMapTest<btree_multimap<K, K, Vec2iComp, std::allocator<K>, N>>();
+  BtreeAllocatorTest<btree_multimap<K, K, Vec2iComp, TestAlloc, N>>();
+}
+
 }  // namespace platanus

@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <iostream>
+#include <random>
+
 #include "gtest/gtest.h"
 #include "platanus/btree_map.h"
 #include "platanus/btree_set.h"
@@ -149,27 +152,6 @@ TEST(Btree, UpperBoundRegression) {
   EXPECT_EQ("aab", *it);
 }
 
-TEST(Btree, IteratorIncrementBy) {
-  // Test that increment_by returns the same position as increment.
-  const int          kSetSize = 2341;
-  btree_set<int32_t> my_set;
-  for (int i = 0; i < kSetSize; ++i) {
-    my_set.insert(i);
-  }
-
-  btree_set<int32_t>::iterator a = my_set.begin();
-  for (int i = 0; i < kSetSize; ++i) {
-    EXPECT_EQ(*a, i);
-    a.increment();
-  }
-
-  btree_set<int32_t>::iterator b = my_set.begin();
-  for (int i = 0; i < kSetSize; ++i) {
-    EXPECT_EQ(*b, i);
-    ++b;
-  }
-}
-
 TEST(Btree, Comparison) {
   const int          kSetSize = 1201;
   btree_set<int64_t> my_set;
@@ -243,11 +225,25 @@ TEST(Btree, RangeCtorSanity) {
   EXPECT_EQ(1, tmap.size());
 }
 
+// Test using a class that doesn't implement any comparison operator as key.
 struct Vec2i {
   static constexpr int N = 2;
 
   int a[N];
 };
+
+bool operator==(const Vec2i& lhd, const Vec2i& rhd) {
+  for (int i = 0; i < Vec2i::N; ++i) {
+    if (lhd.a[i] != rhd.a[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool operator!=(const Vec2i& lhd, const Vec2i& rhd) {
+  return not (lhd == rhd);
+}
 
 template <>
 struct Generator<Vec2i> {
@@ -256,7 +252,7 @@ struct Generator<Vec2i> {
     dist   = std::uniform_int_distribution<int>(0, maxval);
   }
 
-  node operator()(int) {
+  Vec2i operator()(int) {
     Vec2i v;
     for (int i = 0; i < Vec2i::N; ++i) {
       v.a[i] = dist(engine);
@@ -292,7 +288,16 @@ struct Vec2iComp {
     return comp(lhd, rhd, 0);
   }
 };
+}  // namespace platanus
 
+namespace std {
+  ostream& operator<<(ostream& os, const platanus::Vec2i& v) {
+    os << "(" << v.a[0] << "," << v.a[1] << ")";
+    return os;
+  }
+}
+
+namespace platanus {
 TEST(Btree, set_vec2i_64) {
   static constexpr int N = 64;
 

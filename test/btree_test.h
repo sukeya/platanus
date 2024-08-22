@@ -669,10 +669,10 @@ void MergeTest(const std::vector<V>& values) {
   }
 
   // empty test
-  EXPECT_EQ(later.size() == 0);
+  EXPECT_EQ(later.size(), 0);
 
   former.merge(later);
-  EXPECT_EQ(former.size() == values.size() / 2);
+  EXPECT_EQ(former.size(), values.size() / 2);
   {
     auto it     = former.begin();
     auto ans_it = ans_former.begin();
@@ -682,10 +682,10 @@ void MergeTest(const std::vector<V>& values) {
       ++ans_it;
     }
   }
-  EXPECT_EQ(later.size() == 0);
+  EXPECT_EQ(later.size(), 0);
 
   later.merge(former);
-  EXPECT_EQ(later.size() == values.size() / 2);
+  EXPECT_EQ(later.size(), values.size() / 2);
   {
     auto it     = later.begin();
     auto ans_it = ans_former.begin();
@@ -695,7 +695,7 @@ void MergeTest(const std::vector<V>& values) {
       ++ans_it;
     }
   }
-  EXPECT_EQ(former.size() == 0);
+  EXPECT_EQ(former.size(), 0);
 
   // reset
   former.swap(later);
@@ -762,9 +762,12 @@ void BtreeTest() {
 
   unique_checker<T, C> container;
 
+  // TODO
+  auto comp = C{}.value_comp();
+
   // Test key insertion/deletion in sorted order.
   std::vector<V> sorted_values(random_values);
-  sort(sorted_values.begin(), sorted_values.end());
+  sort(sorted_values.begin(), sorted_values.end(), comp);
   DoTest("sorted:    ", &container, sorted_values);
 
   // Test key insertion/deletion in reverse sorted order.
@@ -801,9 +804,12 @@ void BtreeMultiTest() {
 
   multi_checker<T, C> container;
 
+  // TODO
+  auto comp = C{}.value_comp();
+
   // Test keys in sorted order.
   std::vector<V> sorted_values(random_values);
-  sort(sorted_values.begin(), sorted_values.end());
+  sort(sorted_values.begin(), sorted_values.end(), comp);
   DoTest("sorted:    ", &container, sorted_values);
 
   // Test keys in reverse sorted order.
@@ -882,8 +888,9 @@ void BtreeAllocatorTest() {
   // This should swap the allocators!
   swap(b1, b2);
 
+  auto generator = Generator<value_type>(1000);
   for (int i = 0; i < 1000; i++) {
-    b1.insert(Generator<value_type>(1000)(i));
+    b1.insert(generator(i));
   }
 
   // We should have allocated out of alloc2!
@@ -902,8 +909,19 @@ void BtreeMapTest() {
   T b;
 
   // Verify we can insert using operator[].
+  auto generator = Generator<value_type>(1000);
+  std::pair<std::remove_const_t<typename value_type::first_type>, mapped_type> min, max;
+  auto comp = b.key_comp();
   for (int i = 0; i < 1000; i++) {
-    value_type v = Generator<value_type>(1000)(i);
+    value_type v = generator(i);
+    if (i == 0) {
+      min = v;
+      max = v;
+    } else if (comp(v.first, min.first)) {
+      min = v;
+    } else if (comp(max.first, v.first)) {
+      max = v;
+    }
     b[v.first]   = v.second;
   }
   EXPECT_EQ(b.size(), 1000);
@@ -911,10 +929,10 @@ void BtreeMapTest() {
   // Test whether we can use the "->" operator on iterators and
   // reverse_iterators. This stresses the btree_map_params::pair_pointer
   // mechanism.
-  EXPECT_EQ(b.begin()->first, Generator<value_type>(1000)(0).first);
-  EXPECT_EQ(b.begin()->second, Generator<value_type>(1000)(0).second);
-  EXPECT_EQ(b.rbegin()->first, Generator<value_type>(1000)(999).first);
-  EXPECT_EQ(b.rbegin()->second, Generator<value_type>(1000)(999).second);
+  EXPECT_EQ(b.begin()->first, min.first);
+  EXPECT_EQ(b.begin()->second, min.second);
+  EXPECT_EQ(b.rbegin()->first, max.first);
+  EXPECT_EQ(b.rbegin()->second, max.second);
 }
 
 template <typename T>

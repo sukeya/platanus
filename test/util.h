@@ -58,7 +58,7 @@ struct Generator<std::pair<T, U>> {
   Generator<typename std::remove_const<U>::type> ugen;
 
   Generator(int m) : tgen(m), ugen(m) {}
-  std::pair<T, U> operator()(int i) const { return std::make_pair(tgen(i), ugen(i)); }
+  std::pair<T, U> operator()(int i) { return std::make_pair(tgen(i), ugen(i)); }
 };
 
 // Generate values for our tests and benchmarks. Value range is [0, maxval].

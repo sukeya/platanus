@@ -61,9 +61,10 @@ class btree {
     std::size_t internal_nodes;
   };
 
-  using node_owner         = typename node_type::node_owner;
-  using node_borrower      = typename node_type::node_borrower;
-  using node_search_result = typename node_type::search_result;
+  using node_owner             = typename node_type::node_owner;
+  using node_borrower          = typename node_type::node_borrower;
+  using node_readonly_borrower = typename node_type::node_readonly_borrower;
+  using node_search_result     = typename node_type::search_result;
 
  public:
   using params_type            = Params;
@@ -444,39 +445,55 @@ class btree {
 
     const auto& comp = ref_key_comp();
 
-    // If lhd_min >= rhd_min,
-    if (!comp(lhd_min, rhd_min)) {
-      swap(rhd);
+    {
+      bool is_greater = false;
+      if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
+        is_greater = (comp(lhd_min, rhd_min) < 0);
+      } else {
+        is_greater = comp(lhd_min, rhd_min);
+      }
+      // If lhd_min >= rhd_min,
+      if (not is_greater) {
+        swap(rhd);
+      }
     }
 
     // If the value range of rhd is included in that of *this,
-    // rhd_max <= lhd_max
-    if (!comp(lhd_max, rhd_max)) {
-      // Store the keys removed from rhd temporarily.
-      std::vector<std::size_t> removed_indexes;
-
-      // Insert the intersection to *this.
-      std::size_t i = 0;
-      for (auto it = rhd.begin(); it != rhd.end(); ++it) {
-        auto [result_it, is_inserted] = insert_unique(std::move(*it));
-        if (is_inserted) {
-          removed_indexes.push_back(i);
-        }
-        ++i;
+    {
+      bool is_greater = false;
+      if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
+        is_greater = (comp(lhd_max, rhd_max) < 0);
+      } else {
+        is_greater = comp(lhd_max, rhd_max);
       }
+      // rhd_max <= lhd_max
+      if (not is_greater) {
+        // Store the keys removed from rhd temporarily.
+        std::vector<std::size_t> removed_indexes;
 
-      // Remove the keys inserted to *this.
-      for (auto it = removed_indexes.rbegin(); it != removed_indexes.rend(); ++it) {
-        iterator hint;
-        if (*it < rhd.size() / 2) {
-          hint = std::next(rhd.begin(), *it);
-        } else {
-          hint = std::prev(rhd.end(), rhd.size() - *it);
+        // Insert the intersection to *this.
+        std::size_t i = 0;
+        for (auto it = rhd.begin(); it != rhd.end(); ++it) {
+          auto [result_it, is_inserted] = insert_unique(std::move(*it));
+          if (is_inserted) {
+            removed_indexes.push_back(i);
+          }
+          ++i;
         }
-        rhd.erase(hint);
-      }
 
-      return;
+        // Remove the keys inserted to *this.
+        for (auto it = removed_indexes.rbegin(); it != removed_indexes.rend(); ++it) {
+          iterator hint;
+          if (*it < rhd.size() / 2) {
+            hint = std::next(rhd.begin(), *it);
+          } else {
+            hint = std::prev(rhd.end(), rhd.size() - *it);
+          }
+          rhd.erase(hint);
+        }
+
+        return;
+      }
     }
 
     // Store the keys removed from rhd temporarily.
@@ -499,7 +516,16 @@ class btree {
     }
 
     // Remove the extra of rhd.
-    while (!rhd.empty() && comp(lhd_max, params_type::key(*(rhd.rbegin())))) {
+    while (true) {
+      bool is_end = false;
+      if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
+        is_end = !rhd.empty() && (comp(lhd_max, params_type::key(*(rhd.rbegin()))) < 0);
+      } else {
+        is_end = !rhd.empty() && comp(lhd_max, params_type::key(*(rhd.rbegin())));
+      }
+      if (is_end) {
+        break;
+      }
       rhd.erase(std::prev(rhd.end()));
     }
     // Remove the keys inserted to *this.
@@ -527,9 +553,19 @@ class btree {
     auto lhd_max = params_type::key(*(rbegin()));
     auto rhd_min = params_type::key(*(rhd.begin()));
 
-    // If lhd_min >= rhd_min,
-    if (!comp(lhd_min, rhd_min)) {
-      swap(rhd);
+    const auto& comp = ref_key_comp();
+
+    {
+      bool is_greater = false;
+      if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
+        is_greater = (comp(lhd_min, rhd_min) < 0);
+      } else {
+        is_greater = comp(lhd_min, rhd_min);
+      }
+      // If lhd_min >= rhd_min,
+      if (not is_greater) {
+        swap(rhd);
+      }
     }
 
     // Insert the intersection to *this.
@@ -549,24 +585,24 @@ class btree {
  private:
   // Internal accessor routines.
   node_borrower       borrow_root() noexcept { return root_->borrow_myself(); }
-  const node_borrower borrow_readonly_root() const noexcept {
-    return static_cast<const node_borrower>(const_cast<btree*>(this)->borrow_root());
+  node_readonly_borrower borrow_readonly_root() const noexcept {
+    return static_cast<node_readonly_borrower>(const_cast<btree*>(this)->borrow_root());
   }
   node_owner extract_root() noexcept { return std::move(root_); }
   void       set_root(node_owner&& node) noexcept { root_ = std::move(node); }
 
   // Getter/Setter for the rightmost node in the tree.
   node_borrower       borrow_rightmost() noexcept { return rightmost_; }
-  const node_borrower borrow_readonly_rightmost() const noexcept {
-    return static_cast<const node_borrower>(const_cast<btree*>(this)->borrow_rightmost());
+  node_readonly_borrower borrow_readonly_rightmost() const noexcept {
+    return static_cast<node_readonly_borrower>(const_cast<btree*>(this)->borrow_rightmost());
   }
   void set_rightmost(node_borrower node) noexcept { rightmost_ = node; }
   void set_leftmost(node_borrower node) noexcept { leftmost_ = node; }
 
   // The leftmost node is stored as the parent of the root node.
   node_borrower       borrow_leftmost() noexcept { return leftmost_; }
-  const node_borrower borrow_readonly_leftmost() const noexcept {
-    return static_cast<const node_borrower>(const_cast<btree*>(this)->borrow_leftmost());
+  node_readonly_borrower borrow_readonly_leftmost() const noexcept {
+    return static_cast<node_readonly_borrower>(const_cast<btree*>(this)->borrow_leftmost());
   }
 
   // Getter/Setter for the size of the tree.
@@ -647,12 +683,12 @@ class btree {
   IterType internal_find_unique(const key_type& key, IterType iter) const;
 
   // Dumps a node and all of its children to the specified ostream.
-  void internal_dump(std::ostream& os, const node_borrower node, int level) const;
+  void internal_dump(std::ostream& os, node_readonly_borrower node, int level) const;
 
   // Verifies the tree structure of node.
-  int internal_verify(const node_borrower node, const key_type* lo, const key_type* hi) const;
+  int internal_verify(node_readonly_borrower node, const key_type* lo, const key_type* hi) const;
 
-  node_stats internal_stats(const node_borrower node) const noexcept {
+  node_stats internal_stats(node_readonly_borrower node) const noexcept {
     if (!node) {
       return node_stats(0, 0);
     }
@@ -1172,7 +1208,7 @@ IterType btree<P>::internal_find_unique(const key_type& key, IterType iter) cons
 }
 
 template <typename P>
-void btree<P>::internal_dump(std::ostream& os, const node_borrower node, int level) const {
+void btree<P>::internal_dump(std::ostream& os, node_readonly_borrower node, int level) const {
   for (int i = 0; i < node->count(); ++i) {
     if (!node->leaf()) {
       internal_dump(os, node->borrow_readonly_child(i), level + 1);
@@ -1188,7 +1224,7 @@ void btree<P>::internal_dump(std::ostream& os, const node_borrower node, int lev
 }
 
 template <typename P>
-int btree<P>::internal_verify(const node_borrower node, const key_type* lo, const key_type* hi)
+int btree<P>::internal_verify(node_readonly_borrower node, const key_type* lo, const key_type* hi)
     const {
   assert(node->count() > 0);
   assert(node->count() <= node->max_count());

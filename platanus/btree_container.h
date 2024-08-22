@@ -124,7 +124,7 @@ std::ostream& operator<<(std::ostream& os, const btree_container<T>& b) {
   return os;
 }
 
-// A common base class for btree_set and safe_btree_set.
+// A common base class for btree_set and btree_map.
 template <typename Tree>
 class btree_unique_container : public btree_container<Tree> {
   using self_type  = btree_unique_container<Tree>;
@@ -239,7 +239,7 @@ class btree_unique_container : public btree_container<Tree> {
   void merge(btree_unique_container&& x) { merge(x); }
 };
 
-// A common base class for btree_map and safe_btree_map.
+// A base class for btree_map.
 template <typename Tree>
 class btree_map_container : public btree_unique_container<Tree> {
   using self_type  = btree_map_container<Tree>;

@@ -34,7 +34,6 @@ Then, run the following commands in the top directory of `platanus`.
 cmake -S . -B build/debug -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
 cd build/debug/test
 ./btree_test
-./safe_btree_test
 ```
 
 #### Performance test

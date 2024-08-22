@@ -46,7 +46,6 @@ And even without these operations, insertions and deletions on a btree will move
 In both cases, the result is that insertions and deletions can invalidate iterators pointing to values other than the one being inserted/deleted.
 This is notably different from STL set/map which takes care to not invalidate iterators on `insert`/`erase` except, of course, for iterators pointing to the value being erased.
 A partial workaround when erasing is available: `erase()` returns an iterator pointing to the item just after the one that was erased (or `end()` if none exists).
-See also [`safe_btree`](./reference/safe_btree.md).
 
 
 ## License

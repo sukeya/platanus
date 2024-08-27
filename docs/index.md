@@ -49,4 +49,4 @@ A partial workaround when erasing is available: `erase()` returns an iterator po
 
 
 ## License
-platanus is licensed under [Apache License, Version 2.0](COPYING).
+platanus is licensed under [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).

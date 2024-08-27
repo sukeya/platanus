@@ -4,4 +4,7 @@ nav:
   - Home: index.md
   - Reference :
     - btree_set: reference/btree_set.md
+    - btree_multiset: reference/btree_multiset.md
+    - btree_map: reference/btree_map.md
+    - btree_multimap: reference/btree_multimap.md
 theme: readthedocs

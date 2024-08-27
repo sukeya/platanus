@@ -55,19 +55,17 @@ static void BM_Insert(benchmark::State& state) {
   using KeyOfValue = platanus::KeyOfValue<typename T::key_type, V>::type;
 
   std::vector<V> values = platanus::GenerateValues<V>(values_size);
-  T              container{values.begin(), values.end()};
 
-  std::random_device                         seed_gen;
-  std::mt19937_64                            engine(seed_gen());
-  std::uniform_int_distribution<std::size_t> dist{0, values.size() - 1};
-
+  T container;
   for (auto _ : state) {
-    state.PauseTiming();
-    auto v = values[dist(engine)];
-    container.erase(KeyOfValue::Get(v));
-    state.ResumeTiming();
-
-    container.insert(std::move(v));
+    if (values.empty()) {
+      state.PauseTiming();
+      values = platanus::GenerateValues<V>(values_size);
+      container.clear();
+      state.ResumeTiming();
+    }
+    container.insert(std::move(values.back()));
+    values.pop_back();
   }
 }
 
@@ -85,15 +83,8 @@ static void BM_Lookup(benchmark::State& state) {
   std::uniform_int_distribution<std::size_t> dist{0, values_size - 1};
 
   for (auto _ : state) {
-    state.PauseTiming();
-    auto v = KeyOfValue::Get(values[dist(engine)]);
-    state.ResumeTiming();
-
-    auto r = *container.find(v);
-
-    state.PauseTiming();
+    const auto& r = *container.find(KeyOfValue::Get(values[dist(engine)]));
     benchmark::DoNotOptimize(KeyOfValue::Get(r));
-    state.ResumeTiming();
   }
 }
 
@@ -106,21 +97,15 @@ static void BM_Delete(benchmark::State& state) {
   std::vector<V> values = platanus::GenerateValues<V>(values_size);
   T              container{values.begin(), values.end()};
 
-  std::random_device                         seed_gen;
-  std::mt19937_64                            engine(seed_gen());
-  std::uniform_int_distribution<std::size_t> dist{0, values_size - 1};
-
   for (auto _ : state) {
-    state.PauseTiming();
-    auto v   = values[dist(engine)];
-    auto key = KeyOfValue::Get(v);
-    state.ResumeTiming();
-
-    container.erase(key);
-
-    state.PauseTiming();
-    container.insert(std::move(v));
-    state.ResumeTiming();
+    if (values.empty()) {
+      state.PauseTiming();
+      values = platanus::GenerateValues<V>(values_size);
+      container = T{values.begin(), values.end()};
+      state.ResumeTiming();
+    }
+    container.erase(KeyOfValue::Get(values.back()));
+    values.pop_back();
   }
 }
 
@@ -136,18 +121,14 @@ static void BM_FwdIter(benchmark::State& state) {
   auto iter = container.begin();
 
   for (auto _ : state) {
-    state.PauseTiming();
     if (iter == container.end()) {
       iter = container.begin();
     }
-    state.ResumeTiming();
 
-    auto r = *iter;
+    const auto& r = *iter;
     ++iter;
 
-    state.PauseTiming();
     benchmark::DoNotOptimize(KeyOfValue::Get(r));
-    state.ResumeTiming();
   }
 }
 

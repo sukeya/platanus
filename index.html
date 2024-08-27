@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://platanus.sukeya.github.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://sukeya.github.io/platanus/" />
       <link rel="shortcut icon" href="img/favicon.ico" />
     <title>platanus</title>
     <link rel="stylesheet" href="css/theme.css" />
@@ -14,7 +14,7 @@
         // Current page data
         var mkdocs_page_name = "Home";
         var mkdocs_page_input_path = "index.md";
-        var mkdocs_page_url = "/";
+        var mkdocs_page_url = "/platanus/";
       </script>
     
     <!--[if lt IE 9]>
@@ -42,16 +42,37 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href=".">Home</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#commands">Commands</a>
+    <li class="toctree-l2"><a class="reference internal" href="#comparing-to-stl-setmap">Comparing to STL set/map</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#project-layout">Project layout</a>
+    <li class="toctree-l2"><a class="reference internal" href="#feature">Feature</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#limitation-and-caveats">Limitation and caveats</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#supporting-order">Supporting order</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#invalidating-iterators-after-insertions-and-deletions">Invalidating iterators after insertions and deletions</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#license">License</a>
     </li>
     </ul>
                 </li>
               </ul>
+              <p class="caption"><span class="caption-text">Reference</span></p>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="about/">About</a>
-                </li>
+                  <li class="toctree-l1"><a class="reference internal" href="reference/btree_set/">btree_set</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="reference/btree_multiset/">btree_multiset</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="reference/btree_map/">btree_map</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="reference/btree_multimap/">btree_multimap</a>
+                  </li>
               </ul>
       </div>
     </div>
@@ -76,26 +97,51 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="welcome-to-platanus">Welcome to Platanus</h1>
-<p>For full documentation visit <a href="https://www.mkdocs.org">mkdocs.org</a>.</p>
-<h2 id="commands">Commands</h2>
+                <h1 id="platanus">platanus</h1>
+<p><code>platanus</code> is an fork of <a href="https://code.google.com/archive/p/cpp-btree/">cpp-btree</a> which is an implementation of B-tree.</p>
+<h2 id="comparing-to-stl-setmap">Comparing to STL set/map</h2>
+<p>A btree is both smaller and faster than STL set/map.
+The red-black tree implementation of STL set/map has an overhead of 3 pointers (left, right and parent) plus the node color information for each stored value.
+So a <code>std::set&lt;std::int32_t&gt;</code> consumes 32 bytes for each value stored.
+This btree implementation stores the fixed number of values on a nodes (usually 64) and doesn't store child
+pointers for leaf nodes.
+The result is that a <code>platanus::btree_set&lt;std::int32&gt;</code> may use much less memory per stored value.
+For the random insertion benchmark in btree_test.cc, a <code>platanus::btree_set&lt;std::int32_t&gt;</code> with 64 values per node uses 4.64 bytes per stored value.</p>
+<p>The packing of multiple values on to each node of a btree has another effect besides better space utilization: better cache locality due to fewer cache lines being accessed.
+Better cache locality translates into faster operations.</p>
+<h2 id="feature">Feature</h2>
 <ul>
-<li><code>mkdocs new [dir-name]</code> - Create a new project.</li>
-<li><code>mkdocs serve</code> - Start the live-reloading docs server.</li>
-<li><code>mkdocs build</code> - Build the documentation site.</li>
-<li><code>mkdocs -h</code> - Print help message and exit.</li>
+<li>satisfying alignment requirement,</li>
+<li>supporting stateful comparer,</li>
+<li>the standard C++ container-like interface,</li>
+<li>supporting CMake,</li>
+<li>easier to read than the original,</li>
+<li>supporting three-way comparison operator.</li>
 </ul>
-<h2 id="project-layout">Project layout</h2>
-<pre><code>mkdocs.yml    # The configuration file.
-docs/
-    index.md  # The documentation homepage.
-    ...       # Other markdown pages, images and other files.
-</code></pre>
+<h2 id="performance">Performance</h2>
+<p>Generally speaking, <code>platunus</code> is slower than <code>cpp-btree</code> by approximately 13%, but is faster than <code>std::(multi)set</code> and <code>std::(multi)map</code> by approximately 59% (the values are median and the order of B-tree is 65 (default)).
+However, forwarding an iterator of <code>platanus</code> is extremely faster than doing that of STL, while FIFO of <code>platanus</code> is slower than that of STL by approximately 19%.
+So, you should check how much the performance is improved.</p>
+<h2 id="installation">Installation</h2>
+<p>platanus is an header only library, so you don't have to install it.
+When using CMake, you only have to link your program to <code>platanus</code>.
+For example, <code>target_link_libraries(your_program PUBLIC platanus)</code>.</p>
+<h2 id="limitation-and-caveats">Limitation and caveats</h2>
+<h3 id="supporting-order">Supporting order</h3>
+<p>We need at least 3 values per a node in order to perform splitting (1 value for the two nodes involved in the split and 1 value propagated to the parent as the delimiter for the split). That is, We don't support the 3 order B-trees.</p>
+<h3 id="invalidating-iterators-after-insertions-and-deletions">Invalidating iterators after insertions and deletions</h3>
+<p>Insertions and deletions on a btree can cause splitting, merging or rebalancing of btree nodes.
+And even without these operations, insertions and deletions on a btree will move values around within a node.
+In both cases, the result is that insertions and deletions can invalidate iterators pointing to values other than the one being inserted/deleted.
+This is notably different from STL set/map which takes care to not invalidate iterators on <code>insert</code>/<code>erase</code> except, of course, for iterators pointing to the value being erased.
+A partial workaround when erasing is available: <code>erase()</code> returns an iterator pointing to the item just after the one that was erased (or <code>end()</code> if none exists).</p>
+<h2 id="license">License</h2>
+<p>platanus is licensed under <a href="COPYING">Apache License, Version 2.0</a>.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="about/" class="btn btn-neutral float-right" title="About">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="reference/btree_set/" class="btn btn-neutral float-right" title="btree_set">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -119,7 +165,7 @@ docs/
     
     
     
-      <span><a href="about/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="reference/btree_set/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
@@ -139,5 +185,5 @@ docs/
 
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-04-19 06:14:32.728652+00:00
+Build Date UTC : 2024-08-27 10:32:07.189187+00:00
 -->

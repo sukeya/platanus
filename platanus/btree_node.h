@@ -136,8 +136,8 @@ class btree_node {
   using node_owner = std::unique_ptr<btree_node, node_deleter>;
   // node_borrower can change the node's content but not the memory (allocation and release not
   // allowed).
-  using node_borrower = btree_node*;
-  using node_readonly_borrower = btree_node const *;
+  using node_borrower          = btree_node*;
+  using node_readonly_borrower = btree_node const*;
 
   using children_allocator_type   = typename allocator_traits::template rebind_alloc<node_owner>;
   using children_allocator_traits = std::allocator_traits<children_allocator_type>;
@@ -266,7 +266,7 @@ class btree_node {
   }
 
   // Getters/setter for the child at position i in the node.
-  node_borrower          borrow_child(count_type i) const noexcept { return children_ptr_[i].get(); }
+  node_borrower borrow_child(count_type i) const noexcept { return children_ptr_[i].get(); }
   node_readonly_borrower borrow_readonly_child(count_type i) const noexcept {
     return children_ptr_[i].get();
   }

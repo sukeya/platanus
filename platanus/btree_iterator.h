@@ -28,12 +28,14 @@ using signed_count_type = typename Node::signed_count_type;
 
 // Increment/decrement the iterator.
 template <class Node>
-void increment_slow(node_readonly_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+void increment_slow(
+    node_readonly_borrower<Node>& node, signed_count_type<Node>& position
+) noexcept {
   if (node->leaf()) {
     assert(position >= node->count());
 
-    node_readonly_borrower<Node> save_node = node;
-    signed_count_type<Node> save_position = position;
+    node_readonly_borrower<Node> save_node     = node;
+    signed_count_type<Node>      save_position = position;
 
     // Climb the tree.
     while (position == node->count() && !node->is_root()) {
@@ -44,7 +46,7 @@ void increment_slow(node_readonly_borrower<Node>& node, signed_count_type<Node>&
     }
     // If node is the root, this tree is fully iterated, so set this to the saved end() position.
     if (position == node->count()) {
-      node = save_node;
+      node     = save_node;
       position = save_position;
     }
   } else {
@@ -75,12 +77,14 @@ void increment(node_borrower<Node>& node, signed_count_type<Node>& position) noe
 }
 
 template <class Node>
-void decrement_slow(node_readonly_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+void decrement_slow(
+    node_readonly_borrower<Node>& node, signed_count_type<Node>& position
+) noexcept {
   if (node->leaf()) {
     assert(position <= -1);
 
-    node_readonly_borrower<Node> save_node = node;
-    signed_count_type<Node> save_position = position;
+    node_readonly_borrower<Node> save_node     = node;
+    signed_count_type<Node>      save_position = position;
 
     // Climb the tree while updating the position to the left sibling of this in its parent node.
     while (position < 0 && !node->is_root()) {
@@ -92,7 +96,7 @@ void decrement_slow(node_readonly_borrower<Node>& node, signed_count_type<Node>&
     // If node is the root, the previoud *this is the rend() position, so set *this to the saved
     // rend() position.
     if (position < 0) {
-      node = save_node;
+      node     = save_node;
       position = save_position;
     }
   } else {
@@ -121,17 +125,17 @@ void decrement(node_borrower<Node>& node, signed_count_type<Node>& position) noe
   decrement<Node>(tmp, position);
   node = const_cast<node_borrower<Node>>(tmp);
 }
-} // namespace detail
+}  // namespace detail
 
 template <typename Node, bool is_const>
 struct btree_iterator;
 
 template <typename Node>
 struct btree_iterator<Node, false> {
-  using self_type  = btree_iterator<Node, false>;
+  using self_type = btree_iterator<Node, false>;
 
-  using node_type     = Node;
-  using node_borrower = typename Node::node_borrower;
+  using node_type              = Node;
+  using node_borrower          = typename Node::node_borrower;
   using node_readonly_borrower = typename Node::node_readonly_borrower;
 
   using key_type        = typename Node::key_type;
@@ -194,10 +198,10 @@ struct btree_iterator<Node, false> {
 
 template <typename Node>
 struct btree_iterator<Node, true> {
-  using self_type  = btree_iterator<Node, true>;
+  using self_type = btree_iterator<Node, true>;
 
-  using node_type     = Node;
-  using node_borrower = typename Node::node_borrower;
+  using node_type              = Node;
+  using node_borrower          = typename Node::node_borrower;
   using node_readonly_borrower = typename Node::node_readonly_borrower;
 
   using key_type        = typename Node::key_type;
@@ -222,7 +226,8 @@ struct btree_iterator<Node, true> {
   btree_iterator& operator=(btree_iterator&&)      = default;
   ~btree_iterator()                                = default;
 
-  explicit btree_iterator(node_readonly_borrower n, signed_count_type p) noexcept : node(n), position(p) {}
+  explicit btree_iterator(node_readonly_borrower n, signed_count_type p) noexcept
+      : node(n), position(p) {}
 
   btree_iterator(const btree_iterator<Node, false>& x) noexcept
       : btree_iterator(static_cast<node_readonly_borrower>(x.node), x.position) {}
@@ -262,16 +267,12 @@ struct btree_iterator<Node, true> {
 };
 
 template <typename Node, bool lb, bool rb>
-bool operator==(
-    const btree_iterator<Node, lb>& lhd, const btree_iterator<Node, rb>& rhd
-) noexcept {
+bool operator==(const btree_iterator<Node, lb>& lhd, const btree_iterator<Node, rb>& rhd) noexcept {
   return lhd.node == rhd.node && lhd.position == rhd.position;
 }
 
 template <typename Node, bool lb, bool rb>
-bool operator!=(
-    const btree_iterator<Node, lb>& lhd, const btree_iterator<Node, rb>& rhd
-) noexcept {
+bool operator!=(const btree_iterator<Node, lb>& lhd, const btree_iterator<Node, rb>& rhd) noexcept {
   return !(lhd == rhd);
 }
 

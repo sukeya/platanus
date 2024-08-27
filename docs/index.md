@@ -5,11 +5,11 @@
 ## Comparing to STL set/map
 A btree is both smaller and faster than STL set/map.
 The red-black tree implementation of STL set/map has an overhead of 3 pointers (left, right and parent) plus the node color information for each stored value.
-So a `std::set<std::int32>` consumes 20 bytes for each value stored.
-This btree implementation stores multiple values on fixed size nodes (usually 512 bytes) and doesn't store child
+So a `std::set<std::int32_t>` consumes 32 bytes for each value stored.
+This btree implementation stores the fixed number of values on a nodes (usually 64) and doesn't store child
 pointers for leaf nodes.
 The result is that a `platanus::btree_set<std::int32>` may use much less memory per stored value.
-For the random insertion benchmark in btree_test.cc, a `platanus::btree_set<std::int32>` with node-size of 512 uses 5.19 bytes per stored value.
+For the random insertion benchmark in btree_test.cc, a `platanus::btree_set<std::int32_t>` with 64 values per node uses 4.64 bytes per stored value.
 
 The packing of multiple values on to each node of a btree has another effect besides better space utilization: better cache locality due to fewer cache lines being accessed.
 Better cache locality translates into faster operations.
@@ -25,7 +25,7 @@ Better cache locality translates into faster operations.
 
 
 ## Performance
-Generally speaking, `platunus` is slower than `cpp-btree` by approximately 13%, but is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% (the values are median and the node size of B-tree is 512 byte (default)).
+Generally speaking, `platunus` is slower than `cpp-btree` by approximately 13%, but is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% (the values are median and the order of B-tree is 65 (default)).
 However, forwarding an iterator of `platanus` is extremely faster than doing that of STL, while FIFO of `platanus` is slower than that of STL by approximately 19%.
 So, you should check how much the performance is improved.
 

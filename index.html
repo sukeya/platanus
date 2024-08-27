@@ -48,13 +48,19 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
-    </li>
     <li class="toctree-l2"><a class="reference internal" href="#limitation-and-caveats">Limitation and caveats</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#supporting-order">Supporting order</a>
+    <li class="toctree-l3"><a class="reference internal" href="#supporting-the-orders-of-b-tree">Supporting the orders of B-Tree</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#invalidating-iterators-after-insertions-and-deletions">Invalidating iterators after insertions and deletions</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#test">Test</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#performance-test">Performance test</a>
     </li>
         </ul>
     </li>
@@ -122,12 +128,8 @@ Better cache locality translates into faster operations.</p>
 <p>Generally speaking, <code>platunus</code> is slower than <code>cpp-btree</code> by approximately 13%, but is faster than <code>std::(multi)set</code> and <code>std::(multi)map</code> by approximately 59% (the values are median and the order of B-tree is 65 (default)).
 However, forwarding an iterator of <code>platanus</code> is extremely faster than doing that of STL, while FIFO of <code>platanus</code> is slower than that of STL by approximately 19%.
 So, you should check how much the performance is improved.</p>
-<h2 id="installation">Installation</h2>
-<p>platanus is an header only library, so you don't have to install it.
-When using CMake, you only have to link your program to <code>platanus</code>.
-For example, <code>target_link_libraries(your_program PUBLIC platanus)</code>.</p>
 <h2 id="limitation-and-caveats">Limitation and caveats</h2>
-<h3 id="supporting-order">Supporting order</h3>
+<h3 id="supporting-the-orders-of-b-tree">Supporting the orders of B-Tree</h3>
 <p>We need at least 3 values per a node in order to perform splitting (1 value for the two nodes involved in the split and 1 value propagated to the parent as the delimiter for the split). That is, We don't support the 3 order B-trees.</p>
 <h3 id="invalidating-iterators-after-insertions-and-deletions">Invalidating iterators after insertions and deletions</h3>
 <p>Insertions and deletions on a btree can cause splitting, merging or rebalancing of btree nodes.
@@ -135,6 +137,63 @@ And even without these operations, insertions and deletions on a btree will move
 In both cases, the result is that insertions and deletions can invalidate iterators pointing to values other than the one being inserted/deleted.
 This is notably different from STL set/map which takes care to not invalidate iterators on <code>insert</code>/<code>erase</code> except, of course, for iterators pointing to the value being erased.
 A partial workaround when erasing is available: <code>erase()</code> returns an iterator pointing to the item just after the one that was erased (or <code>end()</code> if none exists).</p>
+<h2 id="installation">Installation</h2>
+<p>platanus is an header only library, so you don't have to install it.
+When using CMake, you only have to link your program to <code>platanus</code>.
+For example, <code>target_link_libraries(your_program PUBLIC platanus)</code>.</p>
+<h2 id="test">Test</h2>
+<p>If you want to test, download and install the following libraries.</p>
+<ul>
+<li><a href="https://github.com/google/googletest">googletest</a></li>
+<li><a href="https://github.com/google/benchmark">benchmark</a></li>
+</ul>
+<p>Then, run the following commands in the top directory of <code>platanus</code>.</p>
+<pre><code>cmake -S . -B build/debug -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+cd build/debug/test
+./btree_test
+</code></pre>
+<h3 id="performance-test">Performance test</h3>
+<p>If you want to check how much <code>platanus</code> is faster than STL, run the following commands.</p>
+<pre><code>cmake -S . -B build/release -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+cd build/release/benchmark
+./btree_bench
+</code></pre>
+<p>The output has the following form.</p>
+<pre><code>BM_(&quot;stl&quot; or &quot;btree_(the max number of values per node)&quot;)_(container type)_(value type)_(test case) (average time[ns] per iteration) (the total of iterations)
+</code></pre>
+<p>The test cases are:</p>
+<table>
+<thead>
+<tr>
+<th>test case</th>
+<th>meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insert</td>
+<td>Benchmark insertion of values into a container.</td>
+</tr>
+<tr>
+<td>Lookup</td>
+<td>Benchmark lookup of values in a container.</td>
+</tr>
+<tr>
+<td>Delete</td>
+<td>Benchmark deletion of values from a container.</td>
+</tr>
+<tr>
+<td>FwdIter</td>
+<td>Iteration (forward) through the tree.</td>
+</tr>
+</tbody>
+</table>
+<p>If you want to know a good size of values per node, run the following comamnd.</p>
+<pre><code>cmake -S . -B build/release -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DVALUES_SIZE_TEST
+cd build/release/benchmark
+./btree_bench
+</code></pre>
+<p>The result on my environment is <a href="benchmark_result.txt">here</a>.</p>
 <h2 id="license">License</h2>
 <p>platanus is licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0.txt">Apache License, Version 2.0</a>.</p>
               
@@ -185,5 +244,5 @@ A partial workaround when erasing is available: <code>erase()</code> returns an 
 
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-08-27 10:42:26.497607+00:00
+Build Date UTC : 2024-08-27 12:04:36.844775+00:00
 -->

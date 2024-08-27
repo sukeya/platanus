@@ -36,7 +36,7 @@ cd build/debug/test
 ./btree_test
 ```
 
-#### Performance test
+### Performance test
 If you want to check how much `platanus` is faster than STL, run the following commands.
 
 ```

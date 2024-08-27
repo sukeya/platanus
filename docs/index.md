@@ -30,14 +30,8 @@ However, forwarding an iterator of `platanus` is extremely faster than doing tha
 So, you should check how much the performance is improved.
 
 
-## Installation
-platanus is an header only library, so you don't have to install it.
-When using CMake, you only have to link your program to `platanus`.
-For example, `target_link_libraries(your_program PUBLIC platanus)`.
-
-
 ## Limitation and caveats
-### Supporting order
+### Supporting the orders of B-Tree
 We need at least 3 values per a node in order to perform splitting (1 value for the two nodes involved in the split and 1 value propagated to the parent as the delimiter for the split). That is, We don't support the 3 order B-trees.
 
 ### Invalidating iterators after insertions and deletions
@@ -46,6 +40,60 @@ And even without these operations, insertions and deletions on a btree will move
 In both cases, the result is that insertions and deletions can invalidate iterators pointing to values other than the one being inserted/deleted.
 This is notably different from STL set/map which takes care to not invalidate iterators on `insert`/`erase` except, of course, for iterators pointing to the value being erased.
 A partial workaround when erasing is available: `erase()` returns an iterator pointing to the item just after the one that was erased (or `end()` if none exists).
+
+
+## Installation
+platanus is an header only library, so you don't have to install it.
+When using CMake, you only have to link your program to `platanus`.
+For example, `target_link_libraries(your_program PUBLIC platanus)`.
+
+
+## Test
+If you want to test, download and install the following libraries.
+
+- [googletest](https://github.com/google/googletest)
+- [benchmark](https://github.com/google/benchmark)
+
+Then, run the following commands in the top directory of `platanus`.
+```
+cmake -S . -B build/debug -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+cd build/debug/test
+./btree_test
+```
+
+### Performance test
+If you want to check how much `platanus` is faster than STL, run the following commands.
+
+```
+cmake -S . -B build/release -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+cd build/release/benchmark
+./btree_bench
+```
+
+The output has the following form.
+
+```
+BM_("stl" or "btree_(the max number of values per node)")_(container type)_(value type)_(test case) (average time[ns] per iteration) (the total of iterations)
+```
+
+The test cases are:
+
+| test case | meaning |
+| --- | --- |
+| Insert | Benchmark insertion of values into a container. |
+| Lookup | Benchmark lookup of values in a container. |
+| Delete | Benchmark deletion of values from a container. |
+| FwdIter | Iteration (forward) through the tree. |
+
+If you want to know a good size of values per node, run the following comamnd.
+
+```
+cmake -S . -B build/release -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DVALUES_SIZE_TEST
+cd build/release/benchmark
+./btree_bench
+```
+
+The result on my environment is [here](./benchmark_result.txt).
 
 
 ## License

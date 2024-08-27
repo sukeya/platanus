@@ -28,6 +28,7 @@
 #include <limits>
 #include <new>
 #include <ostream>
+#include <ranges>
 #include <string>
 #include <sys/types.h>
 #include <type_traits>
@@ -220,7 +221,7 @@ class btree {
   }
 
   // Inserts a value into the btree only if it does not already exist. The
-  // boolean return value indicates whether insertion succeeded or failed.
+  // returned boolean indicates whether insertion succeeded or failed.
   std::pair<iterator, bool> insert_unique(const value_type& v) { return internal_insert_unique(v); }
   std::pair<iterator, bool> insert_unique(value_type&& v) {
     return internal_insert_unique(std::move(v));
@@ -472,9 +473,8 @@ class btree {
         std::vector<std::size_t> removed_indexes;
 
         // Insert the intersection to *this.
-        std::size_t i = 0;
-        for (auto it = rhd.begin(); it != rhd.end(); ++it) {
-          auto [result_it, is_inserted] = insert_unique(std::move(*it));
+        for (std::size_t i = 0; auto& v : rhd) {
+          auto [_, is_inserted] = insert_unique(std::move(v));
           if (is_inserted) {
             removed_indexes.push_back(i);
           }
@@ -482,12 +482,12 @@ class btree {
         }
 
         // Remove the keys inserted to *this.
-        for (auto it = removed_indexes.rbegin(); it != removed_indexes.rend(); ++it) {
+        for (auto i : removed_indexes | std::views::reverse) {
           iterator hint;
-          if (*it < rhd.size() / 2) {
-            hint = std::next(rhd.begin(), *it);
+          if (i < rhd.size() / 2) {
+            hint = std::next(rhd.begin(), i);
           } else {
-            hint = std::prev(rhd.end(), rhd.size() - *it);
+            hint = std::prev(rhd.end(), rhd.size() - i);
           }
           rhd.erase(hint);
         }
@@ -499,20 +499,21 @@ class btree {
     // Store the keys removed from rhd temporarily.
     std::vector<std::size_t> removed_indexes;
 
-    auto        it = rhd.begin();
-    std::size_t i  = 0;
     // Insert the intersection to *this.
-    auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-    for (; it != rhd_intersection_end; ++it) {
-      auto [result_it, is_inserted] = insert_unique(std::move(*it));
-      if (is_inserted) {
-        removed_indexes.push_back(i);
+    {
+      auto rhd_intersection_end = rhd.upper_bound(lhd_max);
+
+      for (std::size_t i = 0; auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
+        auto [_, is_inserted] = insert_unique(std::move(v));
+        if (is_inserted) {
+          removed_indexes.push_back(i);
+        }
+        ++i;
       }
-      ++i;
-    }
-    // Insert the extra of rhd.
-    for (; it != rhd.end(); ++it) {
-      insert_unique(end(), std::move(*it));
+      // Insert the extra of rhd.
+      for (auto& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
+        insert_unique(end(), std::move(v));
+      }
     }
 
     // Remove the extra of rhd.
@@ -529,12 +530,12 @@ class btree {
       rhd.erase(std::prev(rhd.end()));
     }
     // Remove the keys inserted to *this.
-    for (auto it = removed_indexes.rbegin(); it != removed_indexes.rend(); ++it) {
+    for (auto i : removed_indexes | std::views::reverse) {
       iterator hint;
-      if (*it < rhd.size() / 2) {
-        hint = std::next(rhd.begin(), *it);
+      if (i < rhd.size() / 2) {
+        hint = std::next(rhd.begin(), i);
       } else {
-        hint = std::prev(rhd.end(), rhd.size() - *it);
+        hint = std::prev(rhd.end(), rhd.size() - i);
       }
       rhd.erase(hint);
     }
@@ -570,13 +571,12 @@ class btree {
 
     // Insert the intersection to *this.
     auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-    auto it                   = rhd.begin();
-    for (; it != rhd_intersection_end; ++it) {
-      insert_multi(std::move(*it));
+    for (auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
+      insert_multi(std::move(v));
     }
     // Insert the extra of rhd.
-    for (; it != rhd.end(); ++it) {
-      insert_multi(end(), std::move(*it));
+    for (auto& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
+      insert_multi(end(), std::move(v));
     }
 
     rhd.clear();
@@ -584,7 +584,7 @@ class btree {
 
  private:
   // Internal accessor routines.
-  node_borrower       borrow_root() noexcept { return root_->borrow_myself(); }
+  node_borrower          borrow_root() noexcept { return root_->borrow_myself(); }
   node_readonly_borrower borrow_readonly_root() const noexcept {
     return static_cast<node_readonly_borrower>(const_cast<btree*>(this)->borrow_root());
   }
@@ -592,7 +592,7 @@ class btree {
   void       set_root(node_owner&& node) noexcept { root_ = std::move(node); }
 
   // Getter/Setter for the rightmost node in the tree.
-  node_borrower       borrow_rightmost() noexcept { return rightmost_; }
+  node_borrower          borrow_rightmost() noexcept { return rightmost_; }
   node_readonly_borrower borrow_readonly_rightmost() const noexcept {
     return static_cast<node_readonly_borrower>(const_cast<btree*>(this)->borrow_rightmost());
   }
@@ -600,7 +600,7 @@ class btree {
   void set_leftmost(node_borrower node) noexcept { leftmost_ = node; }
 
   // The leftmost node is stored as the parent of the root node.
-  node_borrower       borrow_leftmost() noexcept { return leftmost_; }
+  node_borrower          borrow_leftmost() noexcept { return leftmost_; }
   node_readonly_borrower borrow_readonly_leftmost() const noexcept {
     return static_cast<node_readonly_borrower>(const_cast<btree*>(this)->borrow_leftmost());
   }

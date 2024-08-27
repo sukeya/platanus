@@ -79,7 +79,7 @@ if(BUILD_TESTS)
   enable_testing()
 
   find_package(GTest REQUIRED)
-  find_package(gflags REQUIRED)
+  find_package(benchmark REQUIRED)
 
   add_subdirectory(test)
   add_subdirectory(benchmark)

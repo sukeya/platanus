@@ -29,12 +29,13 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "gflags/gflags.h"
+
 #include "platanus/btree_container.h"
-#include "btree_test_flags.h"
 #include "util.h"
 
 namespace platanus {
+// The number of values to use for tests.
+inline static constexpr int test_values = 10'000;
 
 // Counts the number of occurances of "c" in a buffer.
 ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
@@ -115,9 +116,10 @@ class base_checker {
     return tree_iter;
   }
   void value_check(const value_type& x) {
-    typename KeyOfValue<typename TreeType::key_type, typename TreeType::value_type>::type
-                    key_of_value;
-    const key_type& key = key_of_value(x);
+    using KeyGetter =
+        typename KeyOfValue<typename TreeType::key_type, typename TreeType::value_type>::type;
+
+    const key_type& key = KeyGetter::Get(x);
     EXPECT_EQ(*find(key), x);
     lower_bound(key);
     upper_bound(key);
@@ -424,7 +426,7 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
 
 template <typename T, typename V>
 void DoTest(const char* name, T* b, const std::vector<V>& values) {
-  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
+  using KeyGetter = typename KeyOfValue<typename T::key_type, V>::type;
 
   T&       mutable_b = *b;
   const T& const_b   = *b;
@@ -453,7 +455,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_LE(b_copy.leaf_nodes(), const_b.leaf_nodes());
   for (int i = 0; i < values.size(); ++i) {
     EXPECT_EQ(
-        *b_copy.find(key_of_value(values[i])),
+        *b_copy.find(KeyGetter::Get(values[i])),
         static_cast<typename T::value_type>(values[i])
     );
   }
@@ -466,7 +468,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_LE(b_range.leaf_nodes(), const_b.leaf_nodes());
   for (int i = 0; i < values.size(); ++i) {
     EXPECT_EQ(
-        *b_range.find(key_of_value(values[i])),
+        *b_range.find(KeyGetter::Get(values[i])),
         static_cast<typename T::value_type>(values[i])
     );
   }
@@ -484,7 +486,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_EQ(b_range.leaf_nodes(), b_copy.leaf_nodes());
   for (int i = 0; i < values.size(); ++i) {
     EXPECT_EQ(
-        *b_range.find(key_of_value(values[i])),
+        *b_range.find(KeyGetter::Get(values[i])),
         static_cast<typename T::value_type>(values[i])
     );
   }
@@ -511,7 +513,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_EQ(b_range.size(), const_b.size());
   for (int i = 0; i < values.size(); ++i) {
     EXPECT_EQ(
-        *b_range.find(key_of_value(values[i])),
+        *b_range.find(KeyGetter::Get(values[i])),
         static_cast<typename T::value_type>(values[i])
     );
   }
@@ -519,9 +521,9 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
 
   // Test erase via values.
   for (int i = 0; i < values.size(); ++i) {
-    mutable_b.erase(key_of_value(values[i]));
+    mutable_b.erase(KeyGetter::Get(values[i]));
     // Erasing a non-existent key should have no effect.
-    EXPECT_EQ(mutable_b.erase(key_of_value(values[i])), 0);
+    EXPECT_EQ(mutable_b.erase(KeyGetter::Get(values[i])), 0);
   }
 
   const_b.verify();
@@ -532,7 +534,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   // Test erase via iterators.
   mutable_b = b_copy;
   for (int i = 0; i < values.size(); ++i) {
-    mutable_b.erase(mutable_b.find(key_of_value(values[i])));
+    mutable_b.erase(mutable_b.find(KeyGetter::Get(values[i])));
   }
 
   const_b.verify();
@@ -542,7 +544,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
 
   // Test insert with hint.
   for (int i = 0; i < values.size(); i++) {
-    mutable_b.insert(mutable_b.upper_bound(key_of_value(values[i])), values[i]);
+    mutable_b.insert(mutable_b.upper_bound(KeyGetter::Get(values[i])), values[i]);
   }
 
   const_b.verify();
@@ -557,7 +559,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   // Test insert rvalues with hint.
   b_rvalues.clear();
   for (int i = 0; i < values.size(); i++) {
-    b_rvalues.insert(b_rvalues.upper_bound(key_of_value(values[i])), V(values[i]));
+    b_rvalues.insert(b_rvalues.upper_bound(KeyGetter::Get(values[i])), V(values[i]));
   }
   b_rvalues.verify();
 
@@ -604,19 +606,19 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
 template <typename T>
 void ConstTest() {
   using value_type = typename T::value_type;
-  typename KeyOfValue<typename T::key_type, value_type>::type key_of_value;
+  using KeyGetter  = typename KeyOfValue<typename T::key_type, value_type>::type;
 
   T        mutable_b;
   const T& const_b = mutable_b;
 
   // Insert a single value into the container and test looking it up.
-  value_type value = Generator<value_type>(2)(2);
+  value_type value = Generator<value_type>::Generate(2);
   mutable_b.insert(value);
-  EXPECT_TRUE(mutable_b.find(key_of_value(value)) != const_b.end());
-  EXPECT_TRUE(const_b.find(key_of_value(value)) != mutable_b.end());
-  EXPECT_EQ(*const_b.lower_bound(key_of_value(value)), value);
-  EXPECT_TRUE(const_b.upper_bound(key_of_value(value)) == const_b.end());
-  EXPECT_EQ(*const_b.equal_range(key_of_value(value)).first, value);
+  EXPECT_TRUE(mutable_b.find(KeyGetter::Get(value)) != const_b.end());
+  EXPECT_TRUE(const_b.find(KeyGetter::Get(value)) != mutable_b.end());
+  EXPECT_EQ(*const_b.lower_bound(KeyGetter::Get(value)), value);
+  EXPECT_TRUE(const_b.upper_bound(KeyGetter::Get(value)) == const_b.end());
+  EXPECT_EQ(*const_b.equal_range(KeyGetter::Get(value)).first, value);
 
   // We can only create a non-const iterator from a non-const container.
   typename T::iterator mutable_iter(mutable_b.begin());
@@ -648,8 +650,8 @@ void ConstTest() {
   EXPECT_EQ(const_b.size(), 1);
   EXPECT_GT(const_b.max_size(), 0);
   EXPECT_EQ(const_b.height(), 1);
-  EXPECT_EQ(const_b.count(key_of_value(value)), 1);
-  EXPECT_EQ(const_b.contains(key_of_value(value)), true);
+  EXPECT_EQ(const_b.count(KeyGetter::Get(value)), 1);
+  EXPECT_EQ(const_b.contains(KeyGetter::Get(value)), true);
   EXPECT_EQ(const_b.internal_nodes(), 0);
   EXPECT_EQ(const_b.leaf_nodes(), 1);
   EXPECT_EQ(const_b.nodes(), 1);
@@ -758,7 +760,7 @@ void BtreeTest() {
   ConstTest<T>();
 
   using V                      = typename std::remove_const<typename T::value_type>::type;
-  std::vector<V> random_values = GenerateValues<V>(FLAGS_test_values);
+  std::vector<V> random_values = GenerateValues<V>(test_values);
 
   unique_checker<T, C> container;
 
@@ -800,7 +802,7 @@ void BtreeMultiTest() {
   ConstTest<T>();
 
   using V                             = typename std::remove_const<typename T::value_type>::type;
-  const std::vector<V>& random_values = GenerateValues<V>(FLAGS_test_values);
+  const std::vector<V>& random_values = GenerateValues<V>(test_values);
 
   multi_checker<T, C> container;
 
@@ -826,7 +828,7 @@ void BtreeMultiTest() {
 
   // Test all identical keys.
   std::vector<V> identical_values(100);
-  fill(identical_values.begin(), identical_values.end(), Generator<V>(2)(2));
+  fill(identical_values.begin(), identical_values.end(), Generator<V>::Generate(2));
   DoTest("identical: ", &container, identical_values);
 
   // Test merging a B-tree with unique values.
@@ -888,9 +890,8 @@ void BtreeAllocatorTest() {
   // This should swap the allocators!
   swap(b1, b2);
 
-  auto generator = Generator<value_type>(1000);
-  for (int i = 0; i < 1000; i++) {
-    b1.insert(generator(i));
+  for (std::size_t i = 0; i < 1000; i++) {
+    b1.insert(Generator<value_type>::Generate(i));
   }
 
   // We should have allocated out of alloc2!
@@ -903,17 +904,16 @@ void BtreeMapTest() {
   using value_type  = typename T::value_type;
   using mapped_type = typename T::mapped_type;
 
-  mapped_type m = Generator<mapped_type>(0)(0);
+  mapped_type m = Generator<mapped_type>::Generate(0);
   (void)m;
 
   T b;
 
   // Verify we can insert using operator[].
-  auto generator = Generator<value_type>(1000);
   std::pair<std::remove_const_t<typename value_type::first_type>, mapped_type> min, max;
-  auto comp = b.key_comp();
-  for (int i = 0; i < 1000; i++) {
-    value_type v = generator(i);
+  auto                                                                         comp = b.key_comp();
+  for (std::size_t i = 0; i < 1000; i++) {
+    value_type v = Generator<value_type>::Generate(i);
     if (i == 0) {
       min = v;
       max = v;
@@ -922,7 +922,7 @@ void BtreeMapTest() {
     } else if (comp(max.first, v.first)) {
       max = v;
     }
-    b[v.first]   = v.second;
+    b[v.first] = v.second;
   }
   EXPECT_EQ(b.size(), 1000);
 
@@ -938,7 +938,7 @@ void BtreeMapTest() {
 template <typename T>
 void BtreeMultiMapTest() {
   using mapped_type = typename T::mapped_type;
-  mapped_type m     = Generator<mapped_type>(0)(0);
+  mapped_type m     = Generator<mapped_type>::Generate(0);
   (void)m;
 }
 

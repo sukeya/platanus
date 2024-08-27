@@ -27,7 +27,7 @@ You might also want to see [Google's usage instructions](http://code.google.com/
 If you want to test, download and install the following libraries.
 
 - [googletest](https://github.com/google/googletest)
-- [gflags](https://github.com/google/googletest)
+- [benchmark](https://github.com/google/benchmark)
 
 Then, run the following commands in the top directory of `platanus`.
 ```
@@ -57,11 +57,7 @@ The test cases are:
 | --- | --- |
 | Insert | Benchmark insertion of values into a container. |
 | Lookup | Benchmark lookup of values in a container. |
-| FullLookup | Benchmark lookup of values in a full container, meaning that values are inserted in-order to take advantage of biased insertion, which yields a full tree. |
 | Delete | Benchmark deletion of values from a container. |
-| QueueAddRem | Benchmark steady-state insert (into first half of range) and remove (from second second half of range), treating the container approximately like a queue with log-time access for all elements. This benchmark does not test the case where insertion and removal happen in the same region of the tree.  This benchmark counts two value constructors. |
-| MixedAddRem | Benchmark mixed insertion and deletion in the same range using pre-constructed values. |
-| Fifo | Insertion at end, removal from the beginning. This benchmark counts one value constructors. |
 | FwdIter | Iteration (forward) through the tree. |
 
 If you want to know a good size of values per node, run the following comamnd.

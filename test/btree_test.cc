@@ -227,7 +227,7 @@ TEST(Btree, RangeCtorSanity) {
 
 // Test using a class that doesn't implement any comparison operator as key.
 struct Vec2i {
-  static constexpr int N = 2;
+  static constexpr std::size_t N = 2;
 
   int a[N];
 };
@@ -241,29 +241,17 @@ bool operator==(const Vec2i& lhd, const Vec2i& rhd) {
   return true;
 }
 
-bool operator!=(const Vec2i& lhd, const Vec2i& rhd) {
-  return not (lhd == rhd);
-}
+bool operator!=(const Vec2i& lhd, const Vec2i& rhd) { return not(lhd == rhd); }
 
 template <>
 struct Generator<Vec2i> {
-  Generator(int m) : maxval(m) {
-    engine = std::mt19937(seed_gen());
-    dist   = std::uniform_int_distribution<int>(0, maxval);
-  }
-
-  Vec2i operator()(int) {
+  static constexpr Vec2i Generate(std::size_t n) {
     Vec2i v;
-    for (int i = 0; i < Vec2i::N; ++i) {
-      v.a[i] = dist(engine);
+    for (std::size_t i = 0; i < Vec2i::N; ++i) {
+      v.a[i] = n;
     }
     return v;
   }
-
-  int                                maxval;
-  std::random_device                 seed_gen;
-  std::mt19937                       engine;
-  std::uniform_int_distribution<int> dist;
 };
 
 struct Vec2iComp {
@@ -284,24 +272,22 @@ struct Vec2iComp {
     }
   }
 
-  bool operator()(const Vec2i& lhd, const Vec2i& rhd) const noexcept {
-    return comp(lhd, rhd, 0);
-  }
+  bool operator()(const Vec2i& lhd, const Vec2i& rhd) const noexcept { return comp(lhd, rhd, 0); }
 };
 }  // namespace platanus
 
 namespace std {
-  ostream& operator<<(ostream& os, const platanus::Vec2i& v) {
-    os << "(" << v.a[0] << "," << v.a[1] << ")";
-    return os;
-  }
+ostream& operator<<(ostream& os, const platanus::Vec2i& v) {
+  os << "(" << v.a[0] << "," << v.a[1] << ")";
+  return os;
 }
+}  // namespace std
 
 namespace platanus {
 TEST(Btree, set_vec2i_64) {
   static constexpr int N = 64;
 
-  using K = Vec2i;
+  using K         = Vec2i;
   using TestAlloc = TestAllocator<K>;
 
   BtreeTest<btree_set<K, Vec2iComp, std::allocator<K>, N>, std::set<K, Vec2iComp>>();
@@ -311,7 +297,7 @@ TEST(Btree, set_vec2i_64) {
 TEST(Btree, map_vec2i_64) {
   static constexpr int N = 64;
 
-  using K = Vec2i;
+  using K         = Vec2i;
   using TestAlloc = TestAllocator<K>;
 
   BtreeTest<btree_map<K, K, Vec2iComp, std::allocator<K>, N>, std::map<K, K, Vec2iComp>>();
@@ -322,7 +308,7 @@ TEST(Btree, map_vec2i_64) {
 TEST(Btree, multiset_vec2i_64) {
   static constexpr int N = 64;
 
-  using K = Vec2i;
+  using K         = Vec2i;
   using TestAlloc = TestAllocator<K>;
 
   BtreeMultiTest<btree_multiset<K, Vec2iComp, std::allocator<K>, N>, std::multiset<K, Vec2iComp>>();
@@ -332,7 +318,7 @@ TEST(Btree, multiset_vec2i_64) {
 TEST(Btree, multimap_vec2i_64) {
   static constexpr int N = 64;
 
-  using K = Vec2i;
+  using K         = Vec2i;
   using TestAlloc = TestAllocator<K>;
 
   BtreeMultiTest<

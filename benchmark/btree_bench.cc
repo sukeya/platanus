@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <stdint.h>
-#include <stdlib.h>
 #include <algorithm>
 #include <cmath>
 #include <functional>
@@ -21,33 +19,21 @@
 #include <random>
 #include <set>
 #include <string>
-#include <sys/time.h>
+#include <tuple>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
-#include "gflags/gflags.h"
+#include "benchmark/benchmark.h"
+
 #include "platanus/btree_map.h"
 #include "platanus/btree_set.h"
 #include "../test/util.h"
 
-DEFINE_int32(test_random_seed, 123456789, "Seed for srand()");
-DEFINE_int32(benchmark_max_iters, 10000000, "Maximum test iterations");
-DEFINE_int32(benchmark_min_iters, 100, "Minimum test iterations");
-DEFINE_int32(benchmark_target_seconds, 1, "Attempt to benchmark for this many seconds");
+static_assert(sizeof(std::size_t) == 8, "must fix the bits of mersenne twister engine.");
 
-using std::allocator;
-using std::map;
-using std::max;
-using std::min;
-using std::multimap;
-using std::multiset;
-using std::set;
-using std::string;
-using std::vector;
-using std::ranges::less;
-
-namespace platanus {
-namespace {
+// The size of values used in each benchmark.
+static constexpr std::int64_t values_size = 1'000'000;
 
 struct StringComp {
   std::weak_ordering operator()(const std::string& lhd, const std::string& rhd) const noexcept {
@@ -62,531 +48,216 @@ struct StringComp {
   }
 };
 
-struct BenchmarkRun {
-  BenchmarkRun(const char* name, void (*func)(int));
-  void Run();
-  void Stop();
-  void Start();
-  void Reset();
-
-  BenchmarkRun* next_benchmark;
-  const char*   benchmark_name;
-  void (*benchmark_func)(int);
-  int64_t accum_micros;
-  int64_t last_started;
-};
-
-BenchmarkRun* first_benchmark;
-BenchmarkRun* current_benchmark;
-
-int64_t get_micros() {
-  timeval tv;
-  gettimeofday(&tv, nullptr);
-  return tv.tv_sec * 1000000 + tv.tv_usec;
-}
-
-BenchmarkRun::BenchmarkRun(const char* name, void (*func)(int))
-    : next_benchmark(first_benchmark),
-      benchmark_name(name),
-      benchmark_func(func),
-      accum_micros(0),
-      last_started(0) {
-  first_benchmark = this;
-}
-
-#define BTREE_BENCHMARK(name)                 BTREE_BENCHMARK2(#name, name, __COUNTER__)
-#define BTREE_BENCHMARK2(name, func, counter) BTREE_BENCHMARK3(name, func, counter)
-#define BTREE_BENCHMARK3(name, func, counter) BenchmarkRun bench##counter(name, func)
-
-void StopBenchmarkTiming() { current_benchmark->Stop(); }
-
-void StartBenchmarkTiming() { current_benchmark->Start(); }
-
-void RunBenchmarks() {
-  for (BenchmarkRun* bench = first_benchmark; bench; bench = bench->next_benchmark) {
-    bench->Run();
-  }
-}
-
-void BenchmarkRun::Start() {
-  assert(!last_started);
-  last_started = get_micros();
-}
-
-void BenchmarkRun::Stop() {
-  if (last_started == 0) {
-    return;
-  }
-  accum_micros += get_micros() - last_started;
-  last_started = 0;
-}
-
-void BenchmarkRun::Reset() {
-  last_started = 0;
-  accum_micros = 0;
-}
-
-void BenchmarkRun::Run() {
-  assert(current_benchmark == nullptr);
-  current_benchmark = this;
-  int iters         = FLAGS_benchmark_min_iters;
-  for (;;) {
-    Reset();
-    Start();
-    benchmark_func(iters);
-    Stop();
-    if (accum_micros > FLAGS_benchmark_target_seconds * 1000000
-        || iters >= FLAGS_benchmark_max_iters) {
-      break;
-    } else if (accum_micros == 0) {
-      iters *= 100;
-    } else {
-      int64_t target_micros = FLAGS_benchmark_target_seconds * 1000000;
-      iters                 = target_micros * iters / accum_micros;
-    }
-    iters = min(iters, FLAGS_benchmark_max_iters);
-  }
-  fprintf(stdout, "%s\t%lld\t%d\n", benchmark_name, accum_micros * 1000 / iters, iters);
-  current_benchmark = nullptr;
-}
-
-// Used to avoid compiler optimizations for these benchmarks.
-template <typename T>
-void sink(const T& t0) {
-  volatile T t = t0;
-}
-
 // Benchmark insertion of values into a container.
 template <typename T>
-void BM_Insert(int n) {
-  using V = typename std::remove_const<typename T::value_type>::type;
-  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
+static void BM_Insert(benchmark::State& state) {
+  using V          = std::remove_const_t<typename T::value_type>;
+  using KeyOfValue = platanus::KeyOfValue<typename T::key_type, V>::type;
 
-  // Disable timing while we perform some initialization.
-  StopBenchmarkTiming();
+  std::vector<V> values = platanus::GenerateValues<V>(values_size);
+  T              container{values.begin(), values.end()};
 
-  T         container;
-  vector<V> values = GenerateValues<V>(FLAGS_benchmark_values);
-  for (int i = 0; i < values.size(); i++) {
-    container.insert(values[i]);
-  }
+  std::random_device                         seed_gen;
+  std::mt19937_64                            engine(seed_gen());
+  std::uniform_int_distribution<std::size_t> dist{0, values.size() - 1};
 
-  for (int i = 0; i < n;) {
-    // Remove and re-insert 10% of the keys
-    int m = min(n - i, FLAGS_benchmark_values / 10);
+  for (auto _ : state) {
+    state.PauseTiming();
+    auto v = values[dist(engine)];
+    container.erase(KeyOfValue::Get(v));
+    state.ResumeTiming();
 
-    for (int j = i; j < i + m; j++) {
-      int x = j % FLAGS_benchmark_values;
-      container.erase(key_of_value(values[x]));
-    }
-
-    StartBenchmarkTiming();
-
-    for (int j = i; j < i + m; j++) {
-      int x = j % FLAGS_benchmark_values;
-      container.insert(values[x]);
-    }
-
-    StopBenchmarkTiming();
-
-    i += m;
+    container.insert(std::move(v));
   }
 }
 
 // Benchmark lookup of values in a container.
 template <typename T>
-void BM_Lookup(int n) {
-  using V = typename std::remove_const<typename T::value_type>::type;
-  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
+static void BM_Lookup(benchmark::State& state) {
+  using V          = std::remove_const_t<typename T::value_type>;
+  using KeyOfValue = platanus::KeyOfValue<typename T::key_type, V>::type;
 
-  // Disable timing while we perform some initialization.
-  StopBenchmarkTiming();
+  std::vector<V> values = platanus::GenerateValues<V>(values_size);
+  T              container{values.begin(), values.end()};
 
-  T         container;
-  vector<V> values = GenerateValues<V>(FLAGS_benchmark_values);
+  std::random_device                         seed_gen;
+  std::mt19937_64                            engine(seed_gen());
+  std::uniform_int_distribution<std::size_t> dist{0, values_size - 1};
 
-  for (int i = 0; i < values.size(); i++) {
-    container.insert(values[i]);
+  for (auto _ : state) {
+    state.PauseTiming();
+    auto v = KeyOfValue::Get(values[dist(engine)]);
+    state.ResumeTiming();
+
+    auto r = *container.find(v);
+
+    state.PauseTiming();
+    benchmark::DoNotOptimize(KeyOfValue::Get(r));
+    state.ResumeTiming();
   }
-
-  V r = V();
-
-  StartBenchmarkTiming();
-
-  for (int i = 0; i < n; i++) {
-    int m = i % values.size();
-    r     = *container.find(key_of_value(values[m]));
-  }
-
-  StopBenchmarkTiming();
-
-  sink(r);  // Keep compiler from optimizing away r.
-}
-
-// Benchmark lookup of values in a full container, meaning that values
-// are inserted in-order to take advantage of biased insertion, which
-// yields a full tree.
-template <typename T>
-void BM_FullLookup(int n) {
-  using V = typename std::remove_const<typename T::value_type>::type;
-  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
-
-  // Disable timing while we perform some initialization.
-  StopBenchmarkTiming();
-
-  T         container;
-  vector<V> values = GenerateValues<V>(FLAGS_benchmark_values);
-  vector<V> sorted(values);
-  sort(sorted.begin(), sorted.end());
-
-  for (int i = 0; i < sorted.size(); i++) {
-    container.insert(sorted[i]);
-  }
-
-  V r = V();
-
-  StartBenchmarkTiming();
-
-  for (int i = 0; i < n; i++) {
-    int m = i % values.size();
-    r     = *container.find(key_of_value(values[m]));
-  }
-
-  StopBenchmarkTiming();
-
-  sink(r);  // Keep compiler from optimizing away r.
 }
 
 // Benchmark deletion of values from a container.
 template <typename T>
-void BM_Delete(int n) {
-  using V = typename std::remove_const<typename T::value_type>::type;
-  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
+static void BM_Delete(benchmark::State& state) {
+  using V          = std::remove_const_t<typename T::value_type>;
+  using KeyOfValue = platanus::KeyOfValue<typename T::key_type, V>::type;
 
-  // Disable timing while we perform some initialization.
-  StopBenchmarkTiming();
+  std::vector<V> values = platanus::GenerateValues<V>(values_size);
+  T              container{values.begin(), values.end()};
 
-  T         container;
-  vector<V> values = GenerateValues<V>(FLAGS_benchmark_values);
-  for (int i = 0; i < values.size(); i++) {
-    container.insert(values[i]);
+  std::random_device                         seed_gen;
+  std::mt19937_64                            engine(seed_gen());
+  std::uniform_int_distribution<std::size_t> dist{0, values_size - 1};
+
+  for (auto _ : state) {
+    state.PauseTiming();
+    auto v   = values[dist(engine)];
+    auto key = KeyOfValue::Get(v);
+    state.ResumeTiming();
+
+    container.erase(key);
+
+    state.PauseTiming();
+    container.insert(std::move(v));
+    state.ResumeTiming();
   }
-
-  for (int i = 0; i < n;) {
-    // Remove and re-insert 10% of the keys
-    int m = min(n - i, FLAGS_benchmark_values / 10);
-
-    StartBenchmarkTiming();
-
-    for (int j = i; j < i + m; j++) {
-      int x = j % FLAGS_benchmark_values;
-      container.erase(key_of_value(values[x]));
-    }
-
-    StopBenchmarkTiming();
-
-    for (int j = i; j < i + m; j++) {
-      int x = j % FLAGS_benchmark_values;
-      container.insert(values[x]);
-    }
-
-    i += m;
-  }
-}
-
-// Benchmark steady-state insert (into first half of range) and remove
-// (from second second half of range), treating the container
-// approximately like a queue with log-time access for all elements.
-// This benchmark does not test the case where insertion and removal
-// happen in the same region of the tree.  This benchmark counts two
-// value constructors.
-template <typename T>
-void BM_QueueAddRem(int n) {
-  using V = typename std::remove_const<typename T::value_type>::type;
-  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
-
-  // Disable timing while we perform some initialization.
-  StopBenchmarkTiming();
-  assert(FLAGS_benchmark_values % 2 == 0);
-
-  T container;
-
-  const int   half = FLAGS_benchmark_values / 2;
-  vector<int> remove_keys(half);
-  vector<int> add_keys(half);
-
-  for (int i = 0; i < half; i++) {
-    remove_keys[i] = i;
-    add_keys[i]    = i;
-  }
-
-  std::mt19937 rand(FLAGS_test_random_seed);
-
-  shuffle(remove_keys.begin(), remove_keys.end(), rand);
-  shuffle(add_keys.begin(), add_keys.end(), rand);
-
-  Generator<V> g(FLAGS_benchmark_values + FLAGS_benchmark_max_iters);
-
-  for (int i = 0; i < half; i++) {
-    container.insert(g(add_keys[i]));
-    container.insert(g(half + remove_keys[i]));
-  }
-
-  // There are three parts each of size "half":
-  // 1 is being deleted from  [offset - half, offset)
-  // 2 is standing            [offset, offset + half)
-  // 3 is being inserted into [offset + half, offset + 2 * half)
-  int offset = 0;
-
-  StartBenchmarkTiming();
-
-  for (int i = 0; i < n; i++) {
-    int idx = i % half;
-
-    if (idx == 0) {
-      StopBenchmarkTiming();
-      shuffle(remove_keys.begin(), remove_keys.end(), rand);
-      shuffle(add_keys.begin(), add_keys.end(), rand);
-      offset += half;
-      StartBenchmarkTiming();
-    }
-
-    int e = container.erase(key_of_value(g(offset - half + remove_keys[idx])));
-    assert(e == 1);
-    container.insert(g(offset + half + add_keys[idx]));
-  }
-
-  StopBenchmarkTiming();
-}
-
-// Mixed insertion and deletion in the same range using pre-constructed values.
-template <typename T>
-void BM_MixedAddRem(int n) {
-  using V = typename std::remove_const<typename T::value_type>::type;
-  typename KeyOfValue<typename T::key_type, V>::type key_of_value;
-
-  // Disable timing while we perform some initialization.
-  StopBenchmarkTiming();
-  assert(FLAGS_benchmark_values % 2 == 0);
-
-  T            container;
-  std::mt19937 rand(FLAGS_test_random_seed);
-
-  vector<V> values = GenerateValues<V>(FLAGS_benchmark_values * 2);
-
-  // Create two random shuffles
-  vector<int> remove_keys(FLAGS_benchmark_values);
-  vector<int> add_keys(FLAGS_benchmark_values);
-
-  // Insert the first half of the values (already in random order)
-  for (int i = 0; i < FLAGS_benchmark_values; i++) {
-    container.insert(values[i]);
-
-    // remove_keys and add_keys will be swapped before each round,
-    // therefore fill add_keys here w/ the keys being inserted, so
-    // they'll be the first to be removed.
-    remove_keys[i] = i + FLAGS_benchmark_values;
-    add_keys[i]    = i;
-  }
-
-  StartBenchmarkTiming();
-
-  for (int i = 0; i < n; i++) {
-    int idx = i % FLAGS_benchmark_values;
-
-    if (idx == 0) {
-      StopBenchmarkTiming();
-      remove_keys.swap(add_keys);
-      shuffle(remove_keys.begin(), remove_keys.end(), rand);
-      shuffle(add_keys.begin(), add_keys.end(), rand);
-      StartBenchmarkTiming();
-    }
-
-    int e = container.erase(key_of_value(values[remove_keys[idx]]));
-    assert(e == 1);
-    container.insert(values[add_keys[idx]]);
-  }
-
-  StopBenchmarkTiming();
-}
-
-// Insertion at end, removal from the beginning.  This benchmark
-// counts one value constructors.
-template <typename T>
-void BM_Fifo(int n) {
-  using V = typename std::remove_const<typename T::value_type>::type;
-
-  // Disable timing while we perform some initialization.
-  StopBenchmarkTiming();
-
-  T            container;
-  Generator<V> g(FLAGS_benchmark_values + FLAGS_benchmark_max_iters);
-
-  for (int i = 0; i < FLAGS_benchmark_values; i++) {
-    container.insert(g(i));
-  }
-
-  StartBenchmarkTiming();
-
-  for (int i = 0; i < n; i++) {
-    container.erase(container.begin());
-    container.insert(container.end(), g(i + FLAGS_benchmark_values));
-  }
-
-  StopBenchmarkTiming();
 }
 
 // Iteration (forward) through the tree
 template <typename T>
-void BM_FwdIter(int n) {
-  using V = typename std::remove_const<typename T::value_type>::type;
+static void BM_FwdIter(benchmark::State& state) {
+  using V          = std::remove_const_t<typename T::value_type>;
+  using KeyOfValue = platanus::KeyOfValue<typename T::key_type, V>::type;
 
-  // Disable timing while we perform some initialization.
-  StopBenchmarkTiming();
+  std::vector<V> values = platanus::GenerateValues<V>(values_size);
+  T              container{values.begin(), values.end()};
 
-  T         container;
-  vector<V> values = GenerateValues<V>(FLAGS_benchmark_values);
+  auto iter = container.begin();
 
-  for (int i = 0; i < FLAGS_benchmark_values; i++) {
-    container.insert(values[i]);
-  }
-
-  typename T::iterator iter;
-
-  V r = V();
-
-  StartBenchmarkTiming();
-
-  for (int i = 0; i < n; i++) {
-    int idx = i % FLAGS_benchmark_values;
-
-    if (idx == 0) {
+  for (auto _ : state) {
+    state.PauseTiming();
+    if (iter == container.end()) {
       iter = container.begin();
     }
-    r = *iter;
+    state.ResumeTiming();
+
+    auto r = *iter;
     ++iter;
+
+    state.PauseTiming();
+    benchmark::DoNotOptimize(KeyOfValue::Get(r));
+    state.ResumeTiming();
   }
-
-  StopBenchmarkTiming();
-
-  sink(r);  // Keep compiler from optimizing away r.
 }
 
 template <typename T>
-void initialize_tree(T& t) {
-  using V = typename std::remove_const<typename T::value_type>::type;
-  t.clear();
-  vector<V> values = GenerateValues<V>(static_cast<int>(std::sqrt(FLAGS_benchmark_values)));
+static void initialize_tree(T& t, benchmark::State& state) {
+  using V = std::remove_const_t<typename T::value_type>;
 
-  for (int i = 0; i < values.size(); i++) {
-    t.insert(values[i]);
-  }
+  t.clear();
+  std::vector<V> values =
+      platanus::GenerateValues<V>(static_cast<std::size_t>(std::sqrt(values_size)));
+  t = T{values.begin(), values.end()};
 }
 
 // Merge two b-tree.
 template <typename T>
-void BM_Merge(int n) {
-  StopBenchmarkTiming();
-
+static void BM_Merge(benchmark::State& state) {
   T trunk, branch;
 
-  for (int i = 0; i < n; i++) {
-    initialize_tree(trunk);
-    initialize_tree(branch);
+  for (auto _ : state) {
+    state.PauseTiming();
+    initialize_tree(trunk, state);
+    initialize_tree(branch, state);
+    state.ResumeTiming();
 
-    StartBenchmarkTiming();
     trunk.merge(branch);
-    StopBenchmarkTiming();
   }
 }
 
-using stl_set_int32  = set<int32_t>;
-using stl_set_int64  = set<int64_t>;
-using stl_set_string = set<string>;
+template <template <class, class, class, std::size_t> class BTreeContainer, class T, std::size_t N>
+struct SetCompAndAllocToSet {
+  using type = BTreeContainer<T, std::ranges::less, std::allocator<T>, N>;
+};
 
-using stl_map_int32  = map<int32_t, intptr_t>;
-using stl_map_int64  = map<int64_t, intptr_t>;
-using stl_map_string = map<string, intptr_t>;
+template <template <class, class, class, std::size_t> class BTreeContainer, std::size_t N>
+struct SetCompAndAllocToSet<BTreeContainer, std::string, N> {
+  using type = BTreeContainer<std::string, StringComp, std::allocator<std::string>, N>;
+};
 
-using stl_multiset_int32  = multiset<int32_t>;
-using stl_multiset_int64  = multiset<int64_t>;
-using stl_multiset_string = multiset<string>;
+template <
+    template <class, class, class, class, std::size_t>
+    class BTreeContainer,
+    class T,
+    std::size_t N>
+struct SetCompAndAllocToMap {
+  using type = BTreeContainer<T, T, std::ranges::less, std::allocator<T>, N>;
+};
 
-using stl_multimap_int32  = multimap<int32_t, intptr_t>;
-using stl_multimap_int64  = multimap<int64_t, intptr_t>;
-using stl_multimap_string = multimap<string, intptr_t>;
+template <template <class, class, class, class, std::size_t> class BTreeContainer, std::size_t N>
+struct SetCompAndAllocToMap<BTreeContainer, std::string, N> {
+  using type = BTreeContainer<std::string, std::string, StringComp, std::allocator<std::string>, N>;
+};
 
-#define MY_BENCHMARK_TYPES2(value, name, comp, size)                                          \
-  using btree_##size##_set_##name      = btree_set<value, comp, allocator<value>, size>;      \
-  using btree_##size##_map_##name      = btree_map<value, int, comp, allocator<value>, size>; \
-  using btree_##size##_multiset_##name = btree_multiset<value, comp, allocator<value>, size>; \
-  using btree_##size##_multimap_##name = btree_multimap<value, int, comp, allocator<value>, size>;
+template <class T, std::size_t N>
+using BTreeSet = typename SetCompAndAllocToSet<platanus::btree_set, T, N>::type;
 
-#define MY_BENCHMARK_TYPES(value, name, comp)  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 3);   \
-  MY_BENCHMARK_TYPES2(value, name, comp, 8);   \
-  MY_BENCHMARK_TYPES2(value, name, comp, 16);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 32);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 64);  \
-  MY_BENCHMARK_TYPES2(value, name, comp, 128); \
-  MY_BENCHMARK_TYPES2(value, name, comp, 256);
+template <class T, std::size_t N>
+using BTreeMultiSet = typename SetCompAndAllocToSet<platanus::btree_multiset, T, N>::type;
 
-MY_BENCHMARK_TYPES(int32_t, int32, less);
-MY_BENCHMARK_TYPES(int64_t, int64, less);
-MY_BENCHMARK_TYPES(string, string, StringComp);
+template <class T, std::size_t N>
+using BTreeMap = typename SetCompAndAllocToMap<platanus::btree_map, T, N>::type;
 
-#define MY_BENCHMARK4(type, name, func)                  \
-  void BM_##type##_##name(int n) { BM_##func<type>(n); } \
-  BTREE_BENCHMARK(BM_##type##_##name)
+template <class T, std::size_t N>
+using BTreeMultiMap = typename SetCompAndAllocToMap<platanus::btree_multimap, T, N>::type;
+
+template <class T>
+using Set = std::set<T>;
+
+template <class T>
+using MultiSet = std::multiset<T>;
+
+template <class T>
+using Map = std::map<T, T>;
+
+template <class T>
+using MultiMap = std::multimap<T, T>;
 
 #ifdef VALUES_SIZE_TEST
-#define MY_BENCHMARK3(tree, type, name, func)   \
-  MY_BENCHMARK4(tree##_3_##type, name, func);   \
-  MY_BENCHMARK4(tree##_8_##type, name, func);   \
-  MY_BENCHMARK4(tree##_16_##type, name, func);  \
-  MY_BENCHMARK4(tree##_32_##type, name, func);  \
-  MY_BENCHMARK4(tree##_64_##type, name, func);  \
-  MY_BENCHMARK4(tree##_128_##type, name, func); \
-  MY_BENCHMARK4(tree##_256_##type, name, func);
+#define BTREE_BENCHMARK(tree, type, func) \
+  BENCHMARK(BM_##func<tree<type, 3>>);    \
+  BENCHMARK(BM_##func<tree<type, 8>>);    \
+  BENCHMARK(BM_##func<tree<type, 16>>);   \
+  BENCHMARK(BM_##func<tree<type, 32>>);   \
+  BENCHMARK(BM_##func<tree<type, 64>>);   \
+  BENCHMARK(BM_##func<tree<type, 128>>);  \
+  BENCHMARK(BM_##func<tree<type, 256>>);
 #else
-#define MY_BENCHMARK3(tree, type, name, func)  \
-  MY_BENCHMARK4(tree##_64_##type, name, func); \
-  MY_BENCHMARK4(tree##_128_##type, name, func);
+#define BTREE_BENCHMARK(tree, type, func) \
+  BENCHMARK(BM_##func<tree<type, 64>>);   \
+  BENCHMARK(BM_##func<tree<type, 128>>);
 #endif
 
-#define MY_BENCHMARK2(type, name, func)  \
-  MY_BENCHMARK4(stl_##type, name, func); \
-  MY_BENCHMARK3(btree, type, name, func);
+#define STL_AND_BTREE_BENCHMARK(container, type, func) \
+  BENCHMARK(BM_##func<container<type>>);               \
+  BTREE_BENCHMARK(BTree##container, type, func);
 
-#define MY_BENCHMARK(type)                       \
-  MY_BENCHMARK2(type, insert, Insert);           \
-  MY_BENCHMARK2(type, lookup, Lookup);           \
-  MY_BENCHMARK2(type, fulllookup, FullLookup);   \
-  MY_BENCHMARK2(type, delete, Delete);           \
-  MY_BENCHMARK2(type, queueaddrem, QueueAddRem); \
-  MY_BENCHMARK2(type, mixedaddrem, MixedAddRem); \
-  MY_BENCHMARK2(type, fifo, Fifo);               \
-  MY_BENCHMARK2(type, fwditer, FwdIter);         \
-  MY_BENCHMARK2(type, merge, Merge);
+#define REGISTER_BENCHMARK_FUNCTIONS(container, type) \
+  STL_AND_BTREE_BENCHMARK(container, type, Insert);   \
+  STL_AND_BTREE_BENCHMARK(container, type, Lookup);   \
+  STL_AND_BTREE_BENCHMARK(container, type, Delete);   \
+  STL_AND_BTREE_BENCHMARK(container, type, FwdIter);  \
+  STL_AND_BTREE_BENCHMARK(container, type, Merge);
 
-MY_BENCHMARK(set_int32);
-MY_BENCHMARK(map_int32);
-MY_BENCHMARK(set_int64);
-MY_BENCHMARK(map_int64);
-MY_BENCHMARK(set_string);
-MY_BENCHMARK(map_string);
+#define REGISTER_BENCHMARK_TYPES(container)              \
+  REGISTER_BENCHMARK_FUNCTIONS(container, std::int32_t); \
+  REGISTER_BENCHMARK_FUNCTIONS(container, std::int64_t); \
+  REGISTER_BENCHMARK_FUNCTIONS(container, std::string);
 
-MY_BENCHMARK(multiset_int32);
-MY_BENCHMARK(multimap_int32);
-MY_BENCHMARK(multiset_int64);
-MY_BENCHMARK(multimap_int64);
-MY_BENCHMARK(multiset_string);
-MY_BENCHMARK(multimap_string);
+REGISTER_BENCHMARK_TYPES(Set);
+REGISTER_BENCHMARK_TYPES(MultiSet);
+REGISTER_BENCHMARK_TYPES(Map);
+REGISTER_BENCHMARK_TYPES(MultiMap);
 
-}  // namespace
-}  // namespace platanus
-
-int main(int argc, char** argv) {
-  platanus::RunBenchmarks();
-  return 0;
-}
+BENCHMARK_MAIN();

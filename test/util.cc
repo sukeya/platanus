@@ -1,32 +1,22 @@
 #include "util.h"
 
 namespace platanus {
-char* GenerateDigits(char buf[16], int val, int maxval) {
-  EXPECT_LE(val, maxval);
-  int p    = 15;
-  buf[p--] = 0;
-  while (maxval > 0) {
-    buf[p--] = '0' + (val % 10);
-    val /= 10;
-    maxval /= 10;
-  }
-  return buf + p + 1;
-}
+const std::vector<std::size_t>& GenerateNumbers(std::size_t n) {
+  std::random_device                         seed_gen;
+  std::mt19937_64                            engine{seed_gen()};
+  std::uniform_int_distribution<std::size_t> dist{0, std::numeric_limits<std::int32_t>::max()};
 
-const std::vector<int>& GenerateNumbers(int n, int maxval) {
-  static std::vector<int> values;
-  static std::set<int>    unique_values;
+  static std::vector<std::size_t> values;
+  static std::set<std::size_t>    unique_values;
 
-  if (values.size() < n) {
-    for (int i = values.size(); i < n; i++) {
-      int value;
-      do {
-        value = rand() % (maxval + 1);
-      } while (unique_values.find(value) != unique_values.end());
+  while (values.size() < n) {
+    std::size_t i;
+    do {
+      i = dist(engine);
+    } while (unique_values.find(i) != unique_values.end());
 
-      values.push_back(value);
-      unique_values.insert(value);
-    }
+    values.push_back(i);
+    unique_values.insert(i);
   }
 
   return values;

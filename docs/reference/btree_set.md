@@ -270,7 +270,7 @@ Returns the `key_compare` object used by `*this`.
 
 
 ### non-STL
-**[WARNING] The following functions may be suddenly deleted.**
+<span style="color: red">**[WARNING] The following functions may be suddenly deleted.**</span>
 ```cpp
 // (1)
 size_type height() const;

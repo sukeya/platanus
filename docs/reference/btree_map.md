@@ -167,6 +167,10 @@ void merge(btree_map&& x);
 mapped_type& operator[](const key_type& key);
 // (6)
 mapped_type& operator[](key_type&& key);
+// (7)
+mapped_type& at(const key_type& key);
+// (8)
+const mapped_type& at(const key_type& key) const;
 ```
 1. Clear `*this`, i.e., delete all values in `*this`.
 1. Swap `*this` for `x`.
@@ -174,6 +178,8 @@ mapped_type& operator[](key_type&& key);
 1. Same as 3. This function is provided to receive an rvalue `btree_map`, so no rvalue-specific optimization is done.
 1. Return the reference of the value mapped to `key`. If `key` doesn't exist, insert `key` and default constructed `mapped_value`.
 1. The rvalue version of 5.
+1. Return the reference of the value mapped to `key`. If `key` doesn't exist, throw `std::out_of_range`.
+1. The const version of 7.
 
 
 #### `insert`

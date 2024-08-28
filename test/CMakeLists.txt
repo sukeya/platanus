@@ -26,8 +26,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_library(util util.cc)
-target_link_libraries(util GTest::gtest_main gflags)
+add_library(util INTERFACE)
+target_include_directories(util INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(btree_test btree_test.cc)
-target_link_libraries(btree_test gflags platanus util)
+target_compile_options(
+  btree_test
+  PUBLIC
+    "$<${gcc_like_cxx}:-Wall;-Wextra>"
+    "$<${msvc_cxx}:/Wall>"
+)
+target_link_libraries(btree_test GTest::gtest_main platanus util)

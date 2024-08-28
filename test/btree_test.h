@@ -95,6 +95,13 @@ class base_checker {
   base_checker() : const_tree_(tree_) {}
   // Copy constructor.
   base_checker(const self_type& x) : tree_(x.tree_), const_tree_(tree_), checker_(x.checker_) {}
+  // Copy assignment.
+  base_checker& operator=(const self_type& x) {
+    tree_    = x.tree_;
+    checker_ = x.checker_;
+    return *this;
+  }
+
   // Range constructor.
   template <typename InputIterator>
   base_checker(InputIterator b, InputIterator e)
@@ -120,6 +127,7 @@ class base_checker {
     }
     return tree_iter;
   }
+
   template <typename IterType, typename CheckerIterType>
   IterType riter_check(IterType tree_iter, CheckerIterType checker_iter) const {
     if (tree_iter == tree_.rend()) {
@@ -129,6 +137,7 @@ class base_checker {
     }
     return tree_iter;
   }
+
   void value_check(const value_type& x) {
     using KeyGetter =
         typename KeyOfValue<typename TreeType::key_type, typename TreeType::value_type>::type;
@@ -141,6 +150,7 @@ class base_checker {
     count(key);
     contains(key);
   }
+
   void erase_check(const key_type& key) {
     EXPECT_TRUE(tree_.find(key) == const_tree_.end());
     EXPECT_TRUE(const_tree_.find(key) == tree_.end());
@@ -151,15 +161,19 @@ class base_checker {
   iterator lower_bound(const key_type& key) {
     return iter_check(tree_.lower_bound(key), checker_.lower_bound(key));
   }
+
   const_iterator lower_bound(const key_type& key) const {
     return iter_check(tree_.lower_bound(key), checker_.lower_bound(key));
   }
+
   iterator upper_bound(const key_type& key) {
     return iter_check(tree_.upper_bound(key), checker_.upper_bound(key));
   }
+
   const_iterator upper_bound(const key_type& key) const {
     return iter_check(tree_.upper_bound(key), checker_.upper_bound(key));
   }
+
   std::pair<iterator, iterator> equal_range(const key_type& key) {
     std::pair<typename CheckerType::iterator, typename CheckerType::iterator> checker_res =
         checker_.equal_range(key);
@@ -168,6 +182,7 @@ class base_checker {
     iter_check(tree_res.second, checker_res.second);
     return tree_res;
   }
+
   std::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
     std::pair<typename CheckerType::const_iterator, typename CheckerType::const_iterator>
                                               checker_res = checker_.equal_range(key);
@@ -176,26 +191,22 @@ class base_checker {
     iter_check(tree_res.second, checker_res.second);
     return tree_res;
   }
+
   iterator find(const key_type& key) { return iter_check(tree_.find(key), checker_.find(key)); }
   const_iterator find(const key_type& key) const {
     return iter_check(tree_.find(key), checker_.find(key));
   }
+
   size_type count(const key_type& key) const {
     size_type res = checker_.count(key);
     EXPECT_EQ(res, tree_.count(key));
     return res;
   }
+
   bool contains(const key_type& key) const {
     bool res = checker_.contains(key);
     EXPECT_EQ(res, tree_.contains(key));
     return res;
-  }
-
-  // Assignment operator.
-  self_type& operator=(const self_type& x) {
-    tree_    = x.tree_;
-    checker_ = x.checker_;
-    return *this;
   }
 
   // Deletion routines.
@@ -209,6 +220,7 @@ class base_checker {
     erase_check(key);
     return res;
   }
+
   iterator erase(iterator iter) {
     key_type                       key          = iter.key();
     int                            size         = tree_.size();
@@ -255,6 +267,7 @@ class base_checker {
     tree_.clear();
     checker_.clear();
   }
+
   void swap(self_type& x) {
     tree_.swap(x.tree_);
     checker_.swap(x.checker_);
@@ -305,11 +318,14 @@ class base_checker {
     EXPECT_EQ(tree_.size(), checker_.size());
     return tree_.size();
   }
+
   size_type max_size() const { return tree_.max_size(); }
+
   bool      empty() const {
          EXPECT_EQ(tree_.empty(), checker_.empty());
          return tree_.empty();
   }
+
   size_type height() const { return tree_.height(); }
   size_type internal_nodes() const { return tree_.internal_nodes(); }
   size_type leaf_nodes() const { return tree_.leaf_nodes(); }
@@ -340,6 +356,12 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
   unique_checker() : super_type() {}
   // Copy constructor.
   unique_checker(const self_type& x) : super_type(x) {}
+  // Copy assignment.
+  unique_checker& operator=(const self_type& x) {
+    super_type::operator=(x);
+    return *this;
+  }
+
   // Range constructor.
   template <class InputIterator>
   unique_checker(InputIterator b, InputIterator e) : super_type(b, e) {}
@@ -399,6 +421,12 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
   multi_checker() : super_type() {}
   // Copy constructor.
   multi_checker(const self_type& x) : super_type(x) {}
+  // Copy assignment.
+  multi_checker& operator=(const self_type& x) {
+    super_type::operator=(x);
+    return *this;
+  }
+
   // Range constructor.
   template <class InputIterator>
   multi_checker(InputIterator b, InputIterator e) : super_type(b, e) {}
@@ -407,8 +435,8 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
   template <class T>
   iterator insert_impl(T&& x) {
     typename CheckerType::size_type size        = this->tree_.size();
-    typename CheckerType::iterator  checker_res = this->checker_.insert(x);
-    iterator                        tree_res    = this->tree_.insert(x);
+    typename CheckerType::iterator  checker_res = this->checker_.insert(T{x});
+    iterator                        tree_res    = this->tree_.insert(std::forward<T>(x));
     EXPECT_EQ(*tree_res, *checker_res);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + 1);
@@ -418,17 +446,20 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
   iterator insert(value_type&& x) { return insert_impl(std::move(x)); }
 
   template <class T>
-  iterator insert_impl(iterator position, value_type&& x) {
+  iterator insert_impl(iterator position, T&& x) {
     typename CheckerType::size_type size        = this->tree_.size();
-    typename CheckerType::iterator  checker_res = this->checker_.insert(x);
-    iterator                        tree_res    = this->tree_.insert(position, x);
+    typename CheckerType::iterator  checker_res = this->checker_.insert(
+        std::next(this->checker_.begin(), std::distance(this->tree_.begin(), position)),
+        T{x}
+    );
+    iterator tree_res = this->tree_.insert(position, std::forward<T>(x));
     EXPECT_EQ(*tree_res, *checker_res);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + 1);
     return tree_res;
   }
-  iterator insert(iterator position, const value_type& x) { return insert_impl(x); }
-  iterator insert(iterator position, value_type&& x) { return insert_impl(std::move(x)); }
+  iterator insert(iterator position, const value_type& x) { return insert_impl(position, x); }
+  iterator insert(iterator position, value_type&& x) { return insert_impl(position, std::move(x)); }
 
   template <typename InputIterator>
   void insert(InputIterator b, InputIterator e) {
@@ -446,9 +477,9 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   const T& const_b   = *b;
 
   // Test insert.
-  for (int i = 0; i < values.size(); ++i) {
-    mutable_b.insert(values[i]);
-    mutable_b.value_check(values[i]);
+  for (const auto& v : values) {
+    mutable_b.insert(v);
+    mutable_b.value_check(v);
   }
   assert(mutable_b.size() == values.size());
 
@@ -467,11 +498,8 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_LE(b_copy.height(), const_b.height());
   EXPECT_LE(b_copy.internal_nodes(), const_b.internal_nodes());
   EXPECT_LE(b_copy.leaf_nodes(), const_b.leaf_nodes());
-  for (int i = 0; i < values.size(); ++i) {
-    EXPECT_EQ(
-        *b_copy.find(KeyGetter::Get(values[i])),
-        static_cast<typename T::value_type>(values[i])
-    );
+  for (const auto& v : values) {
+    EXPECT_EQ(*b_copy.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
   }
 
   // Test range constructor.
@@ -480,11 +508,8 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_LE(b_range.height(), const_b.height());
   EXPECT_LE(b_range.internal_nodes(), const_b.internal_nodes());
   EXPECT_LE(b_range.leaf_nodes(), const_b.leaf_nodes());
-  for (int i = 0; i < values.size(); ++i) {
-    EXPECT_EQ(
-        *b_range.find(KeyGetter::Get(values[i])),
-        static_cast<typename T::value_type>(values[i])
-    );
+  for (const auto& v : values) {
+    EXPECT_EQ(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
   }
 
   // Test range insertion for values that already exist.
@@ -498,15 +523,12 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_EQ(b_range.height(), b_copy.height());
   EXPECT_EQ(b_range.internal_nodes(), b_copy.internal_nodes());
   EXPECT_EQ(b_range.leaf_nodes(), b_copy.leaf_nodes());
-  for (int i = 0; i < values.size(); ++i) {
-    EXPECT_EQ(
-        *b_range.find(KeyGetter::Get(values[i])),
-        static_cast<typename T::value_type>(values[i])
-    );
+  for (const auto& v : values) {
+    EXPECT_EQ(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
   }
 
   // Test assignment to self. Nothing should change.
-  b_range.operator=(b_range);
+  b_range = b_range;
   EXPECT_EQ(b_range.size(), b_copy.size());
   EXPECT_EQ(b_range.height(), b_copy.height());
   EXPECT_EQ(b_range.internal_nodes(), b_copy.internal_nodes());
@@ -525,19 +547,16 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   b_range.swap(b_copy);
   EXPECT_EQ(b_copy.size(), 0);
   EXPECT_EQ(b_range.size(), const_b.size());
-  for (int i = 0; i < values.size(); ++i) {
-    EXPECT_EQ(
-        *b_range.find(KeyGetter::Get(values[i])),
-        static_cast<typename T::value_type>(values[i])
-    );
+  for (const auto& v : values) {
+    EXPECT_EQ(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
   }
   b_range.swap(b_copy);
 
   // Test erase via values.
-  for (int i = 0; i < values.size(); ++i) {
-    mutable_b.erase(KeyGetter::Get(values[i]));
+  for (const auto& v : values) {
+    mutable_b.erase(KeyGetter::Get(v));
     // Erasing a non-existent key should have no effect.
-    EXPECT_EQ(mutable_b.erase(KeyGetter::Get(values[i])), 0);
+    EXPECT_EQ(mutable_b.erase(KeyGetter::Get(v)), 0);
   }
 
   const_b.verify();
@@ -547,8 +566,8 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
 
   // Test erase via iterators.
   mutable_b = b_copy;
-  for (int i = 0; i < values.size(); ++i) {
-    mutable_b.erase(mutable_b.find(KeyGetter::Get(values[i])));
+  for (const auto& v : values) {
+    mutable_b.erase(mutable_b.find(KeyGetter::Get(v)));
   }
 
   const_b.verify();
@@ -557,23 +576,23 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_EQ(const_b.size(), 0);
 
   // Test insert with hint.
-  for (int i = 0; i < values.size(); i++) {
-    mutable_b.insert(mutable_b.upper_bound(KeyGetter::Get(values[i])), values[i]);
+  for (const auto& v : values) {
+    mutable_b.insert(mutable_b.upper_bound(KeyGetter::Get(v)), v);
   }
 
   const_b.verify();
 
   // Test insert rvalues.
   T b_rvalues;
-  for (int i = 0; i < values.size(); i++) {
-    b_rvalues.insert(V(values[i]));
+  for (const auto& v : values) {
+    b_rvalues.insert(V(v));
   }
   b_rvalues.verify();
 
   // Test insert rvalues with hint.
   b_rvalues.clear();
-  for (int i = 0; i < values.size(); i++) {
-    b_rvalues.insert(b_rvalues.upper_bound(KeyGetter::Get(values[i])), V(values[i]));
+  for (const auto& v : values) {
+    b_rvalues.insert(b_rvalues.upper_bound(KeyGetter::Get(v)), V(v));
   }
   b_rvalues.verify();
 
@@ -591,7 +610,9 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   // First half.
   mutable_b                             = b_copy;
   typename T::iterator mutable_iter_end = mutable_b.begin();
-  for (int i = 0; i < values.size() / 2; ++i) ++mutable_iter_end;
+  for (std::size_t i = 0; i < values.size() / 2; ++i) {
+    ++mutable_iter_end;
+  }
   mutable_b.erase(mutable_b.begin(), mutable_iter_end);
   EXPECT_EQ(mutable_b.size(), values.size() - values.size() / 2);
   const_b.verify();
@@ -599,7 +620,9 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   // Second half.
   mutable_b                               = b_copy;
   typename T::iterator mutable_iter_begin = mutable_b.begin();
-  for (int i = 0; i < values.size() / 2; ++i) ++mutable_iter_begin;
+  for (std::size_t i = 0; i < values.size() / 2; ++i) {
+    ++mutable_iter_begin;
+  }
   mutable_b.erase(mutable_iter_begin, mutable_b.end());
   EXPECT_EQ(mutable_b.size(), values.size() / 2);
   const_b.verify();
@@ -607,9 +630,13 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   // Second quarter.
   mutable_b          = b_copy;
   mutable_iter_begin = mutable_b.begin();
-  for (int i = 0; i < values.size() / 4; ++i) ++mutable_iter_begin;
+  for (std::size_t i = 0; i < values.size() / 4; ++i) {
+    ++mutable_iter_begin;
+  }
   mutable_iter_end = mutable_iter_begin;
-  for (int i = 0; i < values.size() / 4; ++i) ++mutable_iter_end;
+  for (std::size_t i = 0; i < values.size() / 4; ++i) {
+    ++mutable_iter_end;
+  }
   mutable_b.erase(mutable_iter_begin, mutable_iter_end);
   EXPECT_EQ(mutable_b.size(), values.size() - values.size() / 4);
   const_b.verify();

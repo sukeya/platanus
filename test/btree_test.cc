@@ -247,7 +247,7 @@ struct Vec2i {
 };
 
 bool operator==(const Vec2i& lhd, const Vec2i& rhd) {
-  for (int i = 0; i < Vec2i::N; ++i) {
+  for (std::size_t i = 0; i < Vec2i::N; ++i) {
     if (lhd.a[i] != rhd.a[i]) {
       return false;
     }

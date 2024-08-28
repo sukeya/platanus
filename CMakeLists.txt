@@ -95,6 +95,9 @@ if(BUILD_TESTS)
   find_package(GTest REQUIRED)
   find_package(benchmark REQUIRED)
 
+  set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
+  set(msvc_cxx "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
+
   add_subdirectory(test)
   add_subdirectory(benchmark)
 endif()

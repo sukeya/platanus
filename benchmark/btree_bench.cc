@@ -42,7 +42,7 @@
 
 #include "platanus/btree_map.h"
 #include "platanus/btree_set.h"
-#include "../test/util.h"
+#include "util.h"
 
 static_assert(sizeof(std::size_t) == 8, "must fix the bits of mersenne twister engine.");
 
@@ -66,7 +66,6 @@ struct StringComp {
 template <typename T>
 static void BM_Insert(benchmark::State& state) {
   using V          = std::remove_const_t<typename T::value_type>;
-  using KeyOfValue = platanus::KeyOfValue<typename T::key_type, V>::type;
 
   std::vector<V> values = platanus::GenerateValues<V>(values_size);
 
@@ -147,7 +146,7 @@ static void BM_FwdIter(benchmark::State& state) {
 }
 
 template <typename T>
-static void initialize_tree(T& t, benchmark::State& state) {
+static void initialize_tree(T& t) {
   using V = std::remove_const_t<typename T::value_type>;
 
   t.clear();
@@ -163,8 +162,8 @@ static void BM_Merge(benchmark::State& state) {
 
   for (auto _ : state) {
     state.PauseTiming();
-    initialize_tree(trunk, state);
-    initialize_tree(branch, state);
+    initialize_tree(trunk);
+    initialize_tree(branch);
     state.ResumeTiming();
 
     trunk.merge(branch);
@@ -208,16 +207,16 @@ template <class T, std::size_t N>
 using BTreeMultiMap = typename SetCompAndAllocToMap<platanus::btree_multimap, T, N>::type;
 
 template <class T>
-using Set = std::set<T>;
+using STLSet = std::set<T>;
 
 template <class T>
-using MultiSet = std::multiset<T>;
+using STLMultiSet = std::multiset<T>;
 
 template <class T>
-using Map = std::map<T, T>;
+using STLMap = std::map<T, T>;
 
 template <class T>
-using MultiMap = std::multimap<T, T>;
+using STLMultiMap = std::multimap<T, T>;
 
 #ifdef VALUES_SIZE_TEST
 #define BTREE_BENCHMARK(tree, type, func) \
@@ -235,7 +234,7 @@ using MultiMap = std::multimap<T, T>;
 #endif
 
 #define STL_AND_BTREE_BENCHMARK(container, type, func) \
-  BENCHMARK(BM_##func<container<type>>);               \
+  BENCHMARK(BM_##func<STL##container<type>>);          \
   BTREE_BENCHMARK(BTree##container, type, func);
 
 #define REGISTER_BENCHMARK_FUNCTIONS(container, type) \

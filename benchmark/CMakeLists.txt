@@ -27,6 +27,12 @@
 # limitations under the License.
 
 add_executable(btree_bench btree_bench.cc)
+target_compile_options(
+  btree_bench
+  PUBLIC
+    "$<${gcc_like_cxx}:-Wall;-Wextra>"
+    "$<${msvc_cxx}:/Wall>"
+)
 target_link_libraries(btree_bench platanus util benchmark::benchmark)
 if (VALUES_SIZE_TEST)
   target_compile_definitions(btree_bench PRIVATE VALUES_SIZE_TEST)

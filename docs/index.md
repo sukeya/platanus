@@ -73,17 +73,18 @@ cd build/release/benchmark
 The output has the following form.
 
 ```
-BM_("stl" or "btree_(the max number of values per node)")_(container type)_(value type)_(test case) (average time[ns] per iteration) (the total of iterations)
+BM_<("STL" or "BTree")(container type)<(value type)[, (the max number of values per node)]>> (average time[ns] per iteration) (average CPU time[ns] per iteration) (the total of iterations)
 ```
 
 The test cases are:
 
 | test case | meaning |
 | --- | --- |
-| Insert | Benchmark insertion of values into a container. |
-| Lookup | Benchmark lookup of values in a container. |
-| Delete | Benchmark deletion of values from a container. |
-| FwdIter | Iteration (forward) through the tree. |
+| Insert | Benchmark insertion of random values into an empty container. |
+| Lookup | Benchmark lookup of random values in a container. |
+| Delete | Benchmark deletion of random values from a container. |
+| FwdIter | Benchmark iteration (forward) through the container. |
+| Merge | Benchmark merging two containers with the same size. |
 
 If you want to know a good size of values per node, run the following comamnd.
 

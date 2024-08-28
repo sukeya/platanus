@@ -969,9 +969,8 @@ void btree<P>::swap(self_type& x) {
 template <typename P>
 void btree<P>::verify() const {
   if (borrow_readonly_root() != nullptr) {
-    assert(size() == internal_verify(borrow_readonly_root(), nullptr, nullptr));
-    auto p = (++const_iterator(borrow_readonly_root(), -1)).node;
-    assert(borrow_readonly_leftmost() == p);
+    assert(size() == static_cast<std::size_t>(internal_verify(borrow_readonly_root(), nullptr, nullptr)));
+    assert(borrow_readonly_leftmost() == (++const_iterator(borrow_readonly_root(), -1)).node);
     assert(
         borrow_readonly_rightmost()
         == (--const_iterator(borrow_readonly_root(), borrow_readonly_root()->count())).node

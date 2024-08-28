@@ -38,8 +38,6 @@
 #include <sstream>
 #include <type_traits>
 
-#include "gtest/gtest.h"
-
 namespace std {
 // Provide operator<< support for std::pair<T, U>.
 template <typename T, typename U>
@@ -77,19 +75,27 @@ struct Generator<std::pair<T_, U_>> {
   }
 };
 
-// Generate random values for our tests and benchmarks.
-const std::vector<std::size_t>& GenerateNumbers(std::size_t n);
-
 // Generates values in the range
 template <typename V>
 std::vector<V> GenerateValues(std::size_t n) {
-  std::vector<V> vec;
+  std::random_device                         seed_gen;
+  std::mt19937_64                            engine{seed_gen()};
+  std::uniform_int_distribution<std::size_t> dist{0, std::numeric_limits<std::int32_t>::max()};
 
-  for (auto i : GenerateNumbers(n)) {
-    vec.push_back(Generator<V>::Generate(i));
+  std::vector<V>        values;
+  std::set<std::size_t> unique_values;
+
+  while (values.size() < n) {
+    std::size_t i;
+    do {
+      i = dist(engine);
+    } while (unique_values.find(i) != unique_values.end());
+
+    values.push_back(Generator<V>::Generate(i));
+    unique_values.insert(i);
   }
 
-  return vec;
+  return values;
 }
 
 // Select the first member of a pair.

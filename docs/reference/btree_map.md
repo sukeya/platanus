@@ -248,7 +248,7 @@ bool           contains(const key_type& key) const;
 1. The `const` version of 1.
 1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns an iterator which points to the minimum value in all values which are greater than `key`.
 1. The `const` version of 3.
-1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns a pair of the iterators which point to the fist value in all values which are equal to `key` and the value next to the last value in them in order.
+1. If `*this` is empty or `key` isn't found, returns `std::make_pair(end(), end())`. Otherwise, returns a pair of the iterators which point to the fist value in all values which are equal to `key` and the value next to the last value in them in order.
 1. The `const` version of 5.
 1. If `*this` is empty or `key` isn't found, returns `end()`. Otherwise, returns an iterator which points to the fist value in all values which are equal to `key`.
 1. The `const` version of 7.

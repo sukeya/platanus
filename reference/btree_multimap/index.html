@@ -115,13 +115,16 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="btree_multimap">btree_multimap</h1>
-<pre><code class="language-cpp">template &lt;
+<p>In <code>platanus/btree_map.h</code>,</p>
+<pre><code class="language-cpp">namespace platanus {
+template &lt;
     typename Key,
     typename Value,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator&lt;Key&gt;,
     std::size_t MaxNumOfValues = 512&gt;
 class btree_multimap;
+}
 </code></pre>
 <h2 id="template-parameters">Template parameters</h2>
 <table>

@@ -1,5 +1,7 @@
 site_name: platanus
 site_url: https://sukeya.github.io/platanus/
+repo_url: https://github.com/sukeya/platanus
+edit_uri: blob/main/docs/
 nav:
   - Home: index.md
   - Reference :

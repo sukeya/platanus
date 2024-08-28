@@ -1,6 +1,8 @@
 # btree_map
+In `platanus/btree_map.h`,
 
 ```cpp
+namespace platanus {
 template <
     typename Key,
     typename Value,
@@ -8,6 +10,7 @@ template <
     typename Alloc             = std::allocator<Key>,
     std::size_t MaxNumOfValues = 512>
 class btree_map;
+}
 ```
 
 

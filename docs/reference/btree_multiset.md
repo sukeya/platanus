@@ -1,12 +1,15 @@
 # btree_multiset
+In `platanus/btree_set.h`,
 
 ```cpp
+namespace platanus {
 template <
     typename Key,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
     std::size_t MaxNumOfValues = 512>
 class btree_multiset;
+}
 ```
 
 

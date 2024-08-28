@@ -421,7 +421,7 @@ bool           contains(const key_type&amp; key) const;
 <li>The <code>const</code> version of 1.</li>
 <li>If <code>*this</code> is empty or <code>key</code> isn't found, returns <code>end()</code>. Otherwise, returns an iterator which points to the minimum value in all values which are greater than <code>key</code>.</li>
 <li>The <code>const</code> version of 3.</li>
-<li>If <code>*this</code> is empty or <code>key</code> isn't found, returns <code>end()</code>. Otherwise, returns a pair of the iterators which point to the fist value in all values which are equal to <code>key</code> and the value next to the last value in them in order.</li>
+<li>If <code>*this</code> is empty or <code>key</code> isn't found, returns <code>std::make_pair(end(), end())</code>. Otherwise, returns a pair of the iterators which point to the fist value in all values which are equal to <code>key</code> and the value next to the last value in them in order.</li>
 <li>The <code>const</code> version of 5.</li>
 <li>If <code>*this</code> is empty or <code>key</code> isn't found, returns <code>end()</code>. Otherwise, returns an iterator which points to the fist value in all values which are equal to <code>key</code>.</li>
 <li>The <code>const</code> version of 7.</li>

@@ -159,7 +159,7 @@ cd build/release/benchmark
 ./btree_bench
 </code></pre>
 <p>The output has the following form.</p>
-<pre><code>BM_(&quot;stl&quot; or &quot;btree_(the max number of values per node)&quot;)_(container type)_(value type)_(test case) (average time[ns] per iteration) (the total of iterations)
+<pre><code>BM_&lt;(&quot;STL&quot; or &quot;BTree&quot;)(container type)&lt;(value type)[, (the max number of values per node)]&gt;&gt; (average time[ns] per iteration) (average CPU time[ns] per iteration) (the total of iterations)
 </code></pre>
 <p>The test cases are:</p>
 <table>
@@ -172,19 +172,23 @@ cd build/release/benchmark
 <tbody>
 <tr>
 <td>Insert</td>
-<td>Benchmark insertion of values into a container.</td>
+<td>Benchmark insertion of random values into an empty container.</td>
 </tr>
 <tr>
 <td>Lookup</td>
-<td>Benchmark lookup of values in a container.</td>
+<td>Benchmark lookup of random values in a container.</td>
 </tr>
 <tr>
 <td>Delete</td>
-<td>Benchmark deletion of values from a container.</td>
+<td>Benchmark deletion of random values from a container.</td>
 </tr>
 <tr>
 <td>FwdIter</td>
-<td>Iteration (forward) through the tree.</td>
+<td>Benchmark iteration (forward) through the container.</td>
+</tr>
+<tr>
+<td>Merge</td>
+<td>Benchmark merging two containers with the same size.</td>
 </tr>
 </tbody>
 </table>
@@ -244,5 +248,5 @@ cd build/release/benchmark
 
 <!--
 MkDocs version : 1.5.3
-Build Date UTC : 2024-08-28 08:20:25.512347+00:00
+Build Date UTC : 2024-08-28 13:34:22.822388+00:00
 -->

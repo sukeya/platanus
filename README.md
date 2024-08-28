@@ -1,5 +1,5 @@
 # platanus
-`platanus` is an fork of the B-tree library [`cpp-btree`](https://code.google.com/archive/p/cpp-btree/).
+`platanus` is a modern fork of the B-tree library [`cpp-btree`](https://code.google.com/archive/p/cpp-btree/).
 
 
 ## Documentation

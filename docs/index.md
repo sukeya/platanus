@@ -43,7 +43,7 @@ A partial workaround when erasing is available: `erase()` returns an iterator po
 
 
 ## Installation
-platanus is an header only library, so you don't have to install it.
+`platanus` is an header only library, so you don't have to install it.
 When using CMake, you only have to link your program to `platanus`.
 For example, `target_link_libraries(your_program PUBLIC platanus)`.
 
@@ -97,4 +97,4 @@ The result on my environment is [here](./benchmark_result.txt).
 
 
 ## License
-platanus is licensed under [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).
+`platanus` is licensed under [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).

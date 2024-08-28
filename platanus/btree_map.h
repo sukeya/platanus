@@ -12,12 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// A btree_map<> implements the STL unique sorted associative container
-// interface and the pair associative container interface (a.k.a map<>) using a
-// btree. A btree_multimap<> implements the STL multiple sorted associative
-// container interface and the pair associtive container interface (a.k.a
-// multimap<>) using a btree. See btree.h for details of the btree
-// implementation and caveats.
+// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef PLATANUS_BTREE_MAP_H__
 #define PLATANUS_BTREE_MAP_H__

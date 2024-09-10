@@ -32,46 +32,10 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstring>
-#include <limits>
-#include <type_traits>
 
 #include "btree_util.h"
 
 namespace platanus {
-
-template <std::size_t BitWidth>
-class btree_node_search_result {
- public:
-  static_assert(BitWidth > 0 && BitWidth < 16, "BitWidth must be in the range [1, 15].");
-
-  static constexpr std::size_t bit_width         = BitWidth;
-  static constexpr bool        is_less_than_8bit = bit_width < 8;
-
-  using count_type = std::conditional_t<is_less_than_8bit, std::uint_least8_t, std::uint_least16_t>;
-  using signed_count_type =
-      std::conditional_t<is_less_than_8bit, std::int_least16_t, std::int_least32_t>;
-
-  btree_node_search_result()                                           = default;
-  btree_node_search_result(const btree_node_search_result&)            = default;
-  btree_node_search_result& operator=(const btree_node_search_result&) = default;
-  btree_node_search_result(btree_node_search_result&&)                 = default;
-  btree_node_search_result& operator=(btree_node_search_result&&)      = default;
-  ~btree_node_search_result()                                          = default;
-
-  explicit btree_node_search_result(count_type index, bool is_exact_match) noexcept
-      : index_(index), exact_match_(is_exact_match ? 1 : 0) {
-    assert(index < (1 << bit_width));
-  }
-
-  count_type index() const noexcept { return index_; }
-  bool       is_exact_match() const noexcept { return exact_match_ == 1; }
-
- private:
-  count_type index_ : bit_width{0};
-  count_type exact_match_ : 1 {0};
-};
-
 // A node in the btree holding. The same node type is used for both internal
 // and leaf nodes in the btree, though the nodes are allocated in such a way
 // that the children array is only valid in internal nodes.

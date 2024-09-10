@@ -29,9 +29,11 @@
 #ifndef PLATANUS_BTREE_UTIL_H_
 #define PLATANUS_BTREE_UTIL_H_
 
-#include <compare>
-#include <utility>
 #include <concepts>
+#include <compare>
+#include <cstdint>
+#include <type_traits>
+#include <utility>
 
 namespace platanus {
 
@@ -64,6 +66,38 @@ concept comp_return_weak_ordering = requires(Key lhd, Key rhd, Compare comp) {
 template <class Key, class Compare>
 concept comp_return_bool = requires(Key lhd, Key rhd, Compare comp) {
   { comp(lhd, rhd) } -> std::same_as<bool>;
+};
+
+template <std::size_t BitWidth>
+class btree_node_search_result {
+ public:
+  static_assert(BitWidth > 0 && BitWidth < 16, "BitWidth must be in the range [1, 15].");
+
+  static constexpr std::size_t bit_width         = BitWidth;
+  static constexpr bool        is_less_than_8bit = bit_width < 8;
+
+  using count_type = std::conditional_t<is_less_than_8bit, std::uint_least8_t, std::uint_least16_t>;
+  using signed_count_type =
+      std::conditional_t<is_less_than_8bit, std::int_least16_t, std::int_least32_t>;
+
+  btree_node_search_result()                                           = default;
+  btree_node_search_result(const btree_node_search_result&)            = default;
+  btree_node_search_result& operator=(const btree_node_search_result&) = default;
+  btree_node_search_result(btree_node_search_result&&)                 = default;
+  btree_node_search_result& operator=(btree_node_search_result&&)      = default;
+  ~btree_node_search_result()                                          = default;
+
+  explicit btree_node_search_result(count_type index, bool is_exact_match) noexcept
+      : index_(index), exact_match_(is_exact_match ? 1 : 0) {
+    assert(index < (1 << bit_width));
+  }
+
+  count_type index() const noexcept { return index_; }
+  bool       is_exact_match() const noexcept { return exact_match_ == 1; }
+
+ private:
+  count_type index_ : bit_width{0};
+  count_type exact_match_ : 1 {0};
 };
 }  // namespace platanus
 

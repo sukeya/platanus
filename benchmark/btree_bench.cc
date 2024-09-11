@@ -96,8 +96,8 @@ static void BM_Lookup(benchmark::State& state) {
   std::uniform_int_distribution<std::size_t> dist{0, values_size - 1};
 
   for (auto _ : state) {
-    const auto& r = *container.find(KeyOfValue::Get(values[dist(engine)]));
-    benchmark::DoNotOptimize(KeyOfValue::Get(r));
+    auto r = KeyOfValue::Get(*container.find(KeyOfValue::Get(values[dist(engine)])));
+    benchmark::DoNotOptimize(r);
   }
 }
 
@@ -138,10 +138,10 @@ static void BM_FwdIter(benchmark::State& state) {
       iter = container.begin();
     }
 
-    const auto& r = *iter;
+    auto r = KeyOfValue::Get(*iter);
     ++iter;
 
-    benchmark::DoNotOptimize(KeyOfValue::Get(r));
+    benchmark::DoNotOptimize(r);
   }
 }
 

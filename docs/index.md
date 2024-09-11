@@ -83,7 +83,7 @@ The test cases are:
 | Insert | Benchmark insertion of random values into an empty container. |
 | Lookup | Benchmark lookup of random values in a container. |
 | Delete | Benchmark deletion of random values from a container. |
-| FwdIter | Benchmark iteration (forward) through the container. |
+| FwdIter | Benchmark iteration (forward) and reference through the container. Note that this benchmark includes a copy constructing of `key_type`. |
 | Merge | Benchmark merging two containers with the same size. |
 
 If you want to know a good size of values per node, run the following comamnd.

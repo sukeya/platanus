@@ -178,7 +178,7 @@ class btree_node {
   ~btree_node()                       = default;
 
   btree_node(const btree_node&)     = delete;
-  void operator=(const btree_node&) = delete;
+  btree_node& operator=(const btree_node&) = delete;
 
   explicit btree_node(bool is_leaf, node_borrower parent, children_allocator_type& children_alloc)
       : children_ptr_(), parent_(parent), position_(0), count_(0) {
@@ -189,12 +189,6 @@ class btree_node {
       }
       children_ptr_ = children_ptr{p, children_deleter{children_alloc}};
     }
-  }
-
-  // Get this node borrower.
-  node_borrower     borrow_myself() noexcept { return this; }
-  const btree_node* borrow_readonly_myself() const noexcept {
-    return static_cast<const btree_node*>(this);
   }
 
   // If *this is a leaf node, return true: otherwise, false. This value doesn't
@@ -252,7 +246,7 @@ class btree_node {
   void       set_child(count_type i, node_owner&& new_child) noexcept {
           children_ptr_[i]              = std::move(new_child);
           auto borrowed_new_child       = borrow_child(i);
-          borrowed_new_child->parent_   = borrow_myself();
+          borrowed_new_child->parent_   = this;
           borrowed_new_child->position_ = i;
   }
 
@@ -670,10 +664,10 @@ void btree_node<P>::swap(btree_node& x) {
     // Swap the child pointers.
     btree_swap_helper(children_ptr_, x.children_ptr_);
     std::for_each_n(x.begin_children(), children_count(), [x](node_borrower np) {
-      np->parent_ = x.borrow_myself();
+      np->parent_ = &x;
     });
     std::for_each_n(begin_children(), x.children_count(), [this](node_borrower np) {
-      np->parent_ = borrow_myself();
+      np->parent_ = this;
     });
   }
   btree_swap_helper(parent_, x.parent_);

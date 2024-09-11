@@ -597,7 +597,7 @@ class btree {
 
  private:
   // Internal accessor routines.
-  node_borrower          borrow_root() noexcept { return root_->borrow_myself(); }
+  node_borrower          borrow_root() noexcept { return root_.get(); }
   node_readonly_borrower borrow_readonly_root() const noexcept {
     return static_cast<node_readonly_borrower>(const_cast<btree*>(this)->borrow_root());
   }

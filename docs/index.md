@@ -41,6 +41,8 @@ In both cases, the result is that insertions and deletions can invalidate iterat
 This is notably different from STL set/map which takes care to not invalidate iterators on `insert`/`erase` except, of course, for iterators pointing to the value being erased.
 A partial workaround when erasing is available: `erase()` returns an iterator pointing to the item just after the one that was erased (or `end()` if none exists).
 
+Also, all functions and classes in this library are not thread-safe.
+
 
 ## Installation
 `platanus` is an header only library, so you don't have to install it.

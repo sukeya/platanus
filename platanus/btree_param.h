@@ -71,7 +71,6 @@ struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNum
 
   static const Key& key(const value_type& x) noexcept { return x.first; }
   static const Key& key(const mutable_value_type& x) noexcept { return x.first; }
-  static void       swap(mutable_value_type& a, mutable_value_type& b) { btree_swap_helper(a, b); }
 };
 
 // A parameters structure for holding the type parameters for a btree_set.
@@ -90,7 +89,6 @@ struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNum
   using const_reference = const value_type&;
 
   static const Key& key(const value_type& x) noexcept { return x; }
-  static void       swap(mutable_value_type& a, mutable_value_type& b) { btree_swap_helper(a, b); }
 };
 
 }  // namespace platanus

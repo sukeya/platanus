@@ -122,11 +122,6 @@ class btree_leaf_node : public btree_base_node<Params, btree_leaf_node> {
   // change after the node is created.
   bool is_leaf() const noexcept { return is_leaf_; }
 
-  void swap(btree_leaf_node& x) {
-    super_type::swap(x);
-    btree_swap_helper(is_leaf_, x.is_leaf_);
-  }
-
  protected:
   using super_type::set_count
 
@@ -286,13 +281,13 @@ class btree_internal_node : public btree_leaf_node<Params> {
   }
 
   // Rebalances a node with its right sibling.
-  void rebalance_right_to_left(node_borrower sibling, count_type to_move) {
+  void rebalance_right_to_left(node_borrower right, count_type to_move) {
     // Move the child pointers from the right to the left node.
-    receive_children_n(end_children(), src, src->begin_children(), to_move);
-    src->shift_children_left(to_move, src->children_count(), to_move);
-    super_type::rebalance_right_to_left(sibling, to_move);
+    receive_children_n(end_children(), right, right->begin_children(), to_move);
+    right->shift_children_left(to_move, right->children_count(), to_move);
+    super_type::rebalance_right_to_left(right, to_move);
   }
-  void rebalance_left_to_right(node_borrower sibling, count_type to_move) {
+  void rebalance_left_to_right(node_borrower right, count_type to_move) {
     // Move the child pointers from the left node to the right node.
     dest->shift_children_right(0, dest->children_count(), to_move);
     dest->receive_children_n(
@@ -301,7 +296,7 @@ class btree_internal_node : public btree_leaf_node<Params> {
         begin_children() + children_count() - to_move,
         to_move
     );
-    super_type::rebalance_left_to_right(sibling, to_move);
+    super_type::rebalance_left_to_right(right, to_move);
   }
 
   // Merges a node with its right sibling, moving all of the values and the
@@ -310,21 +305,6 @@ class btree_internal_node : public btree_leaf_node<Params> {
     // Move the child pointers from the right to the left node.
     receive_children(end_children(), src, src->begin_children(), src->end_children());
     super_type::merge(sibling);
-  }
-
-  // Swap the contents of "this" and "x".
-  void swap(btree_internal_node& x) {
-    super_type::swap(x);
-
-    // Swap the child.
-    btree_swap_helper(children_, x.children_);
-    // Reset the parent of children.
-    std::for_each_n(x.begin_children(), children_count(), [x](node_borrower np) {
-      np->parent_ = &x;
-    });
-    std::for_each_n(begin_children(), x.children_count(), [this](node_borrower np) {
-      np->parent_ = this;
-    });
   }
 
  private:
@@ -429,6 +409,7 @@ class btree_internal_node : public btree_leaf_node<Params> {
 };
 }  // namespace pmr
 
+// Free function version
 template <typename Params>
 typename pmr::btree_internal_node<Params>::node_owner make_node(
     bool                                                       is_leaf,
@@ -459,6 +440,9 @@ typename pmr::btree_internal_node<Params>::node_owner make_root_node(
 ) {
   return make_node<Params>(is_leaf, nullptr, alloc);
 }
+
+template <class Params>
+bool is_leaf(const pmr::btree_leaf_node<Params>& n) noexcept { return n.is_leaf(); }
 
 template <class Params>
 typename pmr::btree_internal_node<Params>::node_borrower borrow_child(
@@ -546,7 +530,8 @@ void split(pmr::btree_leaf_node<Params>& left, typename pmr::btree_internal_node
   using count_type = typename internal_node::count_type;
 
   assert(right->count() == 0);
-  assert(borrow_readonly_parent() != nullptr);
+  assert(left.borrow_readonly_parent() != nullptr);
+  assert(not left.borrow_readonly_parent()->is_leaf());
 
   // We bias the split based on the position being inserted. If we're
   // inserting at the beginning of the left node then bias the split to put
@@ -566,7 +551,6 @@ void split(pmr::btree_leaf_node<Params>& left, typename pmr::btree_internal_node
 
   // The split key is the largest value in the left sibling.
   left.set_count(left.count() - 1);
-  assert(not left.borrow_parent()->is_leaf());
   auto& parent_node = static_cast<internal_node&>(*(left.borrow_parent()));
   parent_node.insert_value(left.position(), left.extract_value(left.values_count()));
   // Insert dest as a child of parent.

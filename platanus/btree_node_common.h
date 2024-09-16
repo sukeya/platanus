@@ -159,9 +159,9 @@ class btree_base_node {
 
   // Swap value i in this node with value j in node x.
   void value_swap(count_type i, node_borrower x, count_type j) noexcept(noexcept(
-      params_type::swap(std::declval<mutable_value_type&>(), std::declval<mutable_value_type&>())
+      btree_swap_helper(std::declval<mutable_value_type&>(), std::declval<mutable_value_type&>())
   )) {
-    params_type::swap(values_[i], x->values_[j]);
+    btree_swap_helper(values_[i], x->values_[j]);
   }
 
   // Returns the position of the first value whose key is not less than k.
@@ -205,13 +205,6 @@ class btree_base_node {
   // Merges a node with its right sibling, moving all of the values and the
   // delimiting key in the parent node onto itself.
   void merge(node_borrower sibling);
-
-  void swap(btree_base_node& x) {
-    btree_swap_helper(values_, x.values_);
-    btree_swap_helper(parent_, x.parent_);
-    btree_swap_helper(position_, x.position_);
-    btree_swap_helper(count_, x.count_);
-  }
 
  protected:
   void set_count(count_type v) noexcept {
@@ -339,73 +332,73 @@ class btree_base_node {
 
 template <typename P, typename N>
 void btree_base_node<P, N>::rebalance_right_to_left(
-    typename btree_base_node<P, N>::node_borrower src,
+    typename btree_base_node<P, N>::node_borrower right,
     typename btree_base_node<P, N>::count_type    to_move
 ) {
-  assert(borrow_readonly_parent() == src->borrow_readonly_parent());
+  assert(borrow_readonly_parent() == right->borrow_readonly_parent());
   assert(borrow_readonly_parent() != nullptr);
-  assert(position() + 1 == src->position());
-  assert(src->count() >= count());
+  assert(position() + 1 == right->position());
+  assert(right->count() >= count());
   assert(to_move >= 1);
-  assert(to_move <= src->count());
+  assert(to_move <= right->count());
 
   // Move the delimiting value to the left node.
   this->replace_value(values_count(), borrow_parent()->extract_value(position()));
 
   // Move the values from the right to the left node.
-  std::move(src->begin_values(), src->begin_values() + to_move - 1, end_values() + 1);
+  std::move(right->begin_values(), right->begin_values() + to_move - 1, end_values() + 1);
   // Move the new delimiting value from the right node.
-  borrow_parent()->replace_value(position(), src->extract_value(to_move - 1));
+  borrow_parent()->replace_value(position(), right->extract_value(to_move - 1));
   // Shift the values in the right node to their correct position.
-  src->shift_values_left(to_move, src->values_count(), to_move);
+  right->shift_values_left(to_move, right->values_count(), to_move);
 
-  // Fixup the counts on the src and dest nodes.
+  // Fixup the counts on the right and left nodes.
   set_count(count() + to_move);
-  src->set_count(src->count() - to_move);
+  right->set_count(right->count() - to_move);
 }
 
 template <typename P, typename N>
 void btree_base_node<P, N>::rebalance_left_to_right(
-    typename btree_base_node<P, N>::node_borrower dest,
+    typename btree_base_node<P, N>::node_borrower right,
     typename btree_base_node<P, N>::count_type    to_move
 ) {
-  assert(borrow_readonly_parent() == dest->borrow_readonly_parent());
+  assert(borrow_readonly_parent() == right->borrow_readonly_parent());
   assert(borrow_readonly_parent() != nullptr);
-  assert(position() + 1 == dest->position());
-  assert(count() >= dest->count());
+  assert(position() + 1 == right->position());
+  assert(count() >= right->count());
   assert(to_move >= 1);
   assert(to_move <= count());
 
-  dest->shift_values_right(0, dest->values_count(), to_move);
+  right->shift_values_right(0, right->values_count(), to_move);
 
   // Move the delimiting value to the right node.
-  dest->replace_value(to_move - 1, borrow_parent()->extract_value(position()));
+  right->replace_value(to_move - 1, borrow_parent()->extract_value(position()));
 
   // Move the values from the left to the right node.
-  std::move(end_values() - to_move + 1, end_values(), dest->begin_values());
+  std::move(end_values() - to_move + 1, end_values(), right->begin_values());
   // Move the new delimiting value from the left node.
   borrow_parent()->replace_value(position(), this->extract_value(values_count() - to_move));
 
-  // Fixup the counts on the src and dest nodes.
+  // Fixup the counts on the left and right nodes.
   set_count(count() - to_move);
-  dest->set_count(dest->count() + to_move);
+  right->set_count(right->count() + to_move);
 }
 
 template <typename P, typename N>
-void btree_base_node<P, N>::merge(node_borrower src) {
-  assert(borrow_readonly_parent() == src->borrow_readonly_parent());
+void btree_base_node<P, N>::merge(node_borrower right) {
+  assert(borrow_readonly_parent() == right->borrow_readonly_parent());
   assert(borrow_readonly_parent() != nullptr);
-  assert(position() + 1 == src->position());
+  assert(position() + 1 == right->position());
 
   // Move the delimiting value to the left node.
   this->replace_value(values_count(), borrow_parent()->extract_value(position()));
 
   // Move the values from the right to the left node.
-  std::move(src->begin_values(), src->end_values(), end_values() + 1);
+  std::move(right->begin_values(), right->end_values(), end_values() + 1);
 
-  // Fixup the counts on the src and dest nodes.
-  set_count(1 + count() + src->count());
-  src->set_count(0);
+  // Fixup the counts on the right and left nodes.
+  set_count(1 + count() + right->count());
+  right->set_count(0);
 
   // Shift children behind the removed child left.
   if (position() + 2 < borrow_parent()->children_count()) {

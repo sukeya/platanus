@@ -44,6 +44,6 @@ struct sizeof_internal_node {};
 
 template <class T>
 static constexpr std::size_t sizeof_internal_node_v = sizeof_internal_node<T>::value;
-}
+}  // namespace platanus::commons
 
 #endif

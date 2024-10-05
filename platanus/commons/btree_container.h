@@ -447,6 +447,6 @@ class btree_multi_container : public btree_container<Tree> {
   void merge(btree_multi_container&& x) { merge(x); }
 };
 
-}  // namespace platanus
+}  // namespace platanus::commons
 
 #endif  // PLATANUS_BTREE_CONTAINER_H__

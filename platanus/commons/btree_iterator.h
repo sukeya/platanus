@@ -72,7 +72,9 @@ void increment_slow(
 }
 
 template <class Node>
-void increment(btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+void increment(
+    btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& position
+) noexcept {
   if (is_leaf(node) && ++position < count(node)) {
     return;
   }
@@ -93,8 +95,8 @@ void decrement_slow(
   if (is_leaf(node)) {
     assert(pos <= -1);
 
-    auto save_node     = node;
-    auto save_pos = pos;
+    auto save_node = node;
+    auto save_pos  = pos;
 
     // Climb the tree while updating the pos to the left sibling of this in its parent node.
     while (pos < 0 && not is_root(node)) {
@@ -106,8 +108,8 @@ void decrement_slow(
     // If node is the root, the previoud *this is the rend() pos, so set *this to the saved
     // rend() pos.
     if (pos < 0) {
-      node     = save_node;
-      pos = save_pos;
+      node = save_node;
+      pos  = save_pos;
     }
   } else {
     assert(pos >= 0);
@@ -122,7 +124,9 @@ void decrement_slow(
 }
 
 template <class Node>
-void decrement(btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+void decrement(
+    btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& position
+) noexcept {
   if (is_leaf(node) && --position >= 0) {
     return;
   }
@@ -173,10 +177,16 @@ struct btree_iterator<Node, false> {
   explicit btree_iterator(node_borrower n, signed_count_type p) noexcept : node(n), position(p) {}
 
   // Accessors for the key/value the iterator is pointing at.
-  const key_type& key() const { using commons::key; return key(node, position); }
+  const key_type& key() const {
+    using commons::key;
+    return key(node, position);
+  }
 
-  reference operator*() const { using commons::value; return value(node, position); }
-  pointer   operator->() const { return &(this->operator*()); }
+  reference operator*() const {
+    using commons::value;
+    return value(node, position);
+  }
+  pointer operator->() const { return &(this->operator*()); }
 
   self_type& operator++() noexcept {
     btree_iterator_impl::increment(node, position);
@@ -243,10 +253,16 @@ struct btree_iterator<Node, true> {
       : btree_iterator(static_cast<node_readonly_borrower>(x.node), x.position) {}
 
   // Accessors for the key/value the iterator is pointing at.
-  const key_type& key() const { using commons::key; return key(node, position); }
+  const key_type& key() const {
+    using commons::key;
+    return key(node, position);
+  }
 
-  const_reference operator*() const { using commons::value; return value(node, position); }
-  const_pointer   operator->() const { return &(this->operator*()); }
+  const_reference operator*() const {
+    using commons::value;
+    return value(node, position);
+  }
+  const_pointer operator->() const { return &(this->operator*()); }
 
   self_type& operator++() noexcept {
     btree_iterator_impl::increment(node, position);

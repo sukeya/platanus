@@ -54,10 +54,10 @@
 namespace platanus::commons {
 template <class Node, class NodeFactory>
 class btree {
-  using node_type   = Node;
-  using params_type = typename Node::params_type;
+  using node_type    = Node;
+  using params_type  = typename Node::params_type;
   using node_factory = NodeFactory;
-  using self_type   = btree<node_type, node_factory>;
+  using self_type    = btree<node_type, node_factory>;
 
   static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
   static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
@@ -133,7 +133,9 @@ class btree {
         leftmost_(nullptr),
         size_(0) {}
 
-  explicit btree(const btree& x, const allocator_type& alloc) : btree(key_compare{}, alloc) { copy(x); }
+  explicit btree(const btree& x, const allocator_type& alloc) : btree(key_compare{}, alloc) {
+    copy(x);
+  }
 
   explicit btree(self_type&& x, const allocator_type& alloc) : btree(std::move(x.comp_), alloc) {
     for (auto&& v : x) {
@@ -645,15 +647,9 @@ class btree {
   node_owner make_internal_node(node_borrower parent) {
     return node_factory_.make_node(false, parent);
   }
-  node_owner make_internal_root_node() {
-    return node_factory_.make_root_node(false);
-  }
-  node_owner make_leaf_node(node_borrower parent) {
-    return node_factory_.make_node(true, parent);
-  }
-  node_owner make_leaf_root_node() {
-    return node_factory_.make_root_node(true);
-  }
+  node_owner make_internal_root_node() { return node_factory_.make_root_node(false); }
+  node_owner make_leaf_node(node_borrower parent) { return node_factory_.make_node(true, parent); }
+  node_owner make_leaf_root_node() { return node_factory_.make_root_node(true); }
 
   // Rebalances or splits the node iter points to.
   void rebalance_or_split(iterator& iter);
@@ -730,9 +726,9 @@ class btree {
   }
 
  private:
-  key_compare             comp_{};
+  key_compare  comp_{};
   node_factory node_factory_{};
-  node_owner              root_{};
+  node_owner   root_{};
   // A pointer to the rightmost node of the tree
   node_borrower rightmost_{nullptr};
   // A pointer to the leftmost node of the tree
@@ -1009,8 +1005,8 @@ void btree<N, F>::rebalance_or_split(iterator& iter) {
         // We bias rebalancing based on the position being inserted. If we're
         // inserting at the beginning of the left node then we bias rebalancing
         // to fill up the right node.
-        auto to_move = (max_values_count(right) - values_count(right))
-                       / (1 + (insert_position > 0 ? 1 : 0));
+        auto to_move =
+            (max_values_count(right) - values_count(right)) / (1 + (insert_position > 0 ? 1 : 0));
         to_move = std::max(1, to_move);
 
         if ((insert_position <= (values_count(node) - to_move))
@@ -1217,8 +1213,9 @@ void btree<N, F>::internal_dump(std::ostream& os, node_readonly_borrower node, i
 }
 
 template <class N, class F>
-int btree<N, F>::internal_verify(node_readonly_borrower node, const key_type* lo, const key_type* hi)
-    const {
+int btree<N, F>::internal_verify(
+    node_readonly_borrower node, const key_type* lo, const key_type* hi
+) const {
   assert(count(node) > 0);
   assert(count(node) <= max_count(node));
   if (lo) {

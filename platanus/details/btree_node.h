@@ -46,8 +46,8 @@ template <typename Params>
 class btree_node : public commons::btree_base_node<Params, btree_node<Params>> {
  public:
   using params_type = Params;
-  using self_type  = btree_node<params_type>;
-  using super_type = commons::btree_base_node<Params, self_type>;
+  using self_type   = btree_node<params_type>;
+  using super_type  = commons::btree_base_node<Params, self_type>;
 
   static constexpr std::size_t kNodeValues   = super_type::kNodeValues;
   static constexpr std::size_t kNodeChildren = super_type::kNodeChildren;
@@ -450,8 +450,8 @@ struct sizeof_leaf_node<details::btree_node<Params>> {
 template <class Params>
 struct sizeof_internal_node<details::btree_node<Params>> {
   static constexpr std::size_t value = sizeof(details::btree_node<Params>)
-          + sizeof(btree_node_owner<details::btree_node<Params>>)
-                * details::btree_node<Params>::kNodeChildren;
+                                       + sizeof(btree_node_owner<details::btree_node<Params>>)
+                                             * details::btree_node<Params>::kNodeChildren;
 };
 
 template <class Params>
@@ -567,7 +567,9 @@ class btree_node_factory {
   explicit btree_node_factory(const allocator_type& alloc)
       : node_alloc_(alloc), children_alloc_(alloc) {}
 
-  commons::btree_node_owner<node_type> make_node(bool is_leaf, commons::btree_node_borrower<node_type> parent) {
+  commons::btree_node_owner<node_type> make_node(
+      bool is_leaf, commons::btree_node_borrower<node_type> parent
+  ) {
     return node_type::make_node(is_leaf, parent, node_alloc_, children_alloc_);
   }
 

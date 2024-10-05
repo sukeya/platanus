@@ -321,9 +321,9 @@ class base_checker {
 
   size_type max_size() const { return tree_.max_size(); }
 
-  bool      empty() const {
-         EXPECT_EQ(tree_.empty(), checker_.empty());
-         return tree_.empty();
+  bool empty() const {
+    EXPECT_EQ(tree_.empty(), checker_.empty());
+    return tree_.empty();
   }
 
   size_type height() const { return tree_.height(); }

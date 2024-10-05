@@ -87,7 +87,7 @@ class btree_base_node {
   static constexpr std::size_t kNodeValues   = Params::kMaxNumOfValues;
   static constexpr std::size_t kNodeChildren = Params::kMaxNumOfValues + 1;
 
-  using params_type         = Params;
+  using params_type        = Params;
   using key_type           = typename Params::key_type;
   using mapped_type        = typename Params::mapped_type;
   using value_type         = typename Params::value_type;
@@ -124,7 +124,8 @@ class btree_base_node {
   btree_base_node& operator=(btree_base_node&&)      = default;
   ~btree_base_node()                                 = default;
 
-  explicit btree_base_node(btree_node_borrower<Node> parent) : parent_(parent), position_(0), count_(0) {}
+  explicit btree_base_node(btree_node_borrower<Node> parent)
+      : parent_(parent), position_(0), count_(0) {}
 
   // Getter for the position of this node in its parent.
   count_type position() const noexcept { return position_; }
@@ -159,7 +160,8 @@ class btree_base_node {
   }
 
   // Swap value i in this node with value j in node x.
-  void value_swap(count_type i, btree_node_borrower<btree_base_node> x, count_type j) noexcept(noexcept(
+  void
+  value_swap(count_type i, btree_node_borrower<btree_base_node> x, count_type j) noexcept(noexcept(
       btree_swap_helper(std::declval<mutable_value_type&>(), std::declval<mutable_value_type&>())
   )) {
     btree_swap_helper(values_[i], x->values_[j]);
@@ -343,7 +345,7 @@ void btree_base_node<P, N>::rebalance_right_to_left(
   assert(to_move >= 1);
   assert(to_move <= right->count());
 
-  auto base_right = static_cast<btree_node_borrower<btree_base_node>>(right);
+  auto base_right  = static_cast<btree_node_borrower<btree_base_node>>(right);
   auto base_parent = static_cast<btree_node_borrower<btree_base_node>>(borrow_parent());
 
   // Move the delimiting value to the left node.
@@ -373,7 +375,7 @@ void btree_base_node<P, N>::rebalance_left_to_right(
   assert(to_move >= 1);
   assert(to_move <= count());
 
-  auto base_right = static_cast<btree_node_borrower<btree_base_node>>(right);
+  auto base_right  = static_cast<btree_node_borrower<btree_base_node>>(right);
   auto base_parent = static_cast<btree_node_borrower<btree_base_node>>(borrow_parent());
 
   base_right->shift_values_right(0, base_right->values_count(), to_move);
@@ -397,7 +399,7 @@ void btree_base_node<P, N>::merge(node_borrower right) {
   assert(borrow_readonly_parent() != nullptr);
   assert(position() + 1 == right->position());
 
-  auto base_right = static_cast<btree_node_borrower<btree_base_node>>(right);
+  auto base_right  = static_cast<btree_node_borrower<btree_base_node>>(right);
   auto base_parent = static_cast<btree_node_borrower<btree_base_node>>(borrow_parent());
 
   // Move the delimiting value to the left node.
@@ -522,7 +524,7 @@ void value_swap(
 template <class Params, class Node>
 typename btree_base_node<Params, Node>::search_result lower_bound(
     btree_node_readonly_borrower<btree_base_node<Params, Node>> n,
-    const typename btree_base_node<Params, Node>::key_type&   k,
+    const typename btree_base_node<Params, Node>::key_type&     k,
     const typename btree_base_node<Params, Node>::key_compare&  comp
 ) {
   assert(n != nullptr);
@@ -532,7 +534,7 @@ typename btree_base_node<Params, Node>::search_result lower_bound(
 template <class Params, class Node>
 typename btree_base_node<Params, Node>::search_result upper_bound(
     btree_node_readonly_borrower<btree_base_node<Params, Node>> n,
-    const typename btree_base_node<Params, Node>::key_type&   k,
+    const typename btree_base_node<Params, Node>::key_type&     k,
     const typename btree_base_node<Params, Node>::key_compare&  comp
 ) {
   assert(n != nullptr);
@@ -559,7 +561,7 @@ template <class Params, class Node, class T>
 void insert_value(
     btree_node_borrower<btree_base_node<Params, Node>> n,
     typename btree_base_node<Params, Node>::count_type i,
-    T&&        x
+    T&&                                                x
 ) {
   assert(n != nullptr);
   n->insert_value(i, x);

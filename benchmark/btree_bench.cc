@@ -158,15 +158,15 @@ static void initialize_tree(T& t) {
 // Merge two b-tree.
 template <typename T>
 static void BM_Merge(benchmark::State& state) {
-  T trunk, branch;
-
   for (auto _ : state) {
+    T trunk, branch;
     state.PauseTiming();
     initialize_tree(trunk);
     initialize_tree(branch);
     state.ResumeTiming();
 
     trunk.merge(branch);
+    benchmark::DoNotOptimize(trunk);
   }
 }
 

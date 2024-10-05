@@ -36,8 +36,9 @@
 #include <string>
 #include <utility>
 
-#include "btree.h"
-#include "btree_container.h"
+#include "details/btree_node.h"
+#include "commons/btree.h"
+#include "commons/btree_container.h"
 
 namespace platanus {
 
@@ -48,12 +49,16 @@ template <
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<std::pair<const Key, Value> >,
     std::size_t MaxNumOfValues = 64>
-class btree_map : public btree_map_container<
-                      btree<btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues> > > {
+class btree_map : public commons::btree_map_container<
+                      commons::btree<
+                        details::btree_node<commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
+                        details::btree_node_factory<commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>
+                      >
+                    > {
   using self_type   = btree_map<Key, Value, Compare, Alloc, MaxNumOfValues>;
-  using params_type = btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
-  using btree_type  = btree<params_type>;
-  using super_type  = btree_map_container<btree_type>;
+  using params_type = commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
+  using btree_type  = commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
+  using super_type  = commons::btree_map_container<btree_type>;
 
  public:
   using value_type     = typename super_type::value_type;
@@ -112,12 +117,15 @@ template <
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<std::pair<const Key, Value> >,
     std::size_t MaxNumOfValues = 64>
-class btree_multimap : public btree_multi_container<
-                           btree<btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues> > > {
+class btree_multimap : public commons::btree_multi_container<
+                           commons::btree<
+                            details::btree_node<commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
+                            details::btree_node_factory<commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>
+                           >> {
   using self_type   = btree_multimap<Key, Value, Compare, Alloc, MaxNumOfValues>;
-  using params_type = btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
-  using btree_type  = btree<params_type>;
-  using super_type  = btree_multi_container<btree_type>;
+  using params_type = commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
+  using btree_type  = commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
+  using super_type  = commons::btree_multi_container<btree_type>;
 
  public:
   using key_compare    = typename btree_type::key_compare;

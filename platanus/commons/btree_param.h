@@ -26,8 +26,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_BTREE_PARAM_H_
-#define PLATANUS_BTREE_PARAM_H_
+#ifndef PLATANUS_COMMONS_BTREE_PARAM_H_
+#define PLATANUS_COMMONS_BTREE_PARAM_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -37,7 +37,7 @@
 
 #include "btree_util.h"
 
-namespace platanus {
+namespace platanus::commons {
 
 template <typename Key, typename Compare, typename Alloc, std::size_t MaxNumOfValues>
 requires comp_requirement<Key, Compare>
@@ -91,6 +91,6 @@ struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNum
   static const Key& key(const value_type& x) noexcept { return x; }
 };
 
-}  // namespace platanus
+}  // namespace platanus::commons
 
-#endif  // PLATANUS_BTREE_PARAM_H_
+#endif  // PLATANUS_COMMONS_BTREE_PARAM_H_

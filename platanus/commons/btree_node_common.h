@@ -26,16 +26,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_BTREE_NODE_COMMON_H_
-#define PLATANUS_BTREE_NODE_COMMON_H_
+#ifndef PLATANUS_COMMONS_BTREE_NODE_COMMON_H_
+#define PLATANUS_COMMONS_BTREE_NODE_COMMON_H_
 
 #include <bit>
 #include <cstdint>
 #include <type_traits>
 
+#include "btree_node_decl.h"
 #include "btree_util.h"
 
-namespace platanus {
+namespace platanus::commons {
 template <std::size_t BitWidth>
 class btree_node_search_result {
  public:
@@ -83,10 +84,10 @@ class btree_base_node {
     return Params::kMaxNumOfValues;
   }();
 
-  static constexpr std::size_t kNodeValues   = kMaxNumOfValues<Params>;
-  static constexpr std::size_t kNodeChildren = kMaxNumOfValues<Params> + 1;
+  static constexpr std::size_t kNodeValues   = Params::kMaxNumOfValues;
+  static constexpr std::size_t kNodeChildren = Params::kMaxNumOfValues + 1;
 
-  using param_type         = Params;
+  using params_type         = Params;
   using key_type           = typename Params::key_type;
   using mapped_type        = typename Params::mapped_type;
   using value_type         = typename Params::value_type;
@@ -101,8 +102,7 @@ class btree_base_node {
   using difference_type    = typename Params::difference_type;
 
   using search_result =
-      typename btree_node_search_result<std::bit_width(static_cast<std::size_t>(kNodeValues)
-      )>::type;
+      btree_node_search_result<std::bit_width(static_cast<std::size_t>(kNodeValues))>;
   using count_type        = typename search_result::count_type;
   using signed_count_type = typename search_result::signed_count_type;
 
@@ -112,8 +112,10 @@ class btree_base_node {
   using values_reverse_iterator       = typename values_type::reverse_iterator;
   using values_const_reverse_iterator = typename values_type::const_reverse_iterator;
 
-  using node_borrower          = Node*;
-  using node_readonly_borrower = Node const*;
+  // node_borrower can change the node's content but not the memory (allocation and release not
+  // allowed).
+  using node_borrower          = btree_node_borrower<Node>;
+  using node_readonly_borrower = btree_node_readonly_borrower<Node>;
 
   btree_base_node()                                  = default;
   btree_base_node(const btree_base_node&)            = default;
@@ -122,14 +124,13 @@ class btree_base_node {
   btree_base_node& operator=(btree_base_node&&)      = default;
   ~btree_base_node()                                 = default;
 
-  explicit btree_base_node(btree_node_type::node_borrower<Node> parent)
-      : parent_(parent), position_(0), count_(0) {}
+  explicit btree_base_node(btree_node_borrower<Node> parent) : parent_(parent), position_(0), count_(0) {}
 
   // Getter for the position of this node in its parent.
   count_type position() const noexcept { return position_; }
   void       set_position(count_type v) noexcept {
     assert(borrow_parent() != nullptr);
-    assert(0 <= v && v < kNodeChildren<param_type>);
+    assert(0 <= v && v < kNodeChildren);
     position_ = v;
   }
 
@@ -158,7 +159,7 @@ class btree_base_node {
   }
 
   // Swap value i in this node with value j in node x.
-  void value_swap(count_type i, node_borrower x, count_type j) noexcept(noexcept(
+  void value_swap(count_type i, btree_node_borrower<btree_base_node> x, count_type j) noexcept(noexcept(
       btree_swap_helper(std::declval<mutable_value_type&>(), std::declval<mutable_value_type&>())
   )) {
     btree_swap_helper(values_[i], x->values_[j]);
@@ -342,19 +343,22 @@ void btree_base_node<P, N>::rebalance_right_to_left(
   assert(to_move >= 1);
   assert(to_move <= right->count());
 
+  auto base_right = static_cast<btree_node_borrower<btree_base_node>>(right);
+  auto base_parent = static_cast<btree_node_borrower<btree_base_node>>(borrow_parent());
+
   // Move the delimiting value to the left node.
-  this->replace_value(values_count(), borrow_parent()->extract_value(position()));
+  this->replace_value(values_count(), base_parent->extract_value(position()));
 
   // Move the values from the right to the left node.
-  std::move(right->begin_values(), right->begin_values() + to_move - 1, end_values() + 1);
+  std::move(base_right->begin_values(), base_right->begin_values() + to_move - 1, end_values() + 1);
   // Move the new delimiting value from the right node.
-  borrow_parent()->replace_value(position(), right->extract_value(to_move - 1));
+  base_parent->replace_value(position(), base_right->extract_value(to_move - 1));
   // Shift the values in the right node to their correct position.
-  right->shift_values_left(to_move, right->values_count(), to_move);
+  base_right->shift_values_left(to_move, base_right->values_count(), to_move);
 
   // Fixup the counts on the right and left nodes.
   set_count(count() + to_move);
-  right->set_count(right->count() - to_move);
+  base_right->set_count(base_right->count() - to_move);
 }
 
 template <typename P, typename N>
@@ -369,19 +373,22 @@ void btree_base_node<P, N>::rebalance_left_to_right(
   assert(to_move >= 1);
   assert(to_move <= count());
 
-  right->shift_values_right(0, right->values_count(), to_move);
+  auto base_right = static_cast<btree_node_borrower<btree_base_node>>(right);
+  auto base_parent = static_cast<btree_node_borrower<btree_base_node>>(borrow_parent());
+
+  base_right->shift_values_right(0, base_right->values_count(), to_move);
 
   // Move the delimiting value to the right node.
-  right->replace_value(to_move - 1, borrow_parent()->extract_value(position()));
+  base_right->replace_value(to_move - 1, base_parent->extract_value(position()));
 
   // Move the values from the left to the right node.
-  std::move(end_values() - to_move + 1, end_values(), right->begin_values());
+  std::move(end_values() - to_move + 1, end_values(), base_right->begin_values());
   // Move the new delimiting value from the left node.
-  borrow_parent()->replace_value(position(), this->extract_value(values_count() - to_move));
+  base_parent->replace_value(position(), this->extract_value(values_count() - to_move));
 
   // Fixup the counts on the left and right nodes.
   set_count(count() - to_move);
-  right->set_count(right->count() + to_move);
+  base_right->set_count(base_right->count() + to_move);
 }
 
 template <typename P, typename N>
@@ -390,185 +397,211 @@ void btree_base_node<P, N>::merge(node_borrower right) {
   assert(borrow_readonly_parent() != nullptr);
   assert(position() + 1 == right->position());
 
+  auto base_right = static_cast<btree_node_borrower<btree_base_node>>(right);
+  auto base_parent = static_cast<btree_node_borrower<btree_base_node>>(borrow_parent());
+
   // Move the delimiting value to the left node.
-  this->replace_value(values_count(), borrow_parent()->extract_value(position()));
+  replace_value(values_count(), base_parent->extract_value(position()));
 
   // Move the values from the right to the left node.
-  std::move(right->begin_values(), right->end_values(), end_values() + 1);
+  std::move(base_right->begin_values(), base_right->end_values(), end_values() + 1);
 
   // Fixup the counts on the right and left nodes.
-  set_count(1 + count() + right->count());
-  right->set_count(0);
+  set_count(1 + count() + base_right->count());
+  base_right->set_count(0);
 
   // Shift children behind the removed child left.
   if (position() + 2 < borrow_parent()->children_count()) {
-    borrow_parent()->shift_children_left(position() + 2, borrow_parent()->children_count(), 1);
+    base_parent->shift_children_left(position() + 2, borrow_parent()->children_count(), 1);
   }
 
   // Remove the value on the parent node.
-  borrow_parent()->remove_value(position());
+  base_parent->remove_value(position());
 }
 
 // Free functions
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type position(const btree_base_node<Params, Node>& n
+typename btree_base_node<Params, Node>::count_type position(
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n
 ) noexcept {
-  return n.position();
+  assert(n != nullptr);
+  return n->position();
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type set_position(
-    btree_base_node<Params, Node>& n, typename btree_base_node<Params, Node>::count_type v
+void set_position(
+    btree_node_borrower<btree_base_node<Params, Node>> n,
+    typename btree_base_node<Params, Node>::count_type v
 ) noexcept {
-  return n.set_position(v);
+  assert(n != nullptr);
+  n->set_position(v);
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type count(const btree_base_node<Params, Node>& n
+typename btree_base_node<Params, Node>::count_type count(
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n
 ) noexcept {
-  return n.count();
+  assert(n != nullptr);
+  return n->count();
 }
 
 template <class Params, class Node>
-constexpr typename btree_base_node<Params, Node>::count_type max_count(const btree_base_node<Params, Node>& n
+typename btree_base_node<Params, Node>::count_type max_count(
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n
 ) noexcept {
-  return n.max_count();
+  assert(n != nullptr);
+  return n->max_count();
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type borrow_parent(
-    const btree_base_node<Params, Node>& n
+typename btree_base_node<Params, Node>::node_borrower borrow_parent(
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n
 ) noexcept {
-  return n.borrow_parent();
+  assert(n != nullptr);
+  return n->borrow_parent();
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type borrow_readonly_parent(
-    const btree_base_node<Params, Node>& n
+typename btree_base_node<Params, Node>::node_readonly_borrower borrow_readonly_parent(
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n
 ) noexcept {
-  return n.borrow_readonly_parent();
+  assert(n != nullptr);
+  return n->borrow_readonly_parent();
 }
 
 template <class Params, class Node>
-bool is_root(const btree_base_node<Params, Node>& n) noexcept {
-  return n.is_root();
+bool is_root(btree_node_readonly_borrower<btree_base_node<Params, Node>> n) noexcept {
+  assert(n != nullptr);
+  return n->is_root();
 }
 
 template <class Params, class Node>
-bool make_root(btree_base_node<Params, Node>& n) noexcept {
-  return n.make_root();
+void make_root(btree_node_borrower<btree_base_node<Params, Node>> n) noexcept {
+  assert(n != nullptr);
+  n->make_root();
 }
 
 template <class Params, class Node>
 const typename btree_base_node<Params, Node>::key_type& key(
-    const btree_base_node<Params, Node>& n, typename btree_base_node<Params, Node>::count_type i
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n,
+    typename btree_base_node<Params, Node>::count_type          i
 ) noexcept {
-  return n.key(i);
+  assert(n != nullptr);
+  return n->key(i);
 }
 
 template <class Params, class Node>
 typename btree_base_node<Params, Node>::reference value(
-    btree_base_node<Params, Node>& n, typename btree_base_node<Params, Node>::count_type i
+    btree_node_borrower<btree_base_node<Params, Node>> n,
+    typename btree_base_node<Params, Node>::count_type i
 ) noexcept {
-  return n.value(i);
+  assert(n != nullptr);
+  return n->value(i);
 }
 
 template <class Params, class Node>
 typename btree_base_node<Params, Node>::const_reference value(
-    const btree_base_node<Params, Node>& n, typename btree_base_node<Params, Node>::count_type i
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n,
+    typename btree_base_node<Params, Node>::count_type          i
 ) noexcept {
-  return n.value(i);
+  assert(n != nullptr);
+  return n->value(i);
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::const_reference value_swap(
-    btree_base_node<Params, Node>&                        n,
-    typename btree_base_node<Params, Node>::count_type    i,
-    typename btree_base_node<Params, Node>::node_borrower x,
-    typename btree_base_node<Params, Node>::count_type    j
+void value_swap(
+    btree_node_borrower<btree_base_node<Params, Node>> n,
+    typename btree_base_node<Params, Node>::count_type i,
+    btree_node_borrower<btree_base_node<Params, Node>> x,
+    typename btree_base_node<Params, Node>::count_type j
 ) {
-  return n.value_swap(i, x, j);
+  assert(n != nullptr);
+  n->value_swap(i, x, j);
 }
 
 template <class Params, class Node>
 typename btree_base_node<Params, Node>::search_result lower_bound(
-    const btree_base_node<Params, Node>&                       n,
-    const typename btree_base_node<Params, Node>::count_type&  k,
-    const typename btree_base_node<Params, Node>::key_compare& comp
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n,
+    const typename btree_base_node<Params, Node>::key_type&   k,
+    const typename btree_base_node<Params, Node>::key_compare&  comp
 ) {
-  return n.lower_bound(k, comp);
+  assert(n != nullptr);
+  return n->lower_bound(k, comp);
 }
 
 template <class Params, class Node>
 typename btree_base_node<Params, Node>::search_result upper_bound(
-    const btree_base_node<Params, Node>&                       n,
-    const typename btree_base_node<Params, Node>::count_type&  k,
-    const typename btree_base_node<Params, Node>::key_compare& comp
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n,
+    const typename btree_base_node<Params, Node>::key_type&   k,
+    const typename btree_base_node<Params, Node>::key_compare&  comp
 ) {
-  return n.upper_bound(k, comp);
+  assert(n != nullptr);
+  return n->upper_bound(k, comp);
 }
 
 template <class Params, class Node>
 typename btree_base_node<Params, Node>::count_type values_count(
-    const btree_base_node<Params, Node>& n
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n
 ) noexcept {
-  return n.values_count();
+  assert(n != nullptr);
+  return n->values_count();
 }
 
 template <class Params, class Node>
-constexpr typename btree_base_node<Params, Node>::count_type max_values_count(
-    const btree_base_node<Params, Node>& n
+typename btree_base_node<Params, Node>::count_type max_values_count(
+    btree_node_readonly_borrower<btree_base_node<Params, Node>> n
 ) noexcept {
-  return n.max_values_count();
+  assert(n != nullptr);
+  return n->max_values_count();
 }
 
-template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type insert_value(
-    btree_base_node<Params, Node>&                     n,
+template <class Params, class Node, class T>
+void insert_value(
+    btree_node_borrower<btree_base_node<Params, Node>> n,
     typename btree_base_node<Params, Node>::count_type i,
-    typename btree_base_node<Params, Node>::T&&        x
+    T&&        x
 ) {
-  return n.insert_value(i, x);
+  assert(n != nullptr);
+  n->insert_value(i, x);
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type remove_value(
-    btree_base_node<Params, Node>& n, typename btree_base_node<Params, Node>::count_type i
+void remove_value(
+    btree_node_borrower<btree_base_node<Params, Node>> n,
+    typename btree_base_node<Params, Node>::count_type i
 ) {
-  return n.remove_value(i);
+  assert(n != nullptr);
+  n->remove_value(i);
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type rebalance_right_to_left(
-    btree_base_node<Params, Node>&                        n,
-    typename btree_base_node<Params, Node>::node_borrower sibling,
-    typename btree_base_node<Params, Node>::count_type    to_move
+void rebalance_right_to_left(
+    btree_node_borrower<btree_base_node<Params, Node>> n,
+    btree_node_borrower<btree_base_node<Params, Node>> sibling,
+    typename btree_base_node<Params, Node>::count_type to_move
 ) {
-  return n.rebalance_right_to_left(sibling, to_move);
+  assert(n != nullptr);
+  n->rebalance_right_to_left(sibling, to_move);
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type rebalance_left_to_right(
-    btree_base_node<Params, Node>&                        n,
-    typename btree_base_node<Params, Node>::node_borrower sibling,
-    typename btree_base_node<Params, Node>::count_type    to_move
+void rebalance_left_to_right(
+    btree_node_borrower<btree_base_node<Params, Node>> n,
+    btree_node_borrower<btree_base_node<Params, Node>> sibling,
+    typename btree_base_node<Params, Node>::count_type to_move
 ) {
-  return n.rebalance_left_to_right(sibling, to_move);
+  assert(n != nullptr);
+  n->rebalance_left_to_right(sibling, to_move);
 }
 
 template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type merge(
-    btree_base_node<Params, Node>& n, typename btree_base_node<Params, Node>::node_borrower sibling
+void merge(
+    btree_node_borrower<btree_base_node<Params, Node>> n,
+    btree_node_borrower<btree_base_node<Params, Node>> sibling
 ) {
-  return n.merge(sibling);
+  assert(n != nullptr);
+  n->merge(sibling);
 }
-
-template <class Params, class Node>
-typename btree_base_node<Params, Node>::count_type merge(
-    btree_base_node<Params, Node>& n, typename btree_base_node<Params, Node>::node_borrower sibling
-) {
-  return n.merge(sibling);
-}
-}  // namespace platanus
+}  // namespace platanus::commons
 
 #endif

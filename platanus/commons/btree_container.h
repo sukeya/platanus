@@ -36,7 +36,7 @@
 
 #include "btree.h"
 
-namespace platanus {
+namespace platanus::commons {
 
 // A common base class for btree_set, btree_map, btree_multiset and
 // btree_multimap.
@@ -45,7 +45,6 @@ class btree_container {
   using self_type = btree_container<Tree>;
 
  public:
-  using params_type            = typename Tree::params_type;
   using key_type               = typename Tree::key_type;
   using value_type             = typename Tree::value_type;
   using key_compare            = typename Tree::key_compare;

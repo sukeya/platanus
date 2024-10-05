@@ -34,8 +34,9 @@
 #include <memory>
 #include <string>
 
-#include "btree.h"
-#include "btree_container.h"
+#include "details/btree_node.h"
+#include "commons/btree.h"
+#include "commons/btree_container.h"
 
 namespace platanus {
 
@@ -45,12 +46,15 @@ template <
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
     std::size_t MaxNumOfValues = 64>
-class btree_set : public btree_unique_container<
-                      btree<btree_set_params<Key, Compare, Alloc, MaxNumOfValues> > > {
+class btree_set : public commons::btree_unique_container<
+                      commons::btree<
+                        details::btree_node<commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>,
+                        details::btree_node_factory<commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>
+                      > > {
   using self_type   = btree_set<Key, Compare, Alloc, MaxNumOfValues>;
-  using params_type = btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
-  using btree_type  = btree<params_type>;
-  using super_type  = btree_unique_container<btree_type>;
+  using params_type = commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
+  using btree_type  = commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
+  using super_type  = commons::btree_unique_container<btree_type>;
 
  public:
   using value_type     = typename btree_type::value_type;
@@ -110,11 +114,14 @@ template <
     typename Alloc             = std::allocator<Key>,
     std::size_t MaxNumOfValues = 64>
 class btree_multiset
-    : public btree_multi_container<btree<btree_set_params<Key, Compare, Alloc, MaxNumOfValues> > > {
+    : public commons::btree_multi_container<commons::btree<
+                        details::btree_node<commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>,
+                        details::btree_node_factory<commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>
+    > > {
   using self_type   = btree_multiset<Key, Compare, Alloc, MaxNumOfValues>;
-  using params_type = btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
-  using btree_type  = btree<params_type>;
-  using super_type  = btree_multi_container<btree_type>;
+  using params_type = commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
+  using btree_type  = commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
+  using super_type  = commons::btree_multi_container<btree_type>;
 
  public:
   using value_type     = typename btree_type::value_type;

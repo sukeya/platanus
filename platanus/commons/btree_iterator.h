@@ -26,120 +26,116 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_BTREE_ITERATOR_H_
-#define PLATANUS_BTREE_ITERATOR_H_
+#ifndef PLATANUS_COMMONS_BTREE_ITERATOR_H_
+#define PLATANUS_COMMONS_BTREE_ITERATOR_H_
 
-namespace platanus {
-namespace detail {
-template <class Node>
-using node_borrower = typename Node::node_borrower;
+#include "btree_node_decl.h"
 
-template <class Node>
-using node_readonly_borrower = typename Node::node_readonly_borrower;
-
+namespace platanus::commons {
+namespace btree_iterator_impl {
 template <class Node>
 using signed_count_type = typename Node::signed_count_type;
 
 // Increment/decrement the iterator.
 template <class Node>
 void increment_slow(
-    node_readonly_borrower<Node>& node, signed_count_type<Node>& position
+    btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& pos
 ) noexcept {
-  if (node->leaf()) {
-    assert(position >= node->count());
+  if (is_leaf(node)) {
+    assert(pos >= count(node));
 
-    node_readonly_borrower<Node> save_node     = node;
-    signed_count_type<Node>      save_position = position;
+    auto save_node = node;
+    auto save_pos  = pos;
 
     // Climb the tree.
-    while (position == node->count() && !node->is_root()) {
-      assert(node->borrow_readonly_parent()->borrow_readonly_child(node->position()) == node);
+    while (pos == count(node) && not is_root(node)) {
+      assert(borrow_readonly_child(borrow_readonly_parent(node), position(node)) == node);
 
-      position = node->position();
-      node     = node->borrow_readonly_parent();
+      pos  = position(node);
+      node = borrow_readonly_parent(node);
     }
-    // If node is the root, this tree is fully iterated, so set this to the saved end() position.
-    if (position == node->count()) {
-      node     = save_node;
-      position = save_position;
+    // If node is the root, this tree is fully iterated, so set this to the saved end() pos.
+    if (pos == count(node)) {
+      node = save_node;
+      pos  = save_pos;
     }
   } else {
-    assert(position < node->count());
+    assert(pos < count(node));
 
-    node = node->borrow_readonly_child(position + 1);
+    node = borrow_readonly_child(node, pos + 1);
     // Descend to the leaf node.
-    while (!node->leaf()) {
-      node = node->borrow_readonly_child(0);
+    while (not is_leaf(node)) {
+      node = borrow_readonly_child(node, 0);
     }
-    position = 0;
+    pos = 0;
   }
 }
 
 template <class Node>
-void increment(node_readonly_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
-  if (node->leaf() && ++position < node->count()) {
+void increment(btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+  if (is_leaf(node) && ++position < count(node)) {
     return;
   }
-  increment_slow<Node>(node, position);
+  increment_slow(node, position);
 }
 
 template <class Node>
-void increment(node_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
-  node_readonly_borrower<Node> tmp = static_cast<node_readonly_borrower<Node>>(node);
-  increment<Node>(tmp, position);
-  node = const_cast<node_borrower<Node>>(tmp);
+void increment(btree_node_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+  auto tmp = static_cast<btree_node_readonly_borrower<Node>>(node);
+  increment(tmp, position);
+  node = const_cast<btree_node_borrower<Node>>(tmp);
 }
 
 template <class Node>
 void decrement_slow(
-    node_readonly_borrower<Node>& node, signed_count_type<Node>& position
+    btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& pos
 ) noexcept {
-  if (node->leaf()) {
-    assert(position <= -1);
+  if (is_leaf(node)) {
+    assert(pos <= -1);
 
-    node_readonly_borrower<Node> save_node     = node;
-    signed_count_type<Node>      save_position = position;
+    auto save_node     = node;
+    auto save_pos = pos;
 
-    // Climb the tree while updating the position to the left sibling of this in its parent node.
-    while (position < 0 && !node->is_root()) {
-      assert(node->borrow_readonly_parent()->borrow_readonly_child(node->position()) == node);
+    // Climb the tree while updating the pos to the left sibling of this in its parent node.
+    while (pos < 0 && not is_root(node)) {
+      assert(borrow_readonly_child(borrow_readonly_parent(node), position(node)) == node);
 
-      position = node->position() - 1;
-      node     = node->borrow_readonly_parent();
+      pos  = position(node) - 1;
+      node = borrow_readonly_parent(node);
     }
-    // If node is the root, the previoud *this is the rend() position, so set *this to the saved
-    // rend() position.
-    if (position < 0) {
+    // If node is the root, the previoud *this is the rend() pos, so set *this to the saved
+    // rend() pos.
+    if (pos < 0) {
       node     = save_node;
-      position = save_position;
+      pos = save_pos;
     }
   } else {
-    assert(position >= 0);
+    assert(pos >= 0);
 
-    node = node->borrow_readonly_child(position);
+    node = borrow_readonly_child(node, pos);
     // Descend to the leaf node.
-    while (!node->leaf()) {
-      node = node->borrow_readonly_child(node->count());
+    while (not is_leaf(node)) {
+      node = borrow_readonly_child(node, count(node));
     }
-    position = node->count() - 1;
+    pos = count(node) - 1;
   }
 }
 
 template <class Node>
-void decrement(node_readonly_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
-  if (node->leaf() && --position >= 0) {
+void decrement(btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+  if (is_leaf(node) && --position >= 0) {
     return;
   }
-  decrement_slow<Node>(node, position);
+  decrement_slow(node, position);
 }
 
 template <class Node>
-void decrement(node_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
-  node_readonly_borrower<Node> tmp = static_cast<node_readonly_borrower<Node>>(node);
-  decrement<Node>(tmp, position);
-  node = const_cast<node_borrower<Node>>(tmp);
+void decrement(btree_node_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+  auto tmp = static_cast<btree_node_readonly_borrower<Node>>(node);
+  decrement(tmp, position);
+  node = const_cast<btree_node_borrower<Node>>(tmp);
 }
-}  // namespace detail
+}  // namespace btree_iterator_impl
 
 template <typename Node, bool is_const>
 struct btree_iterator;
@@ -149,8 +145,8 @@ struct btree_iterator<Node, false> {
   using self_type = btree_iterator<Node, false>;
 
   using node_type              = Node;
-  using node_borrower          = typename Node::node_borrower;
-  using node_readonly_borrower = typename Node::node_readonly_borrower;
+  using node_borrower          = btree_node_borrower<Node>;
+  using node_readonly_borrower = btree_node_readonly_borrower<Node>;
 
   using key_type        = typename Node::key_type;
   using value_type      = typename Node::value_type;
@@ -177,18 +173,18 @@ struct btree_iterator<Node, false> {
   explicit btree_iterator(node_borrower n, signed_count_type p) noexcept : node(n), position(p) {}
 
   // Accessors for the key/value the iterator is pointing at.
-  const key_type& key() const { return node->key(position); }
+  const key_type& key() const { using commons::key; return key(node, position); }
 
-  reference operator*() const { return node->value(position); }
-  pointer   operator->() const { return &node->value(position); }
+  reference operator*() const { using commons::value; return value(node, position); }
+  pointer   operator->() const { return &(this->operator*()); }
 
   self_type& operator++() noexcept {
-    detail::increment<self_type>(node, position);
+    btree_iterator_impl::increment(node, position);
     return *this;
   }
 
   self_type& operator--() noexcept {
-    detail::decrement<self_type>(node, position);
+    btree_iterator_impl::decrement(node, position);
     return *this;
   }
 
@@ -215,8 +211,8 @@ struct btree_iterator<Node, true> {
   using self_type = btree_iterator<Node, true>;
 
   using node_type              = Node;
-  using node_borrower          = typename Node::node_borrower;
-  using node_readonly_borrower = typename Node::node_readonly_borrower;
+  using node_borrower          = btree_node_borrower<Node>;
+  using node_readonly_borrower = btree_node_readonly_borrower<Node>;
 
   using key_type        = typename Node::key_type;
   using value_type      = typename Node::value_type;
@@ -247,18 +243,18 @@ struct btree_iterator<Node, true> {
       : btree_iterator(static_cast<node_readonly_borrower>(x.node), x.position) {}
 
   // Accessors for the key/value the iterator is pointing at.
-  const key_type& key() const { return node->key(position); }
+  const key_type& key() const { using commons::key; return key(node, position); }
 
-  const_reference operator*() const { return node->value(position); }
-  const_pointer   operator->() const { return &node->value(position); }
+  const_reference operator*() const { using commons::value; return value(node, position); }
+  const_pointer   operator->() const { return &(this->operator*()); }
 
   self_type& operator++() noexcept {
-    detail::increment<self_type>(node, position);
+    btree_iterator_impl::increment(node, position);
     return *this;
   }
 
   self_type& operator--() noexcept {
-    detail::decrement<self_type>(node, position);
+    btree_iterator_impl::decrement(node, position);
     return *this;
   }
 
@@ -289,7 +285,6 @@ template <typename Node, bool lb, bool rb>
 bool operator!=(const btree_iterator<Node, lb>& lhd, const btree_iterator<Node, rb>& rhd) noexcept {
   return !(lhd == rhd);
 }
+}  // namespace platanus::commons
 
-}  // namespace platanus
-
-#endif  // PLATANUS_BTREE_ITERATOR_H_
+#endif  // PLATANUS_COMMONS_BTREE_ITERATOR_H_

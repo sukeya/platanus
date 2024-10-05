@@ -44,7 +44,7 @@
 
 #include "gtest/gtest.h"
 
-#include "platanus/btree_container.h"
+#include "platanus/commons/btree_container.h"
 #include "util.h"
 
 namespace platanus {

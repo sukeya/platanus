@@ -33,16 +33,17 @@
 #include <compare>
 #include <functional>
 #include <memory>
+#include <memory_resource>
 #include <string>
 #include <utility>
 
 #include "details/btree_node.h"
+#include "pmr/details/btree_node.h"
 #include "commons/btree.h"
 #include "commons/btree_container.h"
 
 namespace platanus {
 
-// The btree_map class is needed mainly for its constructors.
 template <
     typename Key,
     typename Value,
@@ -61,12 +62,23 @@ class btree_map : public commons::btree_map_container<
   using super_type  = commons::btree_map_container<btree_type>;
 
  public:
-  using value_type     = typename super_type::value_type;
-  using key_compare    = typename super_type::key_compare;
-  using value_compare  = typename super_type::value_compare;
-  using allocator_type = typename super_type::allocator_type;
+  using key_type               = typename super_type::key_type;
+  using value_type             = typename super_type::value_type;
+  using mapped_type = typename super_type::mapped_type;
+  using key_compare            = typename super_type::key_compare;
+  using value_compare          = typename super_type::value_compare;
+  using allocator_type         = typename super_type::allocator_type;
+  using pointer                = typename super_type::pointer;
+  using const_pointer          = typename super_type::const_pointer;
+  using reference              = typename super_type::reference;
+  using const_reference        = typename super_type::const_reference;
+  using size_type              = typename super_type::size_type;
+  using difference_type        = typename super_type::difference_type;
+  using iterator               = typename super_type::iterator;
+  using const_iterator         = typename super_type::const_iterator;
+  using reverse_iterator       = typename super_type::reverse_iterator;
+  using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
- public:
   btree_map()                            = default;
   btree_map(const self_type&)            = default;
   btree_map(self_type&&)                 = default;
@@ -103,6 +115,50 @@ class btree_map : public commons::btree_map_container<
       : self_type{init.begin(), init.end(), comp, alloc} {}
   btree_map(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::begin;
+  using super_type::cbegin;
+  using super_type::end;
+  using super_type::cend;
+  using super_type::rbegin;
+  using super_type::crbegin;
+  using super_type::rend;
+  using super_type::crend;
+
+  using super_type::clear;
+  using super_type::swap;
+  using super_type::dump;
+  using super_type::verify;
+
+  using super_type::size;
+  using super_type::max_size;
+  using super_type::empty;
+  using super_type::height;
+  using super_type::internal_nodes;
+  using super_type::leaf_nodes;
+  using super_type::nodes;
+  using super_type::bytes_used;
+  using super_type::average_bytes_per_value;
+  using super_type::fullness;
+  using super_type::overhead;
+
+  using super_type::key_comp;
+
+  using super_type::lower_bound;
+  using super_type::upper_bound;
+  using super_type::equal_range;
+
+  using super_type::find;
+  using super_type::count;
+  using super_type::contains;
+
+  using super_type::insert;
+  using super_type::erase;
+
+  using super_type::merge;
+
+  using super_type::at;
+  using super_type::operator[];
 };
 
 template <typename K, typename V, typename C, typename A, std::size_t N>
@@ -110,7 +166,6 @@ void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
   x.swap(y);
 }
 
-// The btree_multimap class is needed mainly for its constructors.
 template <
     typename Key,
     typename Value,
@@ -128,13 +183,24 @@ class btree_multimap : public commons::btree_multi_container<
   using super_type  = commons::btree_multi_container<btree_type>;
 
  public:
-  using key_compare    = typename btree_type::key_compare;
-  using value_compare  = typename btree_type::value_compare;
-  using allocator_type = typename btree_type::allocator_type;
-  using mapped_type    = typename btree_type::mapped_type;
-  using value_type     = typename btree_type::value_type;
+  using mapped_type = typename btree_type::mapped_type;
 
- public:
+  using key_type               = typename super_type::key_type;
+  using value_type             = typename super_type::value_type;
+  using key_compare            = typename super_type::key_compare;
+  using value_compare          = typename super_type::value_compare;
+  using allocator_type         = typename super_type::allocator_type;
+  using pointer                = typename super_type::pointer;
+  using const_pointer          = typename super_type::const_pointer;
+  using reference              = typename super_type::reference;
+  using const_reference        = typename super_type::const_reference;
+  using size_type              = typename super_type::size_type;
+  using difference_type        = typename super_type::difference_type;
+  using iterator               = typename super_type::iterator;
+  using const_iterator         = typename super_type::const_iterator;
+  using reverse_iterator       = typename super_type::reverse_iterator;
+  using const_reverse_iterator = typename super_type::const_reverse_iterator;
+
   btree_multimap()                            = default;
   btree_multimap(const self_type&)            = default;
   btree_multimap(self_type&&)                 = default;
@@ -172,6 +238,47 @@ class btree_multimap : public commons::btree_multi_container<
       : self_type{init.begin(), init.end(), comp, alloc} {}
   btree_multimap(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::begin;
+  using super_type::cbegin;
+  using super_type::end;
+  using super_type::cend;
+  using super_type::rbegin;
+  using super_type::crbegin;
+  using super_type::rend;
+  using super_type::crend;
+
+  using super_type::clear;
+  using super_type::swap;
+  using super_type::dump;
+  using super_type::verify;
+
+  using super_type::size;
+  using super_type::max_size;
+  using super_type::empty;
+  using super_type::height;
+  using super_type::internal_nodes;
+  using super_type::leaf_nodes;
+  using super_type::nodes;
+  using super_type::bytes_used;
+  using super_type::average_bytes_per_value;
+  using super_type::fullness;
+  using super_type::overhead;
+
+  using super_type::key_comp;
+
+  using super_type::lower_bound;
+  using super_type::upper_bound;
+  using super_type::equal_range;
+
+  using super_type::find;
+  using super_type::count;
+  using super_type::contains;
+
+  using super_type::insert;
+  using super_type::erase;
+
+  using super_type::merge;
 };
 
 template <typename K, typename V, typename C, typename A, std::size_t N>
@@ -179,6 +286,252 @@ void swap(btree_multimap<K, V, C, A, N>& x, btree_multimap<K, V, C, A, N>& y) {
   x.swap(y);
 }
 
+namespace pmr {
+
+template <
+    typename Key,
+    typename Value,
+    typename Compare           = std::ranges::less,
+    std::size_t MaxNumOfValues = 64>
+class btree_map : public commons::btree_map_container<
+                      commons::btree<
+                        pmr::details::btree_leaf_node<
+                            commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>
+                        >,
+                        pmr::details::btree_node_factory<
+                            commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>
+                        >
+                      >
+                    > {
+  using self_type   = btree_map<Key, Value, Compare, MaxNumOfValues>;
+  using params_type = commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>;
+  using btree_type  = commons::btree<pmr::details::btree_leaf_node<params_type>, pmr::details::btree_node_factory<params_type>>;
+  using super_type  = commons::btree_map_container<btree_type>;
+
+ public:
+  using key_type               = typename super_type::key_type;
+  using value_type             = typename super_type::value_type;
+  using mapped_type = typename super_type::mapped_type;
+  using key_compare            = typename super_type::key_compare;
+  using value_compare          = typename super_type::value_compare;
+  using allocator_type         = typename super_type::allocator_type;
+  using pointer                = typename super_type::pointer;
+  using const_pointer          = typename super_type::const_pointer;
+  using reference              = typename super_type::reference;
+  using const_reference        = typename super_type::const_reference;
+  using size_type              = typename super_type::size_type;
+  using difference_type        = typename super_type::difference_type;
+  using iterator               = typename super_type::iterator;
+  using const_iterator         = typename super_type::const_iterator;
+  using reverse_iterator       = typename super_type::reverse_iterator;
+  using const_reverse_iterator = typename super_type::const_reverse_iterator;
+
+  btree_map()                            = default;
+  btree_map(const self_type&)            = default;
+  btree_map(self_type&&)                 = default;
+  btree_map& operator=(const self_type&) = default;
+  btree_map& operator=(self_type&&)      = default;
+  ~btree_map()                           = default;
+
+  explicit btree_map(const key_compare& comp, const allocator_type& alloc = allocator_type())
+      : super_type(comp, alloc) {}
+
+  explicit btree_map(const allocator_type& alloc) : super_type(alloc) {}
+
+  // Range constructor.
+  template <class InputIterator>
+  btree_map(
+      InputIterator         b,
+      InputIterator         e,
+      const key_compare&    comp  = key_compare(),
+      const allocator_type& alloc = allocator_type()
+  )
+      : super_type(b, e, comp, alloc) {}
+  template <class InputIterator>
+  btree_map(InputIterator b, InputIterator e, const allocator_type& alloc)
+      : super_type(b, e, alloc) {}
+
+  btree_map(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  btree_map(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+
+  btree_map(
+      std::initializer_list<value_type> init,
+      const key_compare&                comp  = key_compare{},
+      const allocator_type&             alloc = allocator_type{}
+  )
+      : self_type{init.begin(), init.end(), comp, alloc} {}
+  btree_map(std::initializer_list<value_type> init, const allocator_type& alloc)
+      : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::begin;
+  using super_type::cbegin;
+  using super_type::end;
+  using super_type::cend;
+  using super_type::rbegin;
+  using super_type::crbegin;
+  using super_type::rend;
+  using super_type::crend;
+
+  using super_type::clear;
+  using super_type::swap;
+  using super_type::dump;
+  using super_type::verify;
+
+  using super_type::size;
+  using super_type::max_size;
+  using super_type::empty;
+  using super_type::height;
+  using super_type::internal_nodes;
+  using super_type::leaf_nodes;
+  using super_type::nodes;
+  using super_type::bytes_used;
+  using super_type::average_bytes_per_value;
+  using super_type::fullness;
+  using super_type::overhead;
+
+  using super_type::key_comp;
+
+  using super_type::lower_bound;
+  using super_type::upper_bound;
+  using super_type::equal_range;
+
+  using super_type::find;
+  using super_type::count;
+  using super_type::contains;
+
+  using super_type::insert;
+  using super_type::erase;
+
+  using super_type::merge;
+
+  using super_type::at;
+  using super_type::operator[];
+};
+
+template <typename K, typename V, typename C, std::size_t N>
+void swap(btree_map<K, V, C, N>& x, btree_map<K, V, C, N>& y) {
+  x.swap(y);
+}
+
+template <
+    typename Key,
+    typename Value,
+    typename Compare           = std::ranges::less,
+    std::size_t MaxNumOfValues = 64>
+class btree_multimap : public commons::btree_multi_container<
+                           commons::btree<
+                            pmr::details::btree_leaf_node<commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>>,
+                            pmr::details::btree_node_factory<commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>>
+                           >> {
+  using self_type   = btree_multimap<Key, Value, Compare, MaxNumOfValues>;
+  using params_type = commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>;
+  using btree_type  = commons::btree<pmr::details::btree_leaf_node<params_type>, pmr::details::btree_node_factory<params_type>>;
+  using super_type  = commons::btree_multi_container<btree_type>;
+
+ public:
+  using mapped_type = typename btree_type::mapped_type;
+
+  using key_type               = typename super_type::key_type;
+  using value_type             = typename super_type::value_type;
+  using key_compare            = typename super_type::key_compare;
+  using value_compare          = typename super_type::value_compare;
+  using allocator_type         = typename super_type::allocator_type;
+  using pointer                = typename super_type::pointer;
+  using const_pointer          = typename super_type::const_pointer;
+  using reference              = typename super_type::reference;
+  using const_reference        = typename super_type::const_reference;
+  using size_type              = typename super_type::size_type;
+  using difference_type        = typename super_type::difference_type;
+  using iterator               = typename super_type::iterator;
+  using const_iterator         = typename super_type::const_iterator;
+  using reverse_iterator       = typename super_type::reverse_iterator;
+  using const_reverse_iterator = typename super_type::const_reverse_iterator;
+
+  btree_multimap()                            = default;
+  btree_multimap(const self_type&)            = default;
+  btree_multimap(self_type&&)                 = default;
+  btree_multimap& operator=(const self_type&) = default;
+  btree_multimap& operator=(self_type&&)      = default;
+  ~btree_multimap()                           = default;
+
+  explicit btree_multimap(const key_compare& comp, const allocator_type& alloc = allocator_type())
+      : super_type(comp, alloc) {}
+
+  explicit btree_multimap(const allocator_type& alloc) : super_type(alloc) {}
+
+  // Range constructor.
+  template <class InputIterator>
+  btree_multimap(
+      InputIterator         b,
+      InputIterator         e,
+      const key_compare&    comp  = key_compare(),
+      const allocator_type& alloc = allocator_type()
+  )
+      : super_type(b, e, comp, alloc) {}
+
+  template <class InputIterator>
+  btree_multimap(InputIterator b, InputIterator e, const allocator_type& alloc)
+      : super_type(b, e, alloc) {}
+
+  btree_multimap(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  btree_multimap(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+
+  btree_multimap(
+      std::initializer_list<value_type> init,
+      const key_compare&                comp  = key_compare{},
+      const allocator_type&             alloc = allocator_type{}
+  )
+      : self_type{init.begin(), init.end(), comp, alloc} {}
+  btree_multimap(std::initializer_list<value_type> init, const allocator_type& alloc)
+      : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::begin;
+  using super_type::cbegin;
+  using super_type::end;
+  using super_type::cend;
+  using super_type::rbegin;
+  using super_type::crbegin;
+  using super_type::rend;
+  using super_type::crend;
+
+  using super_type::clear;
+  using super_type::swap;
+  using super_type::dump;
+  using super_type::verify;
+
+  using super_type::size;
+  using super_type::max_size;
+  using super_type::empty;
+  using super_type::height;
+  using super_type::internal_nodes;
+  using super_type::leaf_nodes;
+  using super_type::nodes;
+  using super_type::bytes_used;
+  using super_type::average_bytes_per_value;
+  using super_type::fullness;
+  using super_type::overhead;
+
+  using super_type::key_comp;
+
+  using super_type::lower_bound;
+  using super_type::upper_bound;
+  using super_type::equal_range;
+
+  using super_type::find;
+  using super_type::count;
+  using super_type::contains;
+
+  using super_type::insert;
+  using super_type::erase;
+
+  using super_type::merge;
+};
+
+template <typename K, typename V, typename C, std::size_t N>
+void swap(btree_multimap<K, V, C, N>& x, btree_multimap<K, V, C, N>& y) {
+  x.swap(y);
+}
+}
 }  // namespace platanus
 
 #endif  // PLATANUS_BTREE_MAP_H__

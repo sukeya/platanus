@@ -29,11 +29,16 @@
 add_library(util INTERFACE)
 target_include_directories(util INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(btree_test btree_test.cc)
-target_compile_options(
-  btree_test
-  PUBLIC
-    "$<${gcc_like_cxx}:-Wall;-Wextra>"
-    "$<${msvc_cxx}:/Wall>"
-)
-target_link_libraries(btree_test GTest::gtest_main platanus util)
+function(add_btree_test target)
+  add_executable(${target} ${target}.cc)
+  target_compile_options(
+    ${target}
+    PUBLIC
+      "$<${gcc_like_cxx}:-Wall;-Wextra>"
+      "$<${msvc_cxx}:/Wall>"
+  )
+  target_link_libraries(${target} GTest::gtest_main platanus util)
+endfunction()
+
+add_btree_test(btree_test)
+add_btree_test(btree_pmr_test)

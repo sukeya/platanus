@@ -36,7 +36,14 @@
 #include "btree_node_decl.h"
 #include "btree_util.h"
 
-namespace platanus::commons {
+namespace platanus {
+
+namespace pmr::details {
+template <class P>
+class btree_leaf_node;
+}
+
+namespace commons {
 template <std::size_t BitWidth>
 class btree_node_search_result {
  public:
@@ -193,6 +200,8 @@ class btree_base_node {
   // Removes the value at position i, shifting all existing values and children
   // at positions > i to the left by 1.
   void remove_value(count_type i) {
+    assert(count() >= 1);
+
     auto old_values_count = values_count();
     set_count(count() - 1);
     // Shift values behind the removed value left.
@@ -204,10 +213,6 @@ class btree_base_node {
   // Rebalances a node with its right sibling.
   void rebalance_right_to_left(node_borrower sibling, count_type to_move);
   void rebalance_left_to_right(node_borrower sibling, count_type to_move);
-
-  // Merges a node with its right sibling, moving all of the values and the
-  // delimiting key in the parent node onto itself.
-  void merge(node_borrower sibling);
 
  protected:
   void set_count(count_type v) noexcept {
@@ -323,6 +328,19 @@ class btree_base_node {
     std::move(begin, end, std::prev(begin, shift));
   }
 
+  template <class P>
+  friend void merge(
+      btree_node_borrower<pmr::details::btree_leaf_node<P>> left,
+      btree_node_borrower<pmr::details::btree_leaf_node<P>> right
+  );
+
+  template <class P>
+  friend void split(
+      btree_node_borrower<pmr::details::btree_leaf_node<P>> left,
+      btree_node_owner<pmr::details::btree_leaf_node<P>>&&  right,
+      typename pmr::details::btree_leaf_node<P>::count_type insert_position
+  );
+
   // The array of values.
   values_type values_;
   // A pointer to the node's parent.
@@ -391,34 +409,6 @@ void btree_base_node<P, N>::rebalance_left_to_right(
   // Fixup the counts on the left and right nodes.
   set_count(count() - to_move);
   base_right->set_count(base_right->count() + to_move);
-}
-
-template <typename P, typename N>
-void btree_base_node<P, N>::merge(node_borrower right) {
-  assert(borrow_readonly_parent() == right->borrow_readonly_parent());
-  assert(borrow_readonly_parent() != nullptr);
-  assert(position() + 1 == right->position());
-
-  auto base_right  = static_cast<btree_node_borrower<btree_base_node>>(right);
-  auto base_parent = static_cast<btree_node_borrower<btree_base_node>>(borrow_parent());
-
-  // Move the delimiting value to the left node.
-  replace_value(values_count(), base_parent->extract_value(position()));
-
-  // Move the values from the right to the left node.
-  std::move(base_right->begin_values(), base_right->end_values(), end_values() + 1);
-
-  // Fixup the counts on the right and left nodes.
-  set_count(1 + count() + base_right->count());
-  base_right->set_count(0);
-
-  // Shift children behind the removed child left.
-  if (position() + 2 < borrow_parent()->children_count()) {
-    base_parent->shift_children_left(position() + 2, borrow_parent()->children_count(), 1);
-  }
-
-  // Remove the value on the parent node.
-  base_parent->remove_value(position());
 }
 
 // Free functions
@@ -575,35 +565,7 @@ void remove_value(
   assert(n != nullptr);
   n->remove_value(i);
 }
-
-template <class Params, class Node>
-void rebalance_right_to_left(
-    btree_node_borrower<btree_base_node<Params, Node>> n,
-    btree_node_borrower<btree_base_node<Params, Node>> sibling,
-    typename btree_base_node<Params, Node>::count_type to_move
-) {
-  assert(n != nullptr);
-  n->rebalance_right_to_left(sibling, to_move);
-}
-
-template <class Params, class Node>
-void rebalance_left_to_right(
-    btree_node_borrower<btree_base_node<Params, Node>> n,
-    btree_node_borrower<btree_base_node<Params, Node>> sibling,
-    typename btree_base_node<Params, Node>::count_type to_move
-) {
-  assert(n != nullptr);
-  n->rebalance_left_to_right(sibling, to_move);
-}
-
-template <class Params, class Node>
-void merge(
-    btree_node_borrower<btree_base_node<Params, Node>> n,
-    btree_node_borrower<btree_base_node<Params, Node>> sibling
-) {
-  assert(n != nullptr);
-  n->merge(sibling);
-}
-}  // namespace platanus::commons
+}  // namespace commons
+}  // namespace platanus
 
 #endif

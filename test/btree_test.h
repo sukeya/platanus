@@ -48,6 +48,7 @@
 #include "util.h"
 
 namespace platanus {
+
 // The number of values to use for tests.
 inline static constexpr int test_values = 10'000;
 
@@ -983,6 +984,86 @@ void BtreeMultiMapTest() {
   (void)m;
 }
 
+// Verify that swapping btrees swaps the key comparision functors.
+struct SubstringLess {
+  SubstringLess() : n(2) {}
+  SubstringLess(size_t length) : n(length) {}
+  auto operator()(const std::string& a, const std::string& b) const {
+    std::string_view as(a.data(), std::min(n, a.size()));
+    std::string_view bs(b.data(), std::min(n, b.size()));
+    return as <=> bs;
+  }
+  size_t n;
+};
+
+// Test using a class that doesn't implement any comparison operator as key.
+struct Vec2i {
+  static constexpr std::size_t N = 2;
+
+  int a[N];
+};
+
+bool operator==(const Vec2i& lhd, const Vec2i& rhd) {
+  for (std::size_t i = 0; i < Vec2i::N; ++i) {
+    if (lhd.a[i] != rhd.a[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool operator!=(const Vec2i& lhd, const Vec2i& rhd) { return not(lhd == rhd); }
+
+template <>
+struct Generator<Vec2i> {
+  static Vec2i Generate(std::size_t n) {
+    Vec2i v;
+    for (std::size_t i = 0; i < Vec2i::N; ++i) {
+      v.a[i] = n;
+    }
+    return v;
+  }
+};
+
+struct Vec2iComp {
+  static constexpr int N = Vec2i::N;
+
+  bool comp(const Vec2i& lhd, const Vec2i& rhd, int i) const noexcept {
+    assert(0 <= i && i <= N);
+
+    if (i == N) {
+      return false;
+    }
+    if (lhd.a[i] < rhd.a[i]) {
+      return true;
+    } else if (lhd.a[i] == rhd.a[i]) {
+      return comp(lhd, rhd, i + 1);
+    } else {
+      return false;
+    }
+  }
+
+  bool operator()(const Vec2i& lhd, const Vec2i& rhd) const noexcept { return comp(lhd, rhd, 0); }
+};
+
+#define BTREE_TEST(test_func, name)                                  \
+  TEST(Btree##name, int32_3) { test_func<int32_t, 3>(); }            \
+  TEST(Btree##name, int64_3) { test_func<int64_t, 3>(); }            \
+  TEST(Btree##name, string_3) { test_func<std::string, 3>(); }       \
+  TEST(Btree##name, pair_3) { test_func<std::pair<int, int>, 3>(); } \
+  TEST(Btree##name, int32_64) { test_func<int32_t, 64>(); }          \
+  TEST(Btree##name, int32_128) { test_func<int32_t, 128>(); }        \
+  TEST(Btree##name, int32_256) { test_func<int32_t, 256>(); }        \
+  TEST(Btree##name, string_64) { test_func<std::string, 64>(); }     \
+  TEST(Btree##name, string_128) { test_func<std::string, 128>(); }   \
+  TEST(Btree##name, string_256) { test_func<std::string, 256>(); }
 }  // namespace platanus
+
+namespace std {
+ostream& operator<<(ostream& os, const platanus::Vec2i& v) {
+  os << "(" << v.a[0] << "," << v.a[1] << ")";
+  return os;
+}
+}  // namespace std
 
 #endif  // PLATANUS_BTREE_TEST_H__

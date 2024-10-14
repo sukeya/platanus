@@ -531,10 +531,10 @@ class btree {
     // Store the keys removed from rhd temporarily.
     std::vector<std::size_t> removed_indexes;
 
+    auto rhd_intersection_end = rhd.upper_bound(lhd_max);
+
     // Insert the intersection to *this.
     {
-      auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-
       for (std::size_t i = 0; auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
         auto [_, is_inserted] = insert_unique(std::move(v));
         if (is_inserted) {
@@ -549,16 +549,10 @@ class btree {
     }
 
     // Remove the extra of rhd.
-    while (true) {
-      bool is_end = false;
-      if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
-        is_end = !rhd.empty() && (comp(lhd_max, params_type::key(*(rhd.rbegin()))) < 0);
-      } else {
-        is_end = !rhd.empty() && comp(lhd_max, params_type::key(*(rhd.rbegin())));
-      }
-      if (is_end) {
-        break;
-      }
+    // Using `erase`, the former iterators are made to be invalidated.
+    // So, I use classical for loop.
+    auto num_value_out_of_left = std::distance(rhd_intersection_end, rhd.end());
+    for (std::ptrdiff_t i = 0; i < num_value_out_of_left; ++i) {
       rhd.erase(std::prev(rhd.end()));
     }
     // Remove the keys inserted to *this.
@@ -1043,13 +1037,13 @@ void btree<N, F>::rebalance_or_split(iterator& iter) {
   node_owner split_node;
   if (is_leaf(node)) {
     split_node = make_leaf_node(parent);
-    split(node, std::move(split_node), insert_position);
+    commons::split(node, std::move(split_node), insert_position);
     if (borrow_readonly_rightmost() == node) {
       set_rightmost(borrow_child(borrow_parent(node), position(node) + 1));
     }
   } else {
     split_node = make_internal_node(parent);
-    split(node, std::move(split_node), insert_position);
+    commons::split(node, std::move(split_node), insert_position);
   }
 
   if (insert_position > values_count(node)) {
@@ -1064,7 +1058,7 @@ void btree<N, F>::merge_nodes(node_borrower left, node_borrower right) {
     assert(is_leaf(right));
     set_rightmost(left);
   }
-  merge(left, right);
+  commons::merge(left, right);
 }
 
 template <class N, class F>

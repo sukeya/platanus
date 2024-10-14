@@ -144,16 +144,22 @@ class btree_unique_container : public btree_container<Tree> {
   using super_type = btree_container<Tree>;
 
  public:
-  using key_type       = typename Tree::key_type;
-  using value_type     = typename Tree::value_type;
-  using size_type      = typename Tree::size_type;
-  using key_compare    = typename Tree::key_compare;
-  using value_compare  = typename Tree::value_compare;
-  using allocator_type = typename Tree::allocator_type;
-  using iterator       = typename Tree::iterator;
-  using const_iterator = typename Tree::const_iterator;
+  using key_type               = typename super_type::key_type;
+  using value_type             = typename super_type::value_type;
+  using key_compare            = typename super_type::key_compare;
+  using value_compare          = typename super_type::value_compare;
+  using allocator_type         = typename super_type::allocator_type;
+  using pointer                = typename super_type::pointer;
+  using const_pointer          = typename super_type::const_pointer;
+  using reference              = typename super_type::reference;
+  using const_reference        = typename super_type::const_reference;
+  using size_type              = typename super_type::size_type;
+  using difference_type        = typename super_type::difference_type;
+  using iterator               = typename super_type::iterator;
+  using const_iterator         = typename super_type::const_iterator;
+  using reverse_iterator       = typename super_type::reverse_iterator;
+  using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
- public:
   btree_unique_container()                            = default;
   btree_unique_container(const self_type&)            = default;
   btree_unique_container(self_type&&)                 = default;
@@ -198,6 +204,34 @@ class btree_unique_container : public btree_container<Tree> {
       : self_type{init.begin(), init.end(), comp, alloc} {}
   btree_unique_container(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::begin;
+  using super_type::cbegin;
+  using super_type::cend;
+  using super_type::crbegin;
+  using super_type::crend;
+  using super_type::end;
+  using super_type::rbegin;
+  using super_type::rend;
+
+  using super_type::clear;
+  using super_type::dump;
+  using super_type::swap;
+  using super_type::verify;
+
+  using super_type::average_bytes_per_value;
+  using super_type::bytes_used;
+  using super_type::empty;
+  using super_type::fullness;
+  using super_type::height;
+  using super_type::internal_nodes;
+  using super_type::leaf_nodes;
+  using super_type::max_size;
+  using super_type::nodes;
+  using super_type::overhead;
+  using super_type::size;
+
+  using super_type::key_comp;
 
   // Lookup routines.
   iterator       lower_bound(const key_type& key) { return this->tree_.lower_bound_unique(key); }
@@ -259,14 +293,24 @@ class btree_map_container : public btree_unique_container<Tree> {
   using super_type = btree_unique_container<Tree>;
 
  public:
-  using key_type       = typename Tree::key_type;
-  using value_type     = typename Tree::value_type;
-  using mapped_type    = typename Tree::mapped_type;
-  using key_compare    = typename Tree::key_compare;
-  using value_compare  = typename Tree::value_compare;
-  using allocator_type = typename Tree::allocator_type;
+  using mapped_type = typename Tree::mapped_type;
 
- public:
+  using key_type               = typename super_type::key_type;
+  using value_type             = typename super_type::value_type;
+  using key_compare            = typename super_type::key_compare;
+  using value_compare          = typename super_type::value_compare;
+  using allocator_type         = typename super_type::allocator_type;
+  using pointer                = typename super_type::pointer;
+  using const_pointer          = typename super_type::const_pointer;
+  using reference              = typename super_type::reference;
+  using const_reference        = typename super_type::const_reference;
+  using size_type              = typename super_type::size_type;
+  using difference_type        = typename super_type::difference_type;
+  using iterator               = typename super_type::iterator;
+  using const_iterator         = typename super_type::const_iterator;
+  using reverse_iterator       = typename super_type::reverse_iterator;
+  using const_reverse_iterator = typename super_type::const_reverse_iterator;
+
   btree_map_container()                            = default;
   btree_map_container(const self_type&)            = default;
   btree_map_container(self_type&&)                 = default;
@@ -308,16 +352,47 @@ class btree_map_container : public btree_unique_container<Tree> {
   btree_map_container(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
-  // Insertion routines.
-  template <class T>
-  mapped_type& internal_operator(T&& key) {
-    auto iter = this->find(key);
-    if (iter != this->end()) {
-      return iter->second;
-    } else {
-      return this->insert(iter, std::make_pair(std::forward<T>(key), mapped_type{}))->second;
-    }
-  }
+  using super_type::begin;
+  using super_type::cbegin;
+  using super_type::cend;
+  using super_type::crbegin;
+  using super_type::crend;
+  using super_type::end;
+  using super_type::rbegin;
+  using super_type::rend;
+
+  using super_type::clear;
+  using super_type::dump;
+  using super_type::swap;
+  using super_type::verify;
+
+  using super_type::average_bytes_per_value;
+  using super_type::bytes_used;
+  using super_type::empty;
+  using super_type::fullness;
+  using super_type::height;
+  using super_type::internal_nodes;
+  using super_type::leaf_nodes;
+  using super_type::max_size;
+  using super_type::nodes;
+  using super_type::overhead;
+  using super_type::size;
+
+  using super_type::key_comp;
+
+  using super_type::equal_range;
+  using super_type::lower_bound;
+  using super_type::upper_bound;
+
+  using super_type::contains;
+  using super_type::count;
+  using super_type::find;
+
+  using super_type::erase;
+  using super_type::insert;
+
+  using super_type::merge;
+
   mapped_type& operator[](const key_type& key) { return internal_operator(key); }
   mapped_type& operator[](key_type&& key) { return internal_operator(std::move(key)); }
 
@@ -331,6 +406,18 @@ class btree_map_container : public btree_unique_container<Tree> {
   const mapped_type& at(const key_type& key) const {
     return static_cast<const mapped_type&>(const_cast<self_type*>(this)->at(key));
   }
+
+ private:
+  // Insertion routines.
+  template <class T>
+  mapped_type& internal_operator(T&& key) {
+    auto iter = this->find(key);
+    if (iter != this->end()) {
+      return iter->second;
+    } else {
+      return this->insert(iter, std::make_pair(std::forward<T>(key), mapped_type{}))->second;
+    }
+  }
 };
 
 // A common base class for btree_multiset and btree_multimap.
@@ -340,16 +427,22 @@ class btree_multi_container : public btree_container<Tree> {
   using super_type = btree_container<Tree>;
 
  public:
-  using key_type       = typename Tree::key_type;
-  using value_type     = typename Tree::value_type;
-  using size_type      = typename Tree::size_type;
-  using key_compare    = typename Tree::key_compare;
-  using value_compare  = typename Tree::value_compare;
-  using allocator_type = typename Tree::allocator_type;
-  using iterator       = typename Tree::iterator;
-  using const_iterator = typename Tree::const_iterator;
+  using key_type               = typename super_type::key_type;
+  using value_type             = typename super_type::value_type;
+  using key_compare            = typename super_type::key_compare;
+  using value_compare          = typename super_type::value_compare;
+  using allocator_type         = typename super_type::allocator_type;
+  using pointer                = typename super_type::pointer;
+  using const_pointer          = typename super_type::const_pointer;
+  using reference              = typename super_type::reference;
+  using const_reference        = typename super_type::const_reference;
+  using size_type              = typename super_type::size_type;
+  using difference_type        = typename super_type::difference_type;
+  using iterator               = typename super_type::iterator;
+  using const_iterator         = typename super_type::const_iterator;
+  using reverse_iterator       = typename super_type::reverse_iterator;
+  using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
- public:
   btree_multi_container()                              = default;
   btree_multi_container(const self_type& x)            = default;
   btree_multi_container(self_type&& x)                 = default;
@@ -394,6 +487,34 @@ class btree_multi_container : public btree_container<Tree> {
       : self_type{init.begin(), init.end(), comp, alloc} {}
   btree_multi_container(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::begin;
+  using super_type::cbegin;
+  using super_type::cend;
+  using super_type::crbegin;
+  using super_type::crend;
+  using super_type::end;
+  using super_type::rbegin;
+  using super_type::rend;
+
+  using super_type::clear;
+  using super_type::dump;
+  using super_type::swap;
+  using super_type::verify;
+
+  using super_type::average_bytes_per_value;
+  using super_type::bytes_used;
+  using super_type::empty;
+  using super_type::fullness;
+  using super_type::height;
+  using super_type::internal_nodes;
+  using super_type::leaf_nodes;
+  using super_type::max_size;
+  using super_type::nodes;
+  using super_type::overhead;
+  using super_type::size;
+
+  using super_type::key_comp;
 
   // Lookup routines.
   iterator       lower_bound(const key_type& key) { return this->tree_.lower_bound_multi(key); }

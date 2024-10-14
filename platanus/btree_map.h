@@ -48,23 +48,23 @@ template <
     typename Key,
     typename Value,
     typename Compare           = std::ranges::less,
-    typename Alloc             = std::allocator<std::pair<const Key, Value> >,
+    typename Alloc             = std::allocator<std::pair<const Key, Value>>,
     std::size_t MaxNumOfValues = 64>
-class btree_map : public commons::btree_map_container<
-                      commons::btree<
-                        details::btree_node<commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
-                        details::btree_node_factory<commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>
-                      >
-                    > {
+class btree_map : public commons::btree_map_container<commons::btree<
+                      details::btree_node<
+                          commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
+                      details::btree_node_factory<
+                          commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
   using self_type   = btree_map<Key, Value, Compare, Alloc, MaxNumOfValues>;
   using params_type = commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
-  using btree_type  = commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
-  using super_type  = commons::btree_map_container<btree_type>;
+  using btree_type =
+      commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
+  using super_type = commons::btree_map_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
-  using mapped_type = typename super_type::mapped_type;
+  using mapped_type            = typename super_type::mapped_type;
   using key_compare            = typename super_type::key_compare;
   using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
@@ -118,42 +118,42 @@ class btree_map : public commons::btree_map_container<
 
   using super_type::begin;
   using super_type::cbegin;
-  using super_type::end;
   using super_type::cend;
-  using super_type::rbegin;
   using super_type::crbegin;
-  using super_type::rend;
   using super_type::crend;
+  using super_type::end;
+  using super_type::rbegin;
+  using super_type::rend;
 
   using super_type::clear;
-  using super_type::swap;
   using super_type::dump;
+  using super_type::swap;
   using super_type::verify;
 
-  using super_type::size;
-  using super_type::max_size;
+  using super_type::average_bytes_per_value;
+  using super_type::bytes_used;
   using super_type::empty;
+  using super_type::fullness;
   using super_type::height;
   using super_type::internal_nodes;
   using super_type::leaf_nodes;
+  using super_type::max_size;
   using super_type::nodes;
-  using super_type::bytes_used;
-  using super_type::average_bytes_per_value;
-  using super_type::fullness;
   using super_type::overhead;
+  using super_type::size;
 
   using super_type::key_comp;
 
+  using super_type::equal_range;
   using super_type::lower_bound;
   using super_type::upper_bound;
-  using super_type::equal_range;
 
-  using super_type::find;
-  using super_type::count;
   using super_type::contains;
+  using super_type::count;
+  using super_type::find;
 
-  using super_type::insert;
   using super_type::erase;
+  using super_type::insert;
 
   using super_type::merge;
 
@@ -170,17 +170,19 @@ template <
     typename Key,
     typename Value,
     typename Compare           = std::ranges::less,
-    typename Alloc             = std::allocator<std::pair<const Key, Value> >,
+    typename Alloc             = std::allocator<std::pair<const Key, Value>>,
     std::size_t MaxNumOfValues = 64>
-class btree_multimap : public commons::btree_multi_container<
-                           commons::btree<
-                            details::btree_node<commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
-                            details::btree_node_factory<commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>
-                           >> {
+class btree_multimap
+    : public commons::btree_multi_container<commons::btree<
+          details::btree_node<
+              commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
+          details::btree_node_factory<
+              commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
   using self_type   = btree_multimap<Key, Value, Compare, Alloc, MaxNumOfValues>;
   using params_type = commons::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
-  using btree_type  = commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
-  using super_type  = commons::btree_multi_container<btree_type>;
+  using btree_type =
+      commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
+  using super_type = commons::btree_multi_container<btree_type>;
 
  public:
   using mapped_type = typename btree_type::mapped_type;
@@ -241,42 +243,42 @@ class btree_multimap : public commons::btree_multi_container<
 
   using super_type::begin;
   using super_type::cbegin;
-  using super_type::end;
   using super_type::cend;
-  using super_type::rbegin;
   using super_type::crbegin;
-  using super_type::rend;
   using super_type::crend;
+  using super_type::end;
+  using super_type::rbegin;
+  using super_type::rend;
 
   using super_type::clear;
-  using super_type::swap;
   using super_type::dump;
+  using super_type::swap;
   using super_type::verify;
 
-  using super_type::size;
-  using super_type::max_size;
+  using super_type::average_bytes_per_value;
+  using super_type::bytes_used;
   using super_type::empty;
+  using super_type::fullness;
   using super_type::height;
   using super_type::internal_nodes;
   using super_type::leaf_nodes;
+  using super_type::max_size;
   using super_type::nodes;
-  using super_type::bytes_used;
-  using super_type::average_bytes_per_value;
-  using super_type::fullness;
   using super_type::overhead;
+  using super_type::size;
 
   using super_type::key_comp;
 
+  using super_type::equal_range;
   using super_type::lower_bound;
   using super_type::upper_bound;
-  using super_type::equal_range;
 
-  using super_type::find;
-  using super_type::count;
   using super_type::contains;
+  using super_type::count;
+  using super_type::find;
 
-  using super_type::insert;
   using super_type::erase;
+  using super_type::insert;
 
   using super_type::merge;
 };
@@ -293,25 +295,31 @@ template <
     typename Value,
     typename Compare           = std::ranges::less,
     std::size_t MaxNumOfValues = 64>
-class btree_map : public commons::btree_map_container<
-                      commons::btree<
-                        pmr::details::btree_leaf_node<
-                            commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>
-                        >,
-                        pmr::details::btree_node_factory<
-                            commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>
-                        >
-                      >
-                    > {
+class btree_map : public commons::btree_map_container<commons::btree<
+                      pmr::details::btree_leaf_node<commons::btree_map_params<
+                          Key,
+                          Value,
+                          Compare,
+                          pmr::details::polymorphic_allocator<>,
+                          MaxNumOfValues>>,
+                      pmr::details::btree_node_factory<commons::btree_map_params<
+                          Key,
+                          Value,
+                          Compare,
+                          pmr::details::polymorphic_allocator<>,
+                          MaxNumOfValues>>>> {
   using self_type   = btree_map<Key, Value, Compare, MaxNumOfValues>;
-  using params_type = commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>;
-  using btree_type  = commons::btree<pmr::details::btree_leaf_node<params_type>, pmr::details::btree_node_factory<params_type>>;
-  using super_type  = commons::btree_map_container<btree_type>;
+  using params_type = commons::
+      btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>;
+  using btree_type = commons::btree<
+      pmr::details::btree_leaf_node<params_type>,
+      pmr::details::btree_node_factory<params_type>>;
+  using super_type = commons::btree_map_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
-  using mapped_type = typename super_type::mapped_type;
+  using mapped_type            = typename super_type::mapped_type;
   using key_compare            = typename super_type::key_compare;
   using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
@@ -365,42 +373,42 @@ class btree_map : public commons::btree_map_container<
 
   using super_type::begin;
   using super_type::cbegin;
-  using super_type::end;
   using super_type::cend;
-  using super_type::rbegin;
   using super_type::crbegin;
-  using super_type::rend;
   using super_type::crend;
+  using super_type::end;
+  using super_type::rbegin;
+  using super_type::rend;
 
   using super_type::clear;
-  using super_type::swap;
   using super_type::dump;
+  using super_type::swap;
   using super_type::verify;
 
-  using super_type::size;
-  using super_type::max_size;
+  using super_type::average_bytes_per_value;
+  using super_type::bytes_used;
   using super_type::empty;
+  using super_type::fullness;
   using super_type::height;
   using super_type::internal_nodes;
   using super_type::leaf_nodes;
+  using super_type::max_size;
   using super_type::nodes;
-  using super_type::bytes_used;
-  using super_type::average_bytes_per_value;
-  using super_type::fullness;
   using super_type::overhead;
+  using super_type::size;
 
   using super_type::key_comp;
 
+  using super_type::equal_range;
   using super_type::lower_bound;
   using super_type::upper_bound;
-  using super_type::equal_range;
 
-  using super_type::find;
-  using super_type::count;
   using super_type::contains;
+  using super_type::count;
+  using super_type::find;
 
-  using super_type::insert;
   using super_type::erase;
+  using super_type::insert;
 
   using super_type::merge;
 
@@ -418,15 +426,26 @@ template <
     typename Value,
     typename Compare           = std::ranges::less,
     std::size_t MaxNumOfValues = 64>
-class btree_multimap : public commons::btree_multi_container<
-                           commons::btree<
-                            pmr::details::btree_leaf_node<commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>>,
-                            pmr::details::btree_node_factory<commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>>
-                           >> {
+class btree_multimap : public commons::btree_multi_container<commons::btree<
+                           pmr::details::btree_leaf_node<commons::btree_map_params<
+                               Key,
+                               Value,
+                               Compare,
+                               pmr::details::polymorphic_allocator<>,
+                               MaxNumOfValues>>,
+                           pmr::details::btree_node_factory<commons::btree_map_params<
+                               Key,
+                               Value,
+                               Compare,
+                               pmr::details::polymorphic_allocator<>,
+                               MaxNumOfValues>>>> {
   using self_type   = btree_multimap<Key, Value, Compare, MaxNumOfValues>;
-  using params_type = commons::btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>;
-  using btree_type  = commons::btree<pmr::details::btree_leaf_node<params_type>, pmr::details::btree_node_factory<params_type>>;
-  using super_type  = commons::btree_multi_container<btree_type>;
+  using params_type = commons::
+      btree_map_params<Key, Value, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>;
+  using btree_type = commons::btree<
+      pmr::details::btree_leaf_node<params_type>,
+      pmr::details::btree_node_factory<params_type>>;
+  using super_type = commons::btree_multi_container<btree_type>;
 
  public:
   using mapped_type = typename btree_type::mapped_type;
@@ -487,42 +506,42 @@ class btree_multimap : public commons::btree_multi_container<
 
   using super_type::begin;
   using super_type::cbegin;
-  using super_type::end;
   using super_type::cend;
-  using super_type::rbegin;
   using super_type::crbegin;
-  using super_type::rend;
   using super_type::crend;
+  using super_type::end;
+  using super_type::rbegin;
+  using super_type::rend;
 
   using super_type::clear;
-  using super_type::swap;
   using super_type::dump;
+  using super_type::swap;
   using super_type::verify;
 
-  using super_type::size;
-  using super_type::max_size;
+  using super_type::average_bytes_per_value;
+  using super_type::bytes_used;
   using super_type::empty;
+  using super_type::fullness;
   using super_type::height;
   using super_type::internal_nodes;
   using super_type::leaf_nodes;
+  using super_type::max_size;
   using super_type::nodes;
-  using super_type::bytes_used;
-  using super_type::average_bytes_per_value;
-  using super_type::fullness;
   using super_type::overhead;
+  using super_type::size;
 
   using super_type::key_comp;
 
+  using super_type::equal_range;
   using super_type::lower_bound;
   using super_type::upper_bound;
-  using super_type::equal_range;
 
-  using super_type::find;
-  using super_type::count;
   using super_type::contains;
+  using super_type::count;
+  using super_type::find;
 
-  using super_type::insert;
   using super_type::erase;
+  using super_type::insert;
 
   using super_type::merge;
 };
@@ -531,7 +550,7 @@ template <typename K, typename V, typename C, std::size_t N>
 void swap(btree_multimap<K, V, C, N>& x, btree_multimap<K, V, C, N>& y) {
   x.swap(y);
 }
-}
+}  // namespace pmr
 }  // namespace platanus
 
 #endif  // PLATANUS_BTREE_MAP_H__

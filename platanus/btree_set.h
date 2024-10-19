@@ -75,6 +75,14 @@ class btree_set
   using reverse_iterator       = typename super_type::reverse_iterator;
   using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
+  static constexpr std::size_t sizeof_leaf_node() {
+    return super_type::sizeof_leaf_node();
+  }
+
+  static constexpr std::size_t sizeof_internal_node() {
+    return super_type::sizeof_internal_node();
+  }
+
   btree_set()                            = default;
   btree_set(const self_type&)            = default;
   btree_set(self_type&&)                 = default;
@@ -192,6 +200,14 @@ class btree_multiset
   using const_iterator         = typename super_type::const_iterator;
   using reverse_iterator       = typename super_type::reverse_iterator;
   using const_reverse_iterator = typename super_type::const_reverse_iterator;
+
+  static constexpr std::size_t sizeof_leaf_node() {
+    return super_type::sizeof_leaf_node();
+  }
+
+  static constexpr std::size_t sizeof_internal_node() {
+    return super_type::sizeof_internal_node();
+  }
 
   btree_multiset()                            = default;
   btree_multiset(const self_type&)            = default;
@@ -317,6 +333,14 @@ class btree_set : public commons::btree_unique_container<commons::btree<
   using reverse_iterator       = typename super_type::reverse_iterator;
   using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
+  static constexpr std::size_t sizeof_leaf_node() {
+    return super_type::sizeof_leaf_node();
+  }
+
+  static constexpr std::size_t sizeof_internal_node() {
+    return super_type::sizeof_internal_node();
+  }
+
   btree_set()                            = default;
   btree_set(const self_type&)            = default;
   btree_set(self_type&&)                 = default;
@@ -438,6 +462,14 @@ class btree_multiset : public commons::btree_multi_container<commons::btree<
   using const_iterator         = typename super_type::const_iterator;
   using reverse_iterator       = typename super_type::reverse_iterator;
   using const_reverse_iterator = typename super_type::const_reverse_iterator;
+
+  static constexpr std::size_t sizeof_leaf_node() {
+    return super_type::sizeof_leaf_node();
+  }
+
+  static constexpr std::size_t sizeof_internal_node() {
+    return super_type::sizeof_internal_node();
+  }
 
   btree_multiset()                            = default;
   btree_multiset(const self_type&)            = default;

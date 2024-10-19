@@ -164,6 +164,7 @@ void merge(btree_multimap& x);
 // (4)
 void merge(btree_multimap&& x);
 ```
+
 1. Clear `*this`, i.e., delete all values in `*this`.
 1. Swap `*this` for `x`.
 1. Merge another `btree_multimap`. The duplicated values will not be merged to `*this`.
@@ -204,6 +205,7 @@ size_type erase(const key_type& key);
 iterator  erase(const iterator& iter);
 void      erase(const iterator& b, const iterator& e);
 ```
+
 1. Erases the specified key from `*this` and returns
 1. Erases the specified iterator from `*this`. The iterator must be valid (i.e. not equal to end()). Return an iterator pointing to the node after the one that was erased (or end() if none exists).
 1. Erases a range from `b` to `e` (`e` isn't included) and return the number of erased keys.
@@ -259,6 +261,7 @@ size_type max_size() const;
 // (3)
 bool      empty() const;
 ```
+
 1. Returns the number of values.
 1. Returns the max number of values.
 1. Returns a bool whether `*this` is empty or not.
@@ -268,11 +271,13 @@ bool      empty() const;
 ```cpp
 key_compare key_comp() const noexcept;
 ```
+
 Returns the `key_compare` object used by `*this`.
 
 
 ### non-STL
 <span style="color: red">**[WARNING] The following functions may be suddenly deleted.**</span>
+
 ```cpp
 // (1)
 size_type height() const;
@@ -294,7 +299,12 @@ double    overhead() const;
 void      dump(std::ostream& os) const;
 // (10)
 void      verify() const;
+// (11)
+static constexpr std::size_t sizeof_leaf_node();
+// (12)
+static constexpr std::size_t sizeof_internal_node();
 ```
+
 1. Returns the hight of `*this`.
 1. Returns the number of internal nodes.
 1. Returns the number of leaf nodes.
@@ -307,6 +317,8 @@ Smaller values indicate space wastage.
 1. Returns the overhead of the btree structure in bytes per node, which is computed as the total number of bytes used by `*this` minus the number of bytes used for storing elements divided by the number of values.
 1. Dumps the btree to the specified ostream. Requires that `operator<<` is defined for value.
 1. Verifies the structure of `*this`.
+1. Returns the size of a leaf node.
+1. Returns the size of a internal node.
 
 
 ## Non-member function
@@ -315,4 +327,5 @@ Smaller values indicate space wastage.
 template <typename K, typename C, typename A, std::size_t N>
 void swap(btree_multimap<K, C, A, N>& x, btree_multimap<K, C, A, N>& y);
 ```
+
 Swap `x` for `y` using `std::swap` to swap each member variable of `x` for that of `y`.

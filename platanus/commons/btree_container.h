@@ -61,7 +61,14 @@ class btree_container {
   using reverse_iterator       = typename Tree::reverse_iterator;
   using const_reverse_iterator = typename Tree::const_reverse_iterator;
 
- public:
+  static constexpr std::size_t sizeof_leaf_node() {
+    return Tree::sizeof_leaf_node();
+  }
+
+  static constexpr std::size_t sizeof_internal_node() {
+    return Tree::sizeof_internal_node();
+  }
+
   btree_container()                              = default;
   btree_container(const self_type& x)            = default;
   btree_container(self_type&& x)                 = default;

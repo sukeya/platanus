@@ -100,7 +100,14 @@ class btree {
 
   using allocator_type = typename node_type::allocator_type;
 
- public:
+  static constexpr std::size_t sizeof_leaf_node() {
+    return sizeof_leaf_node_v<node_type>;
+  }
+
+  static constexpr std::size_t sizeof_internal_node() {
+    return sizeof_internal_node_v<node_type>;
+  }
+
   btree()                   = default;
   btree(btree&&)            = default;
   btree& operator=(btree&&) = default;
@@ -438,8 +445,8 @@ class btree {
   // The total number of bytes used by the btree.
   size_type bytes_used() const noexcept {
     node_stats stats = internal_stats(borrow_readonly_root());
-    return sizeof(*this) + sizeof_leaf_node_v<node_type> * stats.leaf_nodes
-           + sizeof_internal_node_v<node_type> * stats.internal_nodes;
+    return sizeof(*this) + self_type::sizeof_leaf_node() * stats.leaf_nodes
+           + self_type::sizeof_internal_node() * stats.internal_nodes;
   }
 
   // The average number of bytes used per value stored in the btree.

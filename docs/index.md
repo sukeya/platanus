@@ -21,13 +21,19 @@ Better cache locality translates into faster operations.
 * the standard C++ container-like interface,
 * supporting CMake,
 * easier to read than the original,
-* supporting three-way comparison operator.
+* supporting three-way comparison operator,
+* supporting `std::pmr::polymorphic_allocator` (in `platanus::pmr` namespace).
 
 
 ## Performance
 Generally speaking, `platunus` is slower than `cpp-btree` by approximately 13%, but is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% (the values are median and the order of B-tree is 65 (default)).
 However, forwarding an iterator of `platanus` is extremely faster than doing that of STL, while FIFO of `platanus` is slower than that of STL by approximately 19%.
 So, you should check how much the performance is improved.
+
+
+## Difference between `pmr` and normal
+Of cource, using `polymorphic_allocator` or not is one of the difference, but another one is whether an internal node has an array of pointers to each child node as a member variable or its pointer.
+I will remove this difference.
 
 
 ## Limitation and caveats

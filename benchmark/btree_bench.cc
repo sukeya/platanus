@@ -194,6 +194,30 @@ struct SetCompAndAllocToMap<BTreeContainer, std::string, N> {
   using type = BTreeContainer<std::string, std::string, StringComp, std::allocator<std::string>, N>;
 };
 
+template <template <class, class, std::size_t> class BTreeContainer, class T, std::size_t N>
+struct SetCompToPmrSet {
+  using type = BTreeContainer<T, std::ranges::less, N>;
+};
+
+template <template <class, class, std::size_t> class BTreeContainer, std::size_t N>
+struct SetCompToPmrSet<BTreeContainer, std::string, N> {
+  using type = BTreeContainer<std::string, StringComp, N>;
+};
+
+template <
+    template <class, class, class, std::size_t>
+    class BTreeContainer,
+    class T,
+    std::size_t N>
+struct SetCompToPmrMap {
+  using type = BTreeContainer<T, T, std::ranges::less, N>;
+};
+
+template <template <class, class, class, std::size_t> class BTreeContainer, std::size_t N>
+struct SetCompToPmrMap<BTreeContainer, std::string, N> {
+  using type = BTreeContainer<std::string, std::string, StringComp, N>;
+};
+
 template <class T, std::size_t N>
 using BTreeSet = typename SetCompAndAllocToSet<platanus::btree_set, T, N>::type;
 
@@ -205,6 +229,18 @@ using BTreeMap = typename SetCompAndAllocToMap<platanus::btree_map, T, N>::type;
 
 template <class T, std::size_t N>
 using BTreeMultiMap = typename SetCompAndAllocToMap<platanus::btree_multimap, T, N>::type;
+
+template <class T, std::size_t N>
+using BTreePmrSet = typename SetCompToPmrSet<platanus::pmr::btree_set, T, N>::type;
+
+template <class T, std::size_t N>
+using BTreePmrMultiSet = typename SetCompToPmrSet<platanus::pmr::btree_multiset, T, N>::type;
+
+template <class T, std::size_t N>
+using BTreePmrMap = typename SetCompToPmrMap<platanus::pmr::btree_map, T, N>::type;
+
+template <class T, std::size_t N>
+using BTreePmrMultiMap = typename SetCompToPmrMap<platanus::pmr::btree_multimap, T, N>::type;
 
 template <class T>
 using STLSet = std::set<T>;
@@ -235,7 +271,8 @@ using STLMultiMap = std::multimap<T, T>;
 
 #define STL_AND_BTREE_BENCHMARK(container, type, func) \
   BENCHMARK(BM_##func<STL##container<type>>);          \
-  BTREE_BENCHMARK(BTree##container, type, func);
+  BTREE_BENCHMARK(BTree##container, type, func);       \
+  BTREE_BENCHMARK(BTreePmr##container, type, func);
 
 #define REGISTER_BENCHMARK_FUNCTIONS(container, type) \
   STL_AND_BTREE_BENCHMARK(container, type, Insert);   \

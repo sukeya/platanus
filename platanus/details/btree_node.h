@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <memory>
 
 #include "../commons/btree_node_decl.h"
 #include "../commons/btree_node_common.h"
@@ -536,7 +537,15 @@ void merge(
   n->merge(sibling);
 }
 }  // namespace commons
+}  // namespace platanus
 
+namespace std {
+template <class Params, class Alloc>
+struct uses_allocator<platanus::details::btree_node<Params>, Alloc>
+    : public std::false_type {};
+}  // namespace std
+
+namespace platanus {
 namespace details {
 template <class Params>
 class btree_node_factory {

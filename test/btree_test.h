@@ -245,7 +245,7 @@ class base_checker {
 
   void erase(iterator begin, iterator end) {
     int                            size          = tree_.size();
-    int                            count         = distance(begin, end);
+    int                            count         = std::distance(begin, end);
     typename CheckerType::iterator checker_begin = checker_.find(begin.key());
     for (iterator tmp(tree_.find(begin.key())); tmp != begin; ++tmp) {
       ++checker_begin;

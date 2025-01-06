@@ -1,4 +1,4 @@
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_PMR_DETAILS_POLYMORPHIC_ALLOCATOR_H__
-#define PLATANUS_PMR_DETAILS_POLYMORPHIC_ALLOCATOR_H__
+#ifndef PLATANUS_PMR_POLYMORPHIC_ALLOCATOR_H_
+#define PLATANUS_PMR_POLYMORPHIC_ALLOCATOR_H_
 
 #include <cstddef>
 #include <limits>
@@ -21,7 +21,7 @@
 #include <memory_resource>
 #include <stdexcept>
 
-namespace platanus::pmr::details {
+namespace platanus::pmr {
 
 template <class Tp = std::byte>
 class polymorphic_allocator {
@@ -135,6 +135,6 @@ bool operator==(
   return *(left.resource()) == *(right.resource());
 }
 
-}  // namespace platanus::pmr::details
+}  // namespace platanus::pmr
 
 #endif

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_BTREE_SET_H__
-#define PLATANUS_BTREE_SET_H__
+#ifndef PLATANUS_BTREE_SET_H_
+#define PLATANUS_BTREE_SET_H_
 
 #include <compare>
 #include <functional>
@@ -35,10 +35,10 @@
 #include <memory_resource>
 #include <string>
 
-#include "details/btree_node.h"
-#include "pmr/details/btree_node.h"
-#include "commons/btree.h"
-#include "commons/btree_container.h"
+#include "internal/btree_node.h"
+#include "internal/btree.h"
+#include "internal/btree_container.h"
+#include "pmr/polymorphic_allocator.h"
 
 namespace platanus {
 
@@ -48,15 +48,15 @@ template <
     typename Alloc             = std::allocator<Key>,
     std::size_t MaxNumOfValues = 64>
 class btree_set
-    : public commons::btree_unique_container<commons::btree<
-          details::btree_node<commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>,
-          details::btree_node_factory<
-              commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
+    : public internal::btree_unique_container<internal::btree<
+          internal::btree_node<internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>,
+          internal::btree_node_factory<
+              internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
   using self_type   = btree_set<Key, Compare, Alloc, MaxNumOfValues>;
-  using params_type = commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
+  using params_type = internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
   using btree_type =
-      commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
-  using super_type = commons::btree_unique_container<btree_type>;
+      internal::btree<internal::btree_node<params_type>, internal::btree_node_factory<params_type>>;
+  using super_type = internal::btree_unique_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
@@ -174,15 +174,15 @@ template <
     typename Alloc             = std::allocator<Key>,
     std::size_t MaxNumOfValues = 64>
 class btree_multiset
-    : public commons::btree_multi_container<commons::btree<
-          details::btree_node<commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>,
-          details::btree_node_factory<
-              commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
+    : public internal::btree_multi_container<internal::btree<
+          internal::btree_node<internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>,
+          internal::btree_node_factory<
+              internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
   using self_type   = btree_multiset<Key, Compare, Alloc, MaxNumOfValues>;
-  using params_type = commons::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
+  using params_type = internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
   using btree_type =
-      commons::btree<details::btree_node<params_type>, details::btree_node_factory<params_type>>;
-  using super_type = commons::btree_multi_container<btree_type>;
+      internal::btree<internal::btree_node<params_type>, internal::btree_node_factory<params_type>>;
+  using super_type = internal::btree_multi_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
@@ -297,24 +297,24 @@ void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y) {
 namespace pmr {
 
 template <typename Key, typename Compare = std::ranges::less, std::size_t MaxNumOfValues = 64>
-class btree_set : public commons::btree_unique_container<commons::btree<
-                      pmr::details::btree_leaf_node<commons::btree_set_params<
+class btree_set : public internal::btree_unique_container<internal::btree<
+                      internal::btree_node<internal::btree_set_params<
                           Key,
                           Compare,
-                          pmr::details::polymorphic_allocator<>,
+                          pmr::polymorphic_allocator<>,
                           MaxNumOfValues>>,
-                      pmr::details::btree_node_factory<commons::btree_set_params<
+                      internal::btree_node_factory<internal::btree_set_params<
                           Key,
                           Compare,
-                          pmr::details::polymorphic_allocator<>,
+                          pmr::polymorphic_allocator<>,
                           MaxNumOfValues>>>> {
   using self_type   = btree_set<Key, Compare, MaxNumOfValues>;
-  using params_type = commons::
-      btree_set_params<Key, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>;
-  using btree_type = commons::btree<
-      pmr::details::btree_leaf_node<params_type>,
-      pmr::details::btree_node_factory<params_type>>;
-  using super_type = commons::btree_unique_container<btree_type>;
+  using params_type = internal::
+      btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
+  using btree_type = internal::btree<
+      internal::btree_node<params_type>,
+      internal::btree_node_factory<params_type>>;
+  using super_type = internal::btree_unique_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
@@ -427,24 +427,24 @@ void swap(btree_set<K, C, N>& x, btree_set<K, C, N>& y) {
 }
 
 template <typename Key, typename Compare = std::ranges::less, std::size_t MaxNumOfValues = 64>
-class btree_multiset : public commons::btree_multi_container<commons::btree<
-                           pmr::details::btree_leaf_node<commons::btree_set_params<
+class btree_multiset : public internal::btree_multi_container<internal::btree<
+                           internal::btree_node<internal::btree_set_params<
                                Key,
                                Compare,
-                               pmr::details::polymorphic_allocator<>,
+                               pmr::polymorphic_allocator<>,
                                MaxNumOfValues>>,
-                           pmr::details::btree_node_factory<commons::btree_set_params<
+                           internal::btree_node_factory<internal::btree_set_params<
                                Key,
                                Compare,
-                               pmr::details::polymorphic_allocator<>,
+                               pmr::polymorphic_allocator<>,
                                MaxNumOfValues>>>> {
   using self_type   = btree_multiset<Key, Compare, MaxNumOfValues>;
-  using params_type = commons::
-      btree_set_params<Key, Compare, pmr::details::polymorphic_allocator<>, MaxNumOfValues>;
-  using btree_type = commons::btree<
-      pmr::details::btree_leaf_node<params_type>,
-      pmr::details::btree_node_factory<params_type>>;
-  using super_type = commons::btree_multi_container<btree_type>;
+  using params_type = internal::
+      btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
+  using btree_type = internal::btree<
+      internal::btree_node<params_type>,
+      internal::btree_node_factory<params_type>>;
+  using super_type = internal::btree_multi_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
@@ -558,4 +558,4 @@ void swap(btree_multiset<K, C, N>& x, btree_multiset<K, C, N>& y) {
 }  // namespace pmr
 }  // namespace platanus
 
-#endif  // PLATANUS_BTREE_SET_H__
+#endif  // PLATANUS_BTREE_SET_H_

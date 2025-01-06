@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_COMMONS_BTREE_ITERATOR_H_
-#define PLATANUS_COMMONS_BTREE_ITERATOR_H_
+#ifndef PLATANUS_INTERNAL_BTREE_ITERATOR_H_
+#define PLATANUS_INTERNAL_BTREE_ITERATOR_H_
 
-#include "btree_node_decl.h"
+#include "btree_node_fwd.h"
 
-namespace platanus::commons {
+namespace platanus::internal {
 namespace btree_iterator_impl {
 template <class Node>
 using signed_count_type = typename Node::signed_count_type;
@@ -178,12 +178,12 @@ struct btree_iterator<Node, false> {
 
   // Accessors for the key/value the iterator is pointing at.
   const key_type& key() const {
-    using commons::key;
+    using internal::key;
     return key(node, position);
   }
 
   reference operator*() const {
-    using commons::value;
+    using internal::value;
     return value(node, position);
   }
   pointer operator->() const { return &(this->operator*()); }
@@ -254,12 +254,12 @@ struct btree_iterator<Node, true> {
 
   // Accessors for the key/value the iterator is pointing at.
   const key_type& key() const {
-    using commons::key;
+    using internal::key;
     return key(node, position);
   }
 
   const_reference operator*() const {
-    using commons::value;
+    using internal::value;
     return value(node, position);
   }
   const_pointer operator->() const { return &(this->operator*()); }
@@ -301,6 +301,6 @@ template <typename Node, bool lb, bool rb>
 bool operator!=(const btree_iterator<Node, lb>& lhd, const btree_iterator<Node, rb>& rhd) noexcept {
   return !(lhd == rhd);
 }
-}  // namespace platanus::commons
+}  // namespace platanus::internal
 
-#endif  // PLATANUS_COMMONS_BTREE_ITERATOR_H_
+#endif  // PLATANUS_INTERNAL_BTREE_ITERATOR_H_

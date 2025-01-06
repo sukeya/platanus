@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_COMMONS_BTREE_UTIL_H_
-#define PLATANUS_COMMONS_BTREE_UTIL_H_
+#ifndef PLATANUS_INTERNAL_BTREE_UTIL_H_
+#define PLATANUS_INTERNAL_BTREE_UTIL_H_
 
 #include <concepts>
 #include <compare>
@@ -35,7 +35,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace platanus::commons {
+namespace platanus::internal {
 
 // Inside a btree method, if we just call swap(), it will choose the
 // btree::swap method, which we don't want. And we can't say ::swap
@@ -67,6 +67,6 @@ template <class Key, class Compare>
 concept comp_return_bool = requires(Key lhd, Key rhd, Compare comp) {
   { comp(lhd, rhd) } -> std::same_as<bool>;
 };
-}  // namespace platanus::commons
+}  // namespace platanus::internal
 
-#endif  // PLATANUS_COMMONS_BTREE_UTIL_H_
+#endif  // PLATANUS_INTERNAL_BTREE_UTIL_H_

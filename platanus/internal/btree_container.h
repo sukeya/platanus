@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_BTREE_CONTAINER_H__
-#define PLATANUS_BTREE_CONTAINER_H__
+#ifndef PLATANUS_BTREE_CONTAINER_H_
+#define PLATANUS_BTREE_CONTAINER_H_
 
 #include <iosfwd>
 #include <initializer_list>
@@ -36,7 +36,7 @@
 
 #include "btree.h"
 
-namespace platanus::commons {
+namespace platanus::internal {
 
 // A common base class for btree_set, btree_map, btree_multiset and
 // btree_multimap.
@@ -575,6 +575,6 @@ class btree_multi_container : public btree_container<Tree> {
   void merge(btree_multi_container&& x) { merge(x); }
 };
 
-}  // namespace platanus::commons
+}  // namespace platanus::internal
 
-#endif  // PLATANUS_BTREE_CONTAINER_H__
+#endif  // PLATANUS_BTREE_CONTAINER_H_

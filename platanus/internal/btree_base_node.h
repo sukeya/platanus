@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,24 +26,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_COMMONS_BTREE_NODE_COMMON_H_
-#define PLATANUS_COMMONS_BTREE_NODE_COMMON_H_
+#ifndef PLATANUS_INTERNAL_BTREE_NODE_COMMON_H_
+#define PLATANUS_INTERNAL_BTREE_NODE_COMMON_H_
 
 #include <bit>
 #include <cstdint>
 #include <type_traits>
 
-#include "btree_node_decl.h"
+#include "btree_node_fwd.h"
 #include "btree_util.h"
 
-namespace platanus {
+namespace platanus::internal {
 
-namespace pmr::details {
-template <class P>
-class btree_leaf_node;
-}
-
-namespace commons {
 template <std::size_t BitWidth>
 class btree_node_search_result {
  public:
@@ -330,15 +324,15 @@ class btree_base_node {
 
   template <class P>
   friend void merge(
-      btree_node_borrower<pmr::details::btree_leaf_node<P>> left,
-      btree_node_borrower<pmr::details::btree_leaf_node<P>> right
+      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> left,
+      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> right
   );
 
   template <class P>
   friend void split(
-      btree_node_borrower<pmr::details::btree_leaf_node<P>> left,
-      btree_node_owner<pmr::details::btree_leaf_node<P>>&&  right,
-      typename pmr::details::btree_leaf_node<P>::count_type insert_position
+      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> left,
+      btree_node_owner<experimental::pmr::btree_leaf_node<P>>&&  right,
+      typename experimental::pmr::btree_leaf_node<P>::count_type insert_position
   );
 
   // The array of values.
@@ -565,7 +559,7 @@ void remove_value(
   assert(n != nullptr);
   n->remove_value(i);
 }
-}  // namespace commons
-}  // namespace platanus
+
+}  // namespace platanus::internal
 
 #endif

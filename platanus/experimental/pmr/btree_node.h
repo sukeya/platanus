@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_PMR_DETAILS_BTREE_NODE_H_
-#define PLATANUS_PMR_DETAILS_BTREE_NODE_H_
+#ifndef PLATANUS_EXPERIMENTAL_PMR_BTREE_NODE_H_
+#define PLATANUS_EXPERIMENTAL_PMR_BTREE_NODE_H_
 
 #include <algorithm>
 #include <array>
@@ -38,20 +38,20 @@
 #include <memory_resource>
 #include <type_traits>
 
-#include "../../commons/btree_node_decl.h"
-#include "../../commons/btree_util.h"
-#include "../../commons/btree_node_common.h"
-#include "polymorphic_allocator.h"
+#include "../../internal/btree_node_fwd.h"
+#include "../../internal/btree_util.h"
+#include "../../internal/btree_base_node.h"
+#include "../../pmr/polymorphic_allocator.h"
 
 namespace platanus {
-namespace pmr::details {
+namespace experimental::pmr {
 
 // A leaf node in the btree holding.
 template <typename Params>
-class btree_leaf_node : public commons::btree_base_node<Params, btree_leaf_node<Params>> {
+class btree_leaf_node : public internal::btree_base_node<Params, btree_leaf_node<Params>> {
  public:
   using self_type  = btree_leaf_node;
-  using super_type = commons::btree_base_node<Params, self_type>;
+  using super_type = internal::btree_base_node<Params, self_type>;
 
   static constexpr std::size_t kNodeValues   = super_type::kNodeValues;
   static constexpr std::size_t kNodeChildren = super_type::kNodeChildren;
@@ -158,14 +158,14 @@ class btree_leaf_node : public commons::btree_base_node<Params, btree_leaf_node<
 
   template <class P>
   friend void merge(
-      commons::btree_node_borrower<btree_leaf_node<P>> left,
-      commons::btree_node_borrower<btree_leaf_node<P>> right
+      internal::btree_node_borrower<btree_leaf_node<P>> left,
+      internal::btree_node_borrower<btree_leaf_node<P>> right
   );
 
   template <class P>
   friend void split(
-      commons::btree_node_borrower<btree_leaf_node<P>> left,
-      commons::btree_node_owner<btree_leaf_node<P>>&&  right,
+      internal::btree_node_borrower<btree_leaf_node<P>> left,
+      internal::btree_node_owner<btree_leaf_node<P>>&&  right,
       typename btree_leaf_node<P>::count_type          insert_position
   );
 
@@ -181,8 +181,8 @@ class btree_internal_node : public btree_leaf_node<Params> {
   using super_type     = btree_leaf_node<Params>;
   using allocator_type = typename super_type::allocator_type;
 
-  using node_borrower          = commons::btree_node_borrower<super_type>;
-  using node_readonly_borrower = commons::btree_node_readonly_borrower<super_type>;
+  using node_borrower          = internal::btree_node_borrower<super_type>;
+  using node_readonly_borrower = internal::btree_node_readonly_borrower<super_type>;
 
   class node_deleter {
    public:
@@ -318,7 +318,7 @@ class btree_internal_node : public btree_leaf_node<Params> {
   // Rebalances a node with its right sibling.
   void rebalance_right_to_left(node_borrower base_right, count_type to_move) {
     assert(not base_right->is_leaf());
-    auto right = static_cast<commons::btree_node_borrower<self_type>>(base_right);
+    auto right = static_cast<internal::btree_node_borrower<self_type>>(base_right);
 
     // Move the child pointers from the right to the left node.
     receive_children_n(end_children(), right, right->begin_children(), to_move);
@@ -327,7 +327,7 @@ class btree_internal_node : public btree_leaf_node<Params> {
   }
   void rebalance_left_to_right(node_borrower base_right, count_type to_move) {
     assert(not base_right->is_leaf());
-    auto right = static_cast<commons::btree_node_borrower<self_type>>(base_right);
+    auto right = static_cast<internal::btree_node_borrower<self_type>>(base_right);
 
     // Move the child pointers from the left node to the right node.
     right->shift_children_right(0, right->children_count(), to_move);
@@ -422,7 +422,7 @@ class btree_internal_node : public btree_leaf_node<Params> {
       children_iterator dest, node_borrower src, children_iterator first, count_type n
   ) {
     assert(not src->is_leaf());
-    auto casted_src = static_cast<commons::btree_node_borrower<self_type>>(src);
+    auto casted_src = static_cast<internal::btree_node_borrower<self_type>>(src);
 
     auto dest_idx  = dest - begin_children();
     auto first_idx = first - casted_src->begin_children();
@@ -438,14 +438,14 @@ class btree_internal_node : public btree_leaf_node<Params> {
 
   template <class P>
   friend void merge(
-      commons::btree_node_borrower<btree_leaf_node<P>> left,
-      commons::btree_node_borrower<btree_leaf_node<P>> right
+      internal::btree_node_borrower<btree_leaf_node<P>> left,
+      internal::btree_node_borrower<btree_leaf_node<P>> right
   );
 
   template <class P>
   friend void split(
-      commons::btree_node_borrower<btree_leaf_node<P>> left,
-      commons::btree_node_owner<btree_leaf_node<P>>&&  right,
+      internal::btree_node_borrower<btree_leaf_node<P>> left,
+      internal::btree_node_owner<btree_leaf_node<P>>&&  right,
       typename btree_leaf_node<P>::count_type          insert_position
   );
 
@@ -459,8 +459,8 @@ class btree_internal_node : public btree_leaf_node<Params> {
 // delimiting key in the parent node onto itself.
 template <class Params>
 void merge(
-    commons::btree_node_borrower<btree_leaf_node<Params>> left,
-    commons::btree_node_borrower<btree_leaf_node<Params>> right
+    internal::btree_node_borrower<btree_leaf_node<Params>> left,
+    internal::btree_node_borrower<btree_leaf_node<Params>> right
 ) {
   assert(left->borrow_readonly_parent() == right->borrow_readonly_parent());
   assert(left->borrow_readonly_parent() != nullptr);
@@ -474,9 +474,9 @@ void merge(
 
   if (not left->is_leaf()) {
     assert(not right->is_leaf());
-    auto casted_left = static_cast<commons::btree_node_borrower<btree_internal_node<Params>>>(left);
+    auto casted_left = static_cast<internal::btree_node_borrower<btree_internal_node<Params>>>(left);
     auto casted_right =
-        static_cast<commons::btree_node_borrower<btree_internal_node<Params>>>(right);
+        static_cast<internal::btree_node_borrower<btree_internal_node<Params>>>(right);
     // Move the child pointers from the right to the left node.
     casted_left->receive_children(
         casted_left->end_children(),
@@ -494,7 +494,7 @@ void merge(
   if (left->position() + 2 < left->borrow_parent()->children_count()) {
     assert(not left->borrow_parent()->is_leaf());
     auto casted_parent =
-        static_cast<commons::btree_node_borrower<btree_internal_node<Params>>>(left->borrow_parent()
+        static_cast<internal::btree_node_borrower<btree_internal_node<Params>>>(left->borrow_parent()
         );
 
     casted_parent
@@ -508,14 +508,14 @@ void merge(
 // Splits a node, moving a portion of the node's values to its right sibling.
 template <class Params>
 void split(
-    commons::btree_node_borrower<btree_leaf_node<Params>> left,
-    commons::btree_node_owner<btree_leaf_node<Params>>&&  right,
+    internal::btree_node_borrower<btree_leaf_node<Params>> left,
+    internal::btree_node_owner<btree_leaf_node<Params>>&&  right,
     typename btree_leaf_node<Params>::count_type          insert_position
 ) {
   using internal_node = btree_internal_node<Params>;
   using count_type    = typename internal_node::count_type;
 
-  using internal_node_borrower = commons::btree_node_borrower<internal_node>;
+  using internal_node_borrower = internal::btree_node_borrower<internal_node>;
 
   assert(left != nullptr);
   assert(right.get() != nullptr);
@@ -566,146 +566,146 @@ void split(
     );
   }
 }
-}  // namespace pmr::details
+}  // namespace experimental::pmr
 
-namespace commons {
+namespace internal {
 template <class Params>
-struct btree_node_owner_type<pmr::details::btree_leaf_node<Params>> {
-  using type = typename pmr::details::btree_internal_node<Params>::node_owner;
+struct btree_node_owner_type<experimental::pmr::btree_leaf_node<Params>> {
+  using type = typename experimental::pmr::btree_internal_node<Params>::node_owner;
 };
 
 template <class Params>
-struct sizeof_leaf_node<pmr::details::btree_leaf_node<Params>> {
-  static constexpr std::size_t value = sizeof(pmr::details::btree_leaf_node<Params>);
+struct sizeof_leaf_node<experimental::pmr::btree_leaf_node<Params>> {
+  static constexpr std::size_t value = sizeof(experimental::pmr::btree_leaf_node<Params>);
 };
 
 template <class Params>
-struct sizeof_internal_node<pmr::details::btree_leaf_node<Params>> {
-  static constexpr std::size_t value = sizeof(pmr::details::btree_internal_node<Params>);
+struct sizeof_internal_node<experimental::pmr::btree_leaf_node<Params>> {
+  static constexpr std::size_t value = sizeof(experimental::pmr::btree_internal_node<Params>);
 };
 
 template <class Params>
-bool is_leaf(btree_node_readonly_borrower<pmr::details::btree_leaf_node<Params>> n) noexcept {
+bool is_leaf(btree_node_readonly_borrower<experimental::pmr::btree_leaf_node<Params>> n) noexcept {
   return n->is_leaf();
 }
 
 template <class Params>
-btree_node_borrower<pmr::details::btree_leaf_node<Params>> borrow_child(
-    btree_node_readonly_borrower<pmr::details::btree_leaf_node<Params>> n,
-    typename pmr::details::btree_internal_node<Params>::count_type      i
+btree_node_borrower<experimental::pmr::btree_leaf_node<Params>> borrow_child(
+    btree_node_readonly_borrower<experimental::pmr::btree_leaf_node<Params>> n,
+    typename experimental::pmr::btree_internal_node<Params>::count_type      i
 ) noexcept {
   assert(n != nullptr);
   assert(not n->is_leaf());
 
-  auto in = static_cast<btree_node_readonly_borrower<pmr::details::btree_internal_node<Params>>>(n);
+  auto in = static_cast<btree_node_readonly_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
   return in->borrow_child(i);
 }
 
 template <class Params>
-btree_node_readonly_borrower<pmr::details::btree_leaf_node<Params>> borrow_readonly_child(
-    btree_node_readonly_borrower<pmr::details::btree_leaf_node<Params>> n,
-    typename pmr::details::btree_internal_node<Params>::count_type      i
+btree_node_readonly_borrower<experimental::pmr::btree_leaf_node<Params>> borrow_readonly_child(
+    btree_node_readonly_borrower<experimental::pmr::btree_leaf_node<Params>> n,
+    typename experimental::pmr::btree_internal_node<Params>::count_type      i
 ) noexcept {
   assert(n != nullptr);
   assert(not n->is_leaf());
 
-  auto in = static_cast<btree_node_readonly_borrower<pmr::details::btree_internal_node<Params>>>(n);
+  auto in = static_cast<btree_node_readonly_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
   return in->borrow_readonly_child(i);
 }
 
 template <class Params>
-btree_node_owner<pmr::details::btree_leaf_node<Params>> extract_child(
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>>     n,
-    typename pmr::details::btree_internal_node<Params>::count_type i
+btree_node_owner<experimental::pmr::btree_leaf_node<Params>> extract_child(
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>>     n,
+    typename experimental::pmr::btree_internal_node<Params>::count_type i
 ) noexcept {
   assert(n != nullptr);
   assert(not n->is_leaf());
 
-  auto in = static_cast<btree_node_borrower<pmr::details::btree_internal_node<Params>>>(n);
+  auto in = static_cast<btree_node_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
   return in->extract_child(i);
 }
 
 template <class Params>
 void set_child(
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>>     n,
-    typename pmr::details::btree_internal_node<Params>::count_type i,
-    btree_node_owner<pmr::details::btree_leaf_node<Params>>&&      new_child
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>>     n,
+    typename experimental::pmr::btree_internal_node<Params>::count_type i,
+    btree_node_owner<experimental::pmr::btree_leaf_node<Params>>&&      new_child
 ) noexcept {
   assert(n != nullptr);
   assert(not n->is_leaf());
 
-  auto in = static_cast<btree_node_borrower<pmr::details::btree_internal_node<Params>>>(n);
+  auto in = static_cast<btree_node_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
   in->set_child(i, std::move(new_child));
 }
 
 template <class Params>
 void rebalance_right_to_left(
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>>     n,
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>>     sibling,
-    typename pmr::details::btree_internal_node<Params>::count_type to_move
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>>     n,
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>>     sibling,
+    typename experimental::pmr::btree_internal_node<Params>::count_type to_move
 ) {
   assert(n != nullptr);
   if (n->is_leaf()) {
     n->rebalance_right_to_left(sibling, to_move);
   } else {
-    auto in = static_cast<btree_node_borrower<pmr::details::btree_internal_node<Params>>>(n);
+    auto in = static_cast<btree_node_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
     in->rebalance_right_to_left(sibling, to_move);
   }
 }
 
 template <class Params>
 void rebalance_left_to_right(
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>>     n,
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>>     sibling,
-    typename pmr::details::btree_internal_node<Params>::count_type to_move
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>>     n,
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>>     sibling,
+    typename experimental::pmr::btree_internal_node<Params>::count_type to_move
 ) {
   assert(n != nullptr);
   if (n->is_leaf()) {
     n->rebalance_left_to_right(sibling, to_move);
   } else {
-    auto in = static_cast<btree_node_borrower<pmr::details::btree_internal_node<Params>>>(n);
+    auto in = static_cast<btree_node_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
     in->rebalance_left_to_right(sibling, to_move);
   }
 }
 
 template <class Params>
 void split(
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>>     left,
-    btree_node_owner<pmr::details::btree_leaf_node<Params>>&&      right,
-    typename pmr::details::btree_internal_node<Params>::count_type insert_position
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>>     left,
+    btree_node_owner<experimental::pmr::btree_leaf_node<Params>>&&      right,
+    typename experimental::pmr::btree_internal_node<Params>::count_type insert_position
 ) {
-  pmr::details::split(left, std::move(right), insert_position);
+  experimental::pmr::split(left, std::move(right), insert_position);
 }
 
 template <class Params>
 void merge(
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>> left,
-    btree_node_borrower<pmr::details::btree_leaf_node<Params>> right
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>> left,
+    btree_node_borrower<experimental::pmr::btree_leaf_node<Params>> right
 ) {
-  pmr::details::merge(left, std::move(right));
+  experimental::pmr::merge(left, std::move(right));
 }
-}  // namespace commons
+}  // namespace internal
 }  // namespace platanus
 
 namespace std {
 template <class Params, class Alloc>
-struct uses_allocator<platanus::pmr::details::btree_leaf_node<Params>, Alloc>
+struct uses_allocator<platanus::experimental::pmr::btree_leaf_node<Params>, Alloc>
     : public std::false_type {};
 
 template <class Params, class Alloc>
-struct uses_allocator<platanus::pmr::details::btree_internal_node<Params>, Alloc>
+struct uses_allocator<platanus::experimental::pmr::btree_internal_node<Params>, Alloc>
     : public std::false_type {};
 }  // namespace std
 
-namespace platanus::pmr::details {
+namespace platanus::experimental::pmr {
 template <class Params>
 class btree_node_factory {
  public:
   using leaf_node     = btree_leaf_node<Params>;
   using internal_node = btree_internal_node<Params>;
   using node_deleter  = typename internal_node::node_owner::deleter_type;
-  using node_owner    = commons::btree_node_owner<leaf_node>;
-  using node_borrower = commons::btree_node_borrower<leaf_node>;
+  using node_owner    = internal::btree_node_owner<leaf_node>;
+  using node_borrower = internal::btree_node_borrower<leaf_node>;
 
   using allocator_type = typename internal_node::allocator_type;
 
@@ -749,6 +749,6 @@ template <class Params>
 void swap(btree_node_factory<Params>& left, btree_node_factory<Params>& right) noexcept {
   left.swap(right);
 }
-}  // namespace platanus::pmr::details
+}  // namespace platanus::experimental::pmr
 
 #endif  // PLATANUS_PMR_DETAILS_BTREE_NODE_H_

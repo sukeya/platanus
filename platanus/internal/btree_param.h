@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_COMMONS_BTREE_PARAM_H_
-#define PLATANUS_COMMONS_BTREE_PARAM_H_
+#ifndef PLATANUS_INTERNAL_BTREE_PARAM_H_
+#define PLATANUS_INTERNAL_BTREE_PARAM_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -37,7 +37,7 @@
 
 #include "btree_util.h"
 
-namespace platanus::commons {
+namespace platanus::internal {
 
 template <typename Key, typename Compare, typename Alloc, std::size_t MaxNumOfValues>
 requires comp_requirement<Key, Compare>
@@ -91,6 +91,6 @@ struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNum
   static const Key& key(const value_type& x) noexcept { return x; }
 };
 
-}  // namespace platanus::commons
+}  // namespace platanus::internal
 
-#endif  // PLATANUS_COMMONS_BTREE_PARAM_H_
+#endif  // PLATANUS_INTERNAL_BTREE_PARAM_H_

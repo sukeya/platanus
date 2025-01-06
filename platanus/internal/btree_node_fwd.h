@@ -1,4 +1,4 @@
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_COMMONS_BTREE_NODE_DECL_H__
-#define PLATANUS_COMMONS_BTREE_NODE_DECL_H__
+#ifndef PLATANUS_INTERNAL_BTREE_NODE_FWD_H_
+#define PLATANUS_INTERNAL_BTREE_NODE_FWD_H_
 
 #include <cstddef>
 #include <limits>
 
-namespace platanus::commons {
+namespace platanus {
+namespace internal {
 template <class T>
 struct btree_node_owner_type {
   // Define a template type named `type`.
@@ -44,6 +45,13 @@ struct sizeof_internal_node {};
 
 template <class T>
 static constexpr std::size_t sizeof_internal_node_v = sizeof_internal_node<T>::value;
-}  // namespace platanus::commons
+
+}  // namespace internal
+
+namespace experimental::pmr {
+template <class P>
+class btree_leaf_node;
+}  // namespace experimental::pmr
+}  // namespace platanus
 
 #endif

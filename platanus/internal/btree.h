@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_COMMONS_btree_H__
-#define PLATANUS_COMMONS_btree_H__
+#ifndef PLATANUS_INTERNAL_BTREE_H_
+#define PLATANUS_INTERNAL_BTREE_H_
 
 #include <algorithm>
 #include <cassert>
@@ -51,7 +51,7 @@
 #include "btree_param.h"
 #include "btree_util.h"
 
-namespace platanus::commons {
+namespace platanus::internal {
 template <class Node, class NodeFactory>
 class btree {
   using node_type    = Node;
@@ -222,7 +222,7 @@ class btree {
 
   // Finds the first element whose key is greater than key.
   iterator upper_bound(const key_type& key) {
-    using commons::upper_bound;
+    using internal::upper_bound;
 
     if (not borrow_readonly_root()) {
       return end();
@@ -1044,13 +1044,13 @@ void btree<N, F>::rebalance_or_split(iterator& iter) {
   node_owner split_node;
   if (is_leaf(node)) {
     split_node = make_leaf_node(parent);
-    commons::split(node, std::move(split_node), insert_position);
+    internal::split(node, std::move(split_node), insert_position);
     if (borrow_readonly_rightmost() == node) {
       set_rightmost(borrow_child(borrow_parent(node), position(node) + 1));
     }
   } else {
     split_node = make_internal_node(parent);
-    commons::split(node, std::move(split_node), insert_position);
+    internal::split(node, std::move(split_node), insert_position);
   }
 
   if (insert_position > values_count(node)) {
@@ -1065,7 +1065,7 @@ void btree<N, F>::merge_nodes(node_borrower left, node_borrower right) {
     assert(is_leaf(right));
     set_rightmost(left);
   }
-  commons::merge(left, right);
+  internal::merge(left, right);
 }
 
 template <class N, class F>
@@ -1244,6 +1244,6 @@ int btree<N, F>::internal_verify(
   return c;
 }
 
-}  // namespace platanus::commons
+}  // namespace platanus::internal
 
-#endif  // PLATANUS_COMMONS_BTREE_H__
+#endif  // PLATANUS_INTERNAL_BTREE_H_

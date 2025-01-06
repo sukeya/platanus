@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright 2024 Yuya Asano <my_favorite_theory@yahoo.co.jp>
+// Copyright 2024- Yuya Asano <my_favorite_theory@yahoo.co.jp>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_BTREE_TEST_H__
-#define PLATANUS_BTREE_TEST_H__
+#ifndef PLATANUS_BTREE_TEST_H_
+#define PLATANUS_BTREE_TEST_H_
 
 #include <stdio.h>
 #include <algorithm>
@@ -44,7 +44,7 @@
 
 #include "gtest/gtest.h"
 
-#include "platanus/commons/btree_container.h"
+#include "platanus/internal/btree_container.h"
 #include "util.h"
 
 namespace platanus {
@@ -1066,4 +1066,4 @@ ostream& operator<<(ostream& os, const platanus::Vec2i& v) {
 }
 }  // namespace std
 
-#endif  // PLATANUS_BTREE_TEST_H__
+#endif  // PLATANUS_BTREE_TEST_H_

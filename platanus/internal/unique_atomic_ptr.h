@@ -142,7 +142,7 @@ class unique_atomic_ptr {
   PLATANUS_CONSTEXPR explicit operator bool() const noexcept { return get() != nullptr; }
 
  private:
-  std::tuple<std::atomic<T*>, deleter_type> ptr_and_deleter_;
+  std::pair<std::atomic<T*>, deleter_type> ptr_and_deleter_;
 };
 
 template <class T, class D>

@@ -1,3 +1,17 @@
+// Copyright 2025- Yuya Asano <my_favorite_theory@yahoo.co.jp>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #ifndef PLATANUS_INTERNAL_UNIQUE_ATOMIC_PTR_H_
 #define PLATANUS_INTERNAL_UNIQUE_ATOMIC_PTR_H_
 
@@ -37,28 +51,23 @@ class unique_atomic_ptr {
 
   constexpr unique_atomic_ptr(std::nullptr_t) noexcept : unique_atomic_ptr() {}
 
-  // TODO Disable class template argument deduction for the following constructor.
-  PLATANUS_CONSTEXPR explicit unique_atomic_ptr(pointer p) noexcept
+  PLATANUS_CONSTEXPR explicit unique_atomic_ptr(std::type_identity_t<pointer> p) noexcept
   requires(std::is_nothrow_default_constructible_v<deleter_type>)
       : ptr_and_deleter_(p, deleter_type()) {}
 
-  // TODO Disable class template argument deduction for the following constructor.
-  PLATANUS_CONSTEXPR unique_atomic_ptr(pointer p, const deleter_type& dl) noexcept
+  PLATANUS_CONSTEXPR unique_atomic_ptr(std::type_identity_t<pointer> p, const deleter_type& dl) noexcept
   requires(not std::is_reference_v<deleter_type> && std::is_nothrow_copy_constructible_v<deleter_type>)
       : ptr_and_deleter_(p, dl) {}
 
-  // TODO Disable class template argument deduction for the following constructor.
-  PLATANUS_CONSTEXPR unique_atomic_ptr(pointer p, deleter_type dl) noexcept
+  PLATANUS_CONSTEXPR unique_atomic_ptr(std::type_identity_t<pointer> p, deleter_type dl) noexcept
   requires(not std::is_const_v<deleter_type> && std::is_reference_v<deleter_type> && std::is_nothrow_constructible_v<deleter_type, decltype(dl)>)
       : ptr_and_deleter_(p, dl) {}
 
-  // TODO Disable class template argument deduction for the following constructor.
-  PLATANUS_CONSTEXPR unique_atomic_ptr(pointer p, deleter_type dl) noexcept
+  PLATANUS_CONSTEXPR unique_atomic_ptr(std::type_identity_t<pointer> p, deleter_type dl) noexcept
   requires(std::is_const_v<deleter_type> && std::is_reference_v<deleter_type> && std::is_nothrow_constructible_v<deleter_type, decltype(dl)>)
       : ptr_and_deleter_(p, dl) {}
 
-  // TODO Disable class template argument deduction for the following constructor.
-  PLATANUS_CONSTEXPR unique_atomic_ptr(pointer p, deleter_type&& dl) noexcept
+  PLATANUS_CONSTEXPR unique_atomic_ptr(std::type_identity_t<pointer> p, deleter_type&& dl) noexcept
   requires(not std::is_reference_v<deleter_type>)
       : ptr_and_deleter_(p, std::forward<deleter_type>(dl)) {}
 
@@ -80,14 +89,17 @@ class unique_atomic_ptr {
 
   template <class U, class E>
   requires(
-      std::convertible_to<typename unique_atomic_ptr<U, E>::pointer, pointer>
-      && (not std::is_array_v<U>) && (std::is_same_v<D, E> || std::is_convertible_v<>)
+      std::is_convertible_v<typename unique_atomic_ptr<U, E>::pointer, pointer>
+      && (not std::is_array_v<U>) && ((std::is_reference_v<deleter_type> && std::is_same_v<deleter_type, E>) || (
+        not std::is_reference_v<deleter_type> && std::is_convertible_v<E, deleter_type>
+      ))
   )
   PLATANUS_CONSTEXPR unique_atomic_ptr(unique_atomic_ptr<U, E>&& x) noexcept
       : unique_atomic_ptr{x.release(), x.get_deleter()} {}
 
   unique_atomic_ptr(const unique_atomic_ptr&) = delete;
 
+  // TODO add requires section for deleter_type.
   PLATANUS_CONSTEXPR unique_atomic_ptr& operator=(unique_atomic_ptr&& x) noexcept {
     if (&x == this) {
       return *this;
@@ -97,8 +109,9 @@ class unique_atomic_ptr {
     return *this;
   }
 
+  // TODO add requires section for E.
   template <class U, class E>
-  requires(std::convertible_to<typename unique_atomic_ptr<U, E>::pointer, pointer> && (not std::is_array_v<U>) && std::is_assignable_v<D&, E &&>)
+  requires(not std::is_reference_v<U> && std::is_convertible_v<typename unique_atomic_ptr<U, E>::pointer, pointer>)
   PLATANUS_CONSTEXPR unique_atomic_ptr& operator=(unique_atomic_ptr<U, E>&& u) noexcept {
     if (&x == this) {
       return *this;
@@ -115,21 +128,30 @@ class unique_atomic_ptr {
 
   unique_atomic_ptr& operator=(const unique_atomic_ptr&) = delete;
 
-  PLATANUS_CONSTEXPR ~unique_atomic_ptr() {
+  PLATANUS_CONSTEXPR ~unique_atomic_ptr() requires(std::is_nothrow_invocable_v<const D, pointer>) {
     if (get() == nullptr) {
       return;
     }
-    const auto& deleter = get_deleter();
-    deleter(release());
+    get_deleter()(release());
   }
 
   PLATANUS_CONSTEXPR pointer release() noexcept {
     return ptr_.exchange(nullptr, std::memory_order_relaxed);
   }
 
-  void reset(pointer p = nullptr) noexcept {
-    const auto& deleter = get_deleter();
-    deleter(ptr_.exchange(p, std::memory_order_relaxed));
+  PLATANUS_CONSTEXPR void reset(pointer p = pointer()) noexcept requires(std::is_nothrow_invocable_v<const D, pointer>) {
+    auto old_ptr = ptr_.exchange(p, std::memory_order_relaxed);
+    if (old_ptr) {
+      get_deleter()(old_ptr);
+    }
+  }
+
+  PLATANUS_CONSTEXPR void reset(std::nullptr_t = nullptr) noexcept {
+    reset(pointer());
+  }
+
+  void swap(unique_atomic_ptr& x) noexcept {
+    ptr_and_deleter_.swap(x.ptr_and_deleter_);
   }
 
   PLATANUS_CONSTEXPR pointer get() const noexcept { return ptr_.load(std::memory_order_relaxed); }
@@ -140,6 +162,14 @@ class unique_atomic_ptr {
   }
 
   PLATANUS_CONSTEXPR explicit operator bool() const noexcept { return get() != nullptr; }
+
+  PLATANUS_CONSTEXPR typename std::add_lvalue_reference<T>::type operator*() const noexcept(noexcept(*std::declval<pointer>())) {
+    return *get();
+  }
+
+  PLATANUS_CONSTEXPR pointer operator->() const noexcept {
+    return get();
+  }
 
  private:
   std::pair<std::atomic<T*>, deleter_type> ptr_and_deleter_;

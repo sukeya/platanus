@@ -23,128 +23,176 @@ class Owner {
   using reference       = T&;
   using const_reference = const T&;
 
-  class Borrowed {
+  class Borrower {
    public:
-    Borrowed() = delete;
+    using value_type      = T;
+    using reference       = T&;
+    using const_reference = const T&;
 
-    Borrowed(Borrowed&&)              = default;
-    Borrowed& operator=(Borrowed&& b) = default;
+    Borrower() = delete;
 
-    Borrowed(const Borrowed& x) : owner_ptr_(x.owner_ptr_) { owner_ptr_->get_cref(); }
-    Borrowed& operator=(const Borrowed& x) {
-      if (this == &x) {
-        return *this;
-      }
+    Borrower(const Borrower& x) : owner_ptr_(x.owner_ptr_) { owner_ptr_->add_num_of_borrowers(); }
+    Borrower& operator=(const Borrower& x) {
       if (owner_ptr_ == x.owner_ptr_) {
         return *this;
       }
-      owner_ptr_->return_cref();
-      x.owner_ptr_->get_cref();
+      owner_ptr_->sub_num_of_borrowers();
+      x.owner_ptr_->add_num_of_borrowers();
       owner_ptr_ = x.owner_ptr_;
     }
 
-    ~Borrowed() { owner_ptr_->return_cref(); }
+    Borrower(Borrower&& b) : owner_ptr_(b.owner_ptr_) { b.owner_ptr_ = nullptr; }
+    Borrower& operator=(Borrower&& b) {
+      if (this == &b) {
+        return *this;
+      }
+      owner_ptr_   = b.owner_ptr_;
+      b.owner_ptr_ = nullptr;
+    }
+
+    ~Borrower() { owner_ptr_->sub_num_of_borrowers(); }
 
     const_reference value() const { return owner_ptr_->value(); }
 
    private:
-    explicit Borrowed(Owner* owner_ptr) : owner_ptr_{owner_ptr} { assert(owner_ptr_ != nullptr); }
+    explicit Borrower(Owner* owner_ptr) : owner_ptr_{owner_ptr} { assert(owner_ptr_ != nullptr); }
 
     friend Owner;
 
     Owner* owner_ptr_;
   };
 
-  class Moved {
+  class MutableBorrower {
    public:
-    ~Moved() {
-      owner_ptr_->return_mut_ref();
+    using value_type      = T;
+    using reference       = T&;
+    using const_reference = const T&;
+
+    MutableBorrower()                                    = delete;
+    MutableBorrower(const MutableBorrower&)              = delete;
+    MutableBorrower& operator=(const MutableBorrower& b) = delete;
+
+    MutableBorrower(MutableBorrower&& b) : owner_ptr_(b.owner_ptr_) { b.owner_ptr_ = nullptr; }
+    MutableBorrower& operator=(MutableBorrower&& b) {
+      if (this == &b) {
+        return *this;
+      }
+      owner_ptr_   = b.owner_ptr_;
+      b.owner_ptr_ = nullptr;
     }
+
+    ~MutableBorrower() { owner_ptr_->end_reading(); }
+  
+    reference value() { return owner_ptr_->value(); }
+    const_reference value() const {
+      return static_cast<const_reference>(const_cast<MutableBorrower*>(this)->value());
+    }
+
    private:
-    explicit Moved(Owner* owner_ptr) : owner_ptr_(owner_ptr) { assert(owner_ptr_ != nullptr); }
+    explicit MutableBorrower(Owner* owner_ptr) : owner_ptr_(owner_ptr) {
+      assert(owner_ptr_ != nullptr);
+    }
 
     friend Owner;
 
     Owner* owner_ptr_;
   };
 
-  Owner() : v_{}, is_reading_{false}, num_of_crefs_{0} {}
+  Owner() : v_{}, is_reading_{false}, num_of_borrowers_{0} {}
 
-  explicit Owner(T&& v) : v_{std::move(v)}, is_reading_{false}, num_of_crefs_{0} {}
+  Owner(const Owner&)            = delete;
+  Owner(Owner&&)                 = delete;
+  Owner& operator=(const Owner&) = delete;
+  Owner& operator=(Owner&&)      = delete;
 
-  Borrowed borrow() {
+  explicit Owner(T&& v) : v_{std::move(v)}, is_reading_{false}, num_of_borrowers_{0} {}
+
+  Borrower borrow() {
+    // Set `acquire` to ensure the owned value can be read after being written by MutableBorrower.
     if (is_reading_.load(std::memory_order_acquire)) {
-      auto current = num_of_crefs_.load(std::memory_order_relaxed);
-      while (current > 0) {
-        num_of_crefs_.compare_exchange_weak(current, current + 1, std::memory_order_relaxed);
-      }
-      if (current > 0) {
-        return Borrowed(this);
+      if (try_to_borrow_or_wait()) {
+        return Borrower(this);
       }
     }
-    // prevent spuriously unblok
-    while (true) {
-      bool current = false;
-      is_reading_.compare_exchange_strong(current, true, std::memory_order_release, std::memory_order_acquire);
-      if (not current) {
-        break;
+    assert(not is_reading_.load(std::memory_order_relaxed));
+    assert(num_of_borrowers_.load(std::memory_order_relaxed) == 0);
+    // Try to get lock.
+    bool dummy = false;
+    while (not is_reading_.compare_exchange_strong(dummy, true, std::memory_order_relaxed)) {
+      if (try_to_borrow_or_wait()) {
+        return Borrower(this);
       }
-      is_reading_.wait(true, std::memory_order_acquire);
     }
-    assert(num_of_crefs_.load(std::memory_order_relaxed) == 0);
-    // In this point, the other thread may see as if this thread borrows mutably.
-    // However, even if the following threads reach here, they only atomically add num_of_crefs_.
-    // So, there is no problem.
-    get_cref();
-    return Borrowed(this);
+    // In this point, the other thread may see as if this thread references mutably.
+    add_num_of_borrowers();
+    return Borrower(this);
   }
 
-  Moved move() {
-    // prevent spuriously unblok
-    while (true) {
-      bool current = false;
-      is_reading_.compare_exchange_strong(current, true, std::memory_order_release, std::memory_order_acquire);
-      if (not current) {
-        break;
-      }
-      is_reading_.wait(true, std::memory_order_acquire);
+  MutableBorrower mutable_borrow() {
+    // prevent spuriously unblock
+    bool dummy = false;
+    while (not is_reading_.compare_exchange_strong(
+          dummy,
+          true,
+          std::memory_order_acq_rel,
+          std::memory_order_relaxed
+      )) {
+      is_reading_.wait(true, std::memory_order_relaxed);
     }
-    assert(num_of_crefs_.load(std::memory_order_acquire) == 0);
-    return Moved(this);
+    assert(num_of_borrowers_.load(std::memory_order_relaxed) == 0);
+    return MutableBorrower(this);
   }
 
  private:
+  reference value() { return v_; }
   const_reference value() const {
     return static_cast<const_reference>(const_cast<Owner*>(this)->value());
   }
 
-  reference value() {
-    return v_;
-  }
-
-  void return_mut_ref() {
-    assert(is_reading_.load(std::memory_order_acquire));
+  void end_reading() {
+    assert(is_reading_.load(std::memory_order_relaxed));
     is_reading_.store(false, std::memory_order_release);
     is_reading_.notify_all();
   }
 
-  void return_cref() {
-    assert(is_reading_.load(std::memory_order_acquire));
-    num_of_crefs_.fetch_sub(1, std::memory_order_relaxed);
-    assert(num_of_crefs_.load(std::memory_order_relaxed) >= 0);
-    if (num_of_crefs_.load(std::memory_order_relaxed) == 0) {
-      is_reading_.store(false, std::memory_order_release);
-      is_reading_.notify_all();
+  void sub_num_of_borrowers() {
+    assert(is_reading_.load(std::memory_order_relaxed));
+    num_of_borrowers_.fetch_sub(1, std::memory_order_relaxed);
+    assert(num_of_borrowers_.load(std::memory_order_relaxed) >= 0);
+    if (num_of_borrowers_.load(std::memory_order_relaxed) == 0) {
+      end_reading();
     }
   }
 
-  void get_cref() {
-    assert(is_reading_.load(std::memory_order_acquire));
-    num_of_crefs_.fetch_add(1, std::memory_order_relaxed);
+  void add_num_of_borrowers() {
+    assert(is_reading_.load(std::memory_order_relaxed));
+    num_of_borrowers_.fetch_add(1, std::memory_order_relaxed);
   }
 
-  T          v_;
-  std::atomic<bool>         is_reading_;
+  // If return value is true, success to borrow: otherwise, fail.
+  bool try_to_borrow_or_wait() {
+    auto current_num_of_borrowers = num_of_borrowers_.load(std::memory_order_relaxed);
+    // Try to add 1 to the number of borrowers while current_num_of_borrowers > 0.
+    // `current_num_of_borrowers > 0` is required because the other threads may release their borrowers until this thread reaches the following line or simply mutable borrower exists.
+    while (current_num_of_borrowers > 0
+            || not num_of_borrowers_.compare_exchange_weak(
+                current_num_of_borrowers,
+                current_num_of_borrowers + 1,
+                std::memory_order_relaxed
+            )) {
+    }
+    if (current_num_of_borrowers > 0) {
+      return true;
+    }
+    // prevent spuriously unblock
+    while (is_reading_.load(std::memory_order_relaxed)) {
+      is_reading_.wait(true, std::memory_order_relaxed);
+    }
+    return false;
+  }
+
+  T                         v_;
+  std::atomic<bool> is_reading_;
   // In Ubuntu 24.04, the maximum number of unique process is 4194304, so I use 32bit integer.
-  std::atomic<std::int_least32_t> num_of_crefs_;
+  std::atomic<std::int_least32_t> num_of_borrowers_;
 };

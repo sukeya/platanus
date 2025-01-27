@@ -82,8 +82,8 @@ class Owner {
     }
 
     ~MutableBorrower() { owner_ptr_->end_reading(); }
-  
-    reference value() { return owner_ptr_->value(); }
+
+    reference       value() { return owner_ptr_->value(); }
     const_reference value() const {
       return static_cast<const_reference>(const_cast<MutableBorrower*>(this)->value());
     }
@@ -104,6 +104,11 @@ class Owner {
   Owner(Owner&&)                 = delete;
   Owner& operator=(const Owner&) = delete;
   Owner& operator=(Owner&&)      = delete;
+
+  // Owner don't care about waiting, reading or writing borrower because there is no way for owner
+  // to check how many such borrowers exist. So, programmers have to manage the lifetime of owner
+  // and its borrowers.
+  ~Owner() = default;
 
   explicit Owner(T&& v) : v_{std::move(v)}, is_reading_{false}, num_of_borrowers_{0} {}
 
@@ -132,11 +137,11 @@ class Owner {
     // prevent spuriously unblock
     bool dummy = false;
     while (not is_reading_.compare_exchange_strong(
-          dummy,
-          true,
-          std::memory_order_acq_rel,
-          std::memory_order_relaxed
-      )) {
+        dummy,
+        true,
+        std::memory_order_acq_rel,
+        std::memory_order_relaxed
+    )) {
       is_reading_.wait(true, std::memory_order_relaxed);
     }
     assert(num_of_borrowers_.load(std::memory_order_relaxed) == 0);
@@ -144,7 +149,7 @@ class Owner {
   }
 
  private:
-  reference value() { return v_; }
+  reference       value() { return v_; }
   const_reference value() const {
     return static_cast<const_reference>(const_cast<Owner*>(this)->value());
   }
@@ -173,13 +178,14 @@ class Owner {
   bool try_to_borrow_or_wait() {
     auto current_num_of_borrowers = num_of_borrowers_.load(std::memory_order_relaxed);
     // Try to add 1 to the number of borrowers while current_num_of_borrowers > 0.
-    // `current_num_of_borrowers > 0` is required because the other threads may release their borrowers until this thread reaches the following line or simply mutable borrower exists.
+    // `current_num_of_borrowers > 0` is required because the other threads may release their
+    // borrowers until this thread reaches the following line or simply mutable borrower exists.
     while (current_num_of_borrowers > 0
-            || not num_of_borrowers_.compare_exchange_weak(
-                current_num_of_borrowers,
-                current_num_of_borrowers + 1,
-                std::memory_order_relaxed
-            )) {
+           || not num_of_borrowers_.compare_exchange_weak(
+               current_num_of_borrowers,
+               current_num_of_borrowers + 1,
+               std::memory_order_relaxed
+           )) {
     }
     if (current_num_of_borrowers > 0) {
       return true;
@@ -191,7 +197,7 @@ class Owner {
     return false;
   }
 
-  T                         v_;
+  T                 v_;
   std::atomic<bool> is_reading_;
   // In Ubuntu 24.04, the maximum number of unique process is 4194304, so I use 32bit integer.
   std::atomic<std::int_least32_t> num_of_borrowers_;

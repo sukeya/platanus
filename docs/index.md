@@ -73,7 +73,7 @@ cd build/debug/test
 If you want to check how much `platanus` is faster than STL, run the following commands.
 
 ```
-cmake -S . -B build/release -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build/release -DBUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release
 cd build/release/benchmark
 ./btree_bench
 ```
@@ -97,7 +97,7 @@ The test cases are:
 If you want to know a good size of values per node, run the following comamnd.
 
 ```
-cmake -S . -B build/release -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DVALUES_SIZE_TEST
+cmake -S . -B build/release -DBUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DVALUES_SIZE_TEST
 cd build/release/benchmark
 ./btree_bench
 ```

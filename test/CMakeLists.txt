@@ -26,9 +26,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_library(util INTERFACE)
-target_include_directories(util INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
 function(add_btree_test target)
   add_executable(${target} ${target}.cc)
   target_compile_options(

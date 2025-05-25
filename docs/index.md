@@ -9,7 +9,7 @@ So a `std::set<std::int32_t>` consumes 32 bytes for each value stored.
 This btree implementation stores the fixed number of values on a nodes (usually 64) and doesn't store child
 pointers for leaf nodes.
 The result is that a `platanus::btree_set<std::int32>` may use much less memory per stored value.
-For the random insertion benchmark in btree_test.cc, a `platanus::btree_set<std::int32_t>` with 64 values per node uses 4.64 bytes per stored value.
+For the random insertion benchmark in btree_test.cpp, a `platanus::btree_set<std::int32_t>` with 64 values per node uses 4.64 bytes per stored value.
 
 The packing of multiple values on to each node of a btree has another effect besides better space utilization: better cache locality due to fewer cache lines being accessed.
 Better cache locality translates into faster operations.

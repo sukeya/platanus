@@ -38,11 +38,11 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark/benchmark.h"
+#include "benchmark/benchmark.hpp"
 
-#include "platanus/btree_map.h"
-#include "platanus/btree_set.h"
-#include "util.h"
+#include "platanus/btree_map.hpp"
+#include "platanus/btree_set.hpp"
+#include "util.hpp"
 
 static_assert(sizeof(std::size_t) == 8, "must fix the bits of mersenne twister engine.");
 

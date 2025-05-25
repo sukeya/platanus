@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
-#include "platanus/btree_map.h"
-#include "platanus/btree_set.h"
-#include "btree_test.h"
+#include "platanus/btree_map.hpp"
+#include "platanus/btree_set.hpp"
+#include "btree_test.hpp"
 
 namespace platanus {
 template <typename K, int N>

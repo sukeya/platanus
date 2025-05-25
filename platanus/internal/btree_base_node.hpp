@@ -33,8 +33,8 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "btree_node_fwd.h"
-#include "btree_util.h"
+#include "btree_node_fwd.hpp"
+#include "btree_util.hpp"
 
 namespace platanus::internal {
 

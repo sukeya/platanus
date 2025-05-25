@@ -29,7 +29,9 @@
 #ifndef PLATANUS_INTERNAL_BTREE_ITERATOR_H_
 #define PLATANUS_INTERNAL_BTREE_ITERATOR_H_
 
-#include "btree_node_fwd.h"
+#include <iterator>
+
+#include "btree_node_fwd.hpp"
 
 namespace platanus::internal {
 namespace btree_iterator_impl {

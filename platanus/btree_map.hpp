@@ -26,41 +26,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef PLATANUS_BTREE_SET_H_
-#define PLATANUS_BTREE_SET_H_
+#ifndef PLATANUS_BTREE_MAP_H_
+#define PLATANUS_BTREE_MAP_H_
 
+#include <algorithm>
 #include <compare>
 #include <functional>
 #include <memory>
 #include <memory_resource>
 #include <string>
+#include <utility>
 
-#include "internal/btree_node.h"
-#include "internal/btree.h"
-#include "internal/btree_container.h"
-#include "pmr/polymorphic_allocator.h"
+#include "internal/btree_node.hpp"
+#include "internal/btree.hpp"
+#include "internal/btree_container.hpp"
+#include "pmr/polymorphic_allocator.hpp"
 
 namespace platanus {
 
 template <
     typename Key,
+    typename Value,
     typename Compare           = std::ranges::less,
-    typename Alloc             = std::allocator<Key>,
+    typename Alloc             = std::allocator<std::pair<const Key, Value>>,
     std::size_t MaxNumOfValues = 64>
-class btree_set
-    : public internal::btree_unique_container<internal::btree<
-          internal::btree_node<internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>,
-          internal::btree_node_factory<
-              internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
-  using self_type   = btree_set<Key, Compare, Alloc, MaxNumOfValues>;
-  using params_type = internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
+class btree_map : public internal::btree_map_container<internal::btree<
+                      internal::btree_node<
+                          internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
+                      internal::btree_node_factory<
+                          internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
+  using self_type   = btree_map<Key, Value, Compare, Alloc, MaxNumOfValues>;
+  using params_type = internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
   using btree_type =
       internal::btree<internal::btree_node<params_type>, internal::btree_node_factory<params_type>>;
-  using super_type = internal::btree_unique_container<btree_type>;
+  using super_type = internal::btree_map_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
+  using mapped_type            = typename super_type::mapped_type;
   using key_compare            = typename super_type::key_compare;
   using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
@@ -83,42 +87,41 @@ class btree_set
     return super_type::sizeof_internal_node();
   }
 
-  btree_set()                            = default;
-  btree_set(const self_type&)            = default;
-  btree_set(self_type&&)                 = default;
-  btree_set& operator=(const self_type&) = default;
-  btree_set& operator=(self_type&&)      = default;
-  ~btree_set()                           = default;
+  btree_map()                            = default;
+  btree_map(const self_type&)            = default;
+  btree_map(self_type&&)                 = default;
+  btree_map& operator=(const self_type&) = default;
+  btree_map& operator=(self_type&&)      = default;
+  ~btree_map()                           = default;
 
-  explicit btree_set(const key_compare& comp, const allocator_type& alloc = allocator_type())
+  explicit btree_map(const key_compare& comp, const allocator_type& alloc = allocator_type())
       : super_type(comp, alloc) {}
 
-  explicit btree_set(const allocator_type& alloc) : super_type(alloc) {}
+  explicit btree_map(const allocator_type& alloc) : super_type(alloc) {}
 
   // Range constructor.
   template <class InputIterator>
-  btree_set(
+  btree_map(
       InputIterator         b,
       InputIterator         e,
       const key_compare&    comp  = key_compare(),
       const allocator_type& alloc = allocator_type()
   )
       : super_type(b, e, comp, alloc) {}
-
   template <class InputIterator>
-  btree_set(InputIterator b, InputIterator e, const allocator_type& alloc)
+  btree_map(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_set(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_set(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  btree_map(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  btree_map(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
-  btree_set(
+  btree_map(
       std::initializer_list<value_type> init,
       const key_compare&                comp  = key_compare{},
       const allocator_type&             alloc = allocator_type{}
   )
       : self_type{init.begin(), init.end(), comp, alloc} {}
-  btree_set(std::initializer_list<value_type> init, const allocator_type& alloc)
+  btree_map(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
   using super_type::begin;
@@ -161,30 +164,37 @@ class btree_set
   using super_type::insert;
 
   using super_type::merge;
+
+  using super_type::at;
+  using super_type::operator[];
 };
 
-template <typename K, typename C, typename A, std::size_t N>
-void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
+template <typename K, typename V, typename C, typename A, std::size_t N>
+void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
   x.swap(y);
 }
 
 template <
     typename Key,
+    typename Value,
     typename Compare           = std::ranges::less,
-    typename Alloc             = std::allocator<Key>,
+    typename Alloc             = std::allocator<std::pair<const Key, Value>>,
     std::size_t MaxNumOfValues = 64>
-class btree_multiset
+class btree_multimap
     : public internal::btree_multi_container<internal::btree<
-          internal::btree_node<internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>,
+          internal::btree_node<
+              internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
           internal::btree_node_factory<
-              internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
-  using self_type   = btree_multiset<Key, Compare, Alloc, MaxNumOfValues>;
-  using params_type = internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
+              internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
+  using self_type   = btree_multimap<Key, Value, Compare, Alloc, MaxNumOfValues>;
+  using params_type = internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
   using btree_type =
       internal::btree<internal::btree_node<params_type>, internal::btree_node_factory<params_type>>;
   using super_type = internal::btree_multi_container<btree_type>;
 
  public:
+  using mapped_type = typename btree_type::mapped_type;
+
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
@@ -209,21 +219,21 @@ class btree_multiset
     return super_type::sizeof_internal_node();
   }
 
-  btree_multiset()                            = default;
-  btree_multiset(const self_type&)            = default;
-  btree_multiset(self_type&&)                 = default;
-  btree_multiset& operator=(const self_type&) = default;
-  btree_multiset& operator=(self_type&&)      = default;
-  ~btree_multiset()                           = default;
+  btree_multimap()                            = default;
+  btree_multimap(const self_type&)            = default;
+  btree_multimap(self_type&&)                 = default;
+  btree_multimap& operator=(const self_type&) = default;
+  btree_multimap& operator=(self_type&&)      = default;
+  ~btree_multimap()                           = default;
 
-  explicit btree_multiset(const key_compare& comp, const allocator_type& alloc = allocator_type())
+  explicit btree_multimap(const key_compare& comp, const allocator_type& alloc = allocator_type())
       : super_type(comp, alloc) {}
 
-  explicit btree_multiset(const allocator_type& alloc) : super_type(alloc) {}
+  explicit btree_multimap(const allocator_type& alloc) : super_type(alloc) {}
 
   // Range constructor.
   template <class InputIterator>
-  btree_multiset(
+  btree_multimap(
       InputIterator         b,
       InputIterator         e,
       const key_compare&    comp  = key_compare(),
@@ -232,19 +242,19 @@ class btree_multiset
       : super_type(b, e, comp, alloc) {}
 
   template <class InputIterator>
-  btree_multiset(InputIterator b, InputIterator e, const allocator_type& alloc)
+  btree_multimap(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_multiset(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_multiset(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  btree_multimap(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  btree_multimap(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
-  btree_multiset(
+  btree_multimap(
       std::initializer_list<value_type> init,
       const key_compare&                comp  = key_compare{},
       const allocator_type&             alloc = allocator_type{}
   )
       : self_type{init.begin(), init.end(), comp, alloc} {}
-  btree_multiset(std::initializer_list<value_type> init, const allocator_type& alloc)
+  btree_multimap(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
   using super_type::begin;
@@ -289,36 +299,43 @@ class btree_multiset
   using super_type::merge;
 };
 
-template <typename K, typename C, typename A, std::size_t N>
-void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y) {
+template <typename K, typename V, typename C, typename A, std::size_t N>
+void swap(btree_multimap<K, V, C, A, N>& x, btree_multimap<K, V, C, A, N>& y) {
   x.swap(y);
 }
 
 namespace pmr {
 
-template <typename Key, typename Compare = std::ranges::less, std::size_t MaxNumOfValues = 64>
-class btree_set : public internal::btree_unique_container<internal::btree<
-                      internal::btree_node<internal::btree_set_params<
+template <
+    typename Key,
+    typename Value,
+    typename Compare           = std::ranges::less,
+    std::size_t MaxNumOfValues = 64>
+class btree_map : public internal::btree_map_container<internal::btree<
+                      internal::btree_node<internal::btree_map_params<
                           Key,
+                          Value,
                           Compare,
                           pmr::polymorphic_allocator<>,
                           MaxNumOfValues>>,
-                      internal::btree_node_factory<internal::btree_set_params<
+                      internal::btree_node_factory<internal::btree_map_params<
                           Key,
+                          Value,
                           Compare,
                           pmr::polymorphic_allocator<>,
                           MaxNumOfValues>>>> {
-  using self_type   = btree_set<Key, Compare, MaxNumOfValues>;
+  using self_type   = btree_map<Key, Value, Compare, MaxNumOfValues>;
   using params_type = internal::
-      btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
+      btree_map_params<Key, Value, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
   using btree_type = internal::btree<
       internal::btree_node<params_type>,
       internal::btree_node_factory<params_type>>;
-  using super_type = internal::btree_unique_container<btree_type>;
+  using super_type = internal::btree_map_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
+  using mapped_type            = typename super_type::mapped_type;
   using key_compare            = typename super_type::key_compare;
   using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
@@ -341,42 +358,41 @@ class btree_set : public internal::btree_unique_container<internal::btree<
     return super_type::sizeof_internal_node();
   }
 
-  btree_set()                            = default;
-  btree_set(const self_type&)            = default;
-  btree_set(self_type&&)                 = default;
-  btree_set& operator=(const self_type&) = default;
-  btree_set& operator=(self_type&&)      = default;
-  ~btree_set()                           = default;
+  btree_map()                            = default;
+  btree_map(const self_type&)            = default;
+  btree_map(self_type&&)                 = default;
+  btree_map& operator=(const self_type&) = default;
+  btree_map& operator=(self_type&&)      = default;
+  ~btree_map()                           = default;
 
-  explicit btree_set(const key_compare& comp, const allocator_type& alloc = allocator_type())
+  explicit btree_map(const key_compare& comp, const allocator_type& alloc = allocator_type())
       : super_type(comp, alloc) {}
 
-  explicit btree_set(const allocator_type& alloc) : super_type(alloc) {}
+  explicit btree_map(const allocator_type& alloc) : super_type(alloc) {}
 
   // Range constructor.
   template <class InputIterator>
-  btree_set(
+  btree_map(
       InputIterator         b,
       InputIterator         e,
       const key_compare&    comp  = key_compare(),
       const allocator_type& alloc = allocator_type()
   )
       : super_type(b, e, comp, alloc) {}
-
   template <class InputIterator>
-  btree_set(InputIterator b, InputIterator e, const allocator_type& alloc)
+  btree_map(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_set(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_set(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  btree_map(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  btree_map(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
-  btree_set(
+  btree_map(
       std::initializer_list<value_type> init,
       const key_compare&                comp  = key_compare{},
       const allocator_type&             alloc = allocator_type{}
   )
       : self_type{init.begin(), init.end(), comp, alloc} {}
-  btree_set(std::initializer_list<value_type> init, const allocator_type& alloc)
+  btree_map(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
   using super_type::begin;
@@ -419,34 +435,45 @@ class btree_set : public internal::btree_unique_container<internal::btree<
   using super_type::insert;
 
   using super_type::merge;
+
+  using super_type::at;
+  using super_type::operator[];
 };
 
-template <typename K, typename C, std::size_t N>
-void swap(btree_set<K, C, N>& x, btree_set<K, C, N>& y) {
+template <typename K, typename V, typename C, std::size_t N>
+void swap(btree_map<K, V, C, N>& x, btree_map<K, V, C, N>& y) {
   x.swap(y);
 }
 
-template <typename Key, typename Compare = std::ranges::less, std::size_t MaxNumOfValues = 64>
-class btree_multiset : public internal::btree_multi_container<internal::btree<
-                           internal::btree_node<internal::btree_set_params<
+template <
+    typename Key,
+    typename Value,
+    typename Compare           = std::ranges::less,
+    std::size_t MaxNumOfValues = 64>
+class btree_multimap : public internal::btree_multi_container<internal::btree<
+                           internal::btree_node<internal::btree_map_params<
                                Key,
+                               Value,
                                Compare,
                                pmr::polymorphic_allocator<>,
                                MaxNumOfValues>>,
-                           internal::btree_node_factory<internal::btree_set_params<
+                           internal::btree_node_factory<internal::btree_map_params<
                                Key,
+                               Value,
                                Compare,
                                pmr::polymorphic_allocator<>,
                                MaxNumOfValues>>>> {
-  using self_type   = btree_multiset<Key, Compare, MaxNumOfValues>;
+  using self_type   = btree_multimap<Key, Value, Compare, MaxNumOfValues>;
   using params_type = internal::
-      btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
+      btree_map_params<Key, Value, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
   using btree_type = internal::btree<
       internal::btree_node<params_type>,
       internal::btree_node_factory<params_type>>;
   using super_type = internal::btree_multi_container<btree_type>;
 
  public:
+  using mapped_type = typename btree_type::mapped_type;
+
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
@@ -471,21 +498,21 @@ class btree_multiset : public internal::btree_multi_container<internal::btree<
     return super_type::sizeof_internal_node();
   }
 
-  btree_multiset()                            = default;
-  btree_multiset(const self_type&)            = default;
-  btree_multiset(self_type&&)                 = default;
-  btree_multiset& operator=(const self_type&) = default;
-  btree_multiset& operator=(self_type&&)      = default;
-  ~btree_multiset()                           = default;
+  btree_multimap()                            = default;
+  btree_multimap(const self_type&)            = default;
+  btree_multimap(self_type&&)                 = default;
+  btree_multimap& operator=(const self_type&) = default;
+  btree_multimap& operator=(self_type&&)      = default;
+  ~btree_multimap()                           = default;
 
-  explicit btree_multiset(const key_compare& comp, const allocator_type& alloc = allocator_type())
+  explicit btree_multimap(const key_compare& comp, const allocator_type& alloc = allocator_type())
       : super_type(comp, alloc) {}
 
-  explicit btree_multiset(const allocator_type& alloc) : super_type(alloc) {}
+  explicit btree_multimap(const allocator_type& alloc) : super_type(alloc) {}
 
   // Range constructor.
   template <class InputIterator>
-  btree_multiset(
+  btree_multimap(
       InputIterator         b,
       InputIterator         e,
       const key_compare&    comp  = key_compare(),
@@ -494,19 +521,19 @@ class btree_multiset : public internal::btree_multi_container<internal::btree<
       : super_type(b, e, comp, alloc) {}
 
   template <class InputIterator>
-  btree_multiset(InputIterator b, InputIterator e, const allocator_type& alloc)
+  btree_multimap(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_multiset(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_multiset(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  btree_multimap(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  btree_multimap(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
-  btree_multiset(
+  btree_multimap(
       std::initializer_list<value_type> init,
       const key_compare&                comp  = key_compare{},
       const allocator_type&             alloc = allocator_type{}
   )
       : self_type{init.begin(), init.end(), comp, alloc} {}
-  btree_multiset(std::initializer_list<value_type> init, const allocator_type& alloc)
+  btree_multimap(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
   using super_type::begin;
@@ -551,11 +578,11 @@ class btree_multiset : public internal::btree_multi_container<internal::btree<
   using super_type::merge;
 };
 
-template <typename K, typename C, std::size_t N>
-void swap(btree_multiset<K, C, N>& x, btree_multiset<K, C, N>& y) {
+template <typename K, typename V, typename C, std::size_t N>
+void swap(btree_multimap<K, V, C, N>& x, btree_multimap<K, V, C, N>& y) {
   x.swap(y);
 }
 }  // namespace pmr
 }  // namespace platanus
 
-#endif  // PLATANUS_BTREE_SET_H_
+#endif  // PLATANUS_BTREE_MAP_H_

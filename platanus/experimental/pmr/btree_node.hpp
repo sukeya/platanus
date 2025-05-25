@@ -38,10 +38,10 @@
 #include <memory_resource>
 #include <type_traits>
 
-#include "../../internal/btree_node_fwd.h"
-#include "../../internal/btree_util.h"
-#include "../../internal/btree_base_node.h"
-#include "../../pmr/polymorphic_allocator.h"
+#include "../../internal/btree_node_fwd.hpp"
+#include "../../internal/btree_util.hpp"
+#include "../../internal/btree_base_node.hpp"
+#include "../../pmr/polymorphic_allocator.hpp"
 
 namespace platanus {
 namespace experimental::pmr {
@@ -69,7 +69,7 @@ class btree_leaf_node : public internal::btree_base_node<Params, btree_leaf_node
   using size_type          = typename super_type::size_type;
   using difference_type    = typename super_type::difference_type;
 
-  using allocator_type = polymorphic_allocator<std::byte>;
+  using allocator_type = platanus::pmr::polymorphic_allocator<std::byte>;
 
   using search_result     = typename super_type::search_result;
   using count_type        = typename search_result::count_type;

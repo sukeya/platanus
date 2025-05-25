@@ -1,5 +1,5 @@
 # btree_multiset
-In `platanus/btree_set.h`,
+In `platanus/btree_set.hpp`,
 
 ```cpp
 namespace platanus {

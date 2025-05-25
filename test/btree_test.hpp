@@ -41,7 +41,7 @@
 
 #include "gtest/gtest.h"
 
-#include "util.h"
+#include "util.hpp"
 
 namespace platanus {
 

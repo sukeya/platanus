@@ -47,9 +47,9 @@
 #include <type_traits>
 #include <utility>
 
-#include "btree_iterator.h"
-#include "btree_param.h"
-#include "btree_util.h"
+#include "btree_iterator.hpp"
+#include "btree_param.hpp"
+#include "btree_util.hpp"
 
 namespace platanus::internal {
 template <class Node, class NodeFactory>

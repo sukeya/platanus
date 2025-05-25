@@ -34,7 +34,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "btree.h"
+#include "btree.hpp"
 
 namespace platanus::internal {
 

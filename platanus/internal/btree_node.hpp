@@ -34,9 +34,9 @@
 #include <cassert>
 #include <memory>
 
-#include "btree_node_fwd.h"
-#include "btree_base_node.h"
-#include "btree_util.h"
+#include "btree_node_fwd.hpp"
+#include "btree_base_node.hpp"
+#include "btree_util.hpp"
 
 namespace platanus::internal  {
 // A node in the btree holding. The same node type is used for both internal

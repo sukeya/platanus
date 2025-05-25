@@ -27,7 +27,7 @@
 # limitations under the License.
 
 function(add_btree_test target)
-  add_executable(${target} ${target}.cc)
+  add_executable(${target} ${target}.cpp)
   target_compile_options(
     ${target}
     PUBLIC

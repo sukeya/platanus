@@ -1,5 +1,5 @@
 # btree_multimap
-In `platanus/btree_map.h`,
+In `platanus/btree_map.hpp`,
 
 ```cpp
 namespace platanus {

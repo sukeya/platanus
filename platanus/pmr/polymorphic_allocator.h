@@ -15,6 +15,7 @@
 #ifndef PLATANUS_PMR_POLYMORPHIC_ALLOCATOR_H_
 #define PLATANUS_PMR_POLYMORPHIC_ALLOCATOR_H_
 
+#include <cassert>
 #include <cstddef>
 #include <limits>
 #include <memory>
@@ -31,10 +32,6 @@ class polymorphic_allocator {
   using value_type = Tp;
 
   polymorphic_allocator() noexcept : mem_res_ptr_(std::pmr::get_default_resource()) {}
-  polymorphic_allocator(memory_resource* mem_res_ptr) noexcept : mem_res_ptr_(mem_res_ptr) {
-    assert(mem_res_ptr);
-  }
-
   polymorphic_allocator(const polymorphic_allocator&) = default;
   polymorphic_allocator(polymorphic_allocator&&)      = default;
   // Allow move assignment
@@ -44,6 +41,15 @@ class polymorphic_allocator {
   ~polymorphic_allocator()                                  = default;
 
   polymorphic_allocator& operator=(const polymorphic_allocator&) = delete;
+
+  polymorphic_allocator(memory_resource* mem_res_ptr) : mem_res_ptr_(mem_res_ptr) {
+    assert(mem_res_ptr_);
+  }
+
+  template <class U>
+  polymorphic_allocator(std::pmr::polymorphic_allocator<U> poly_alloc) noexcept : mem_res_ptr_(poly_alloc.resource()) {
+    assert(mem_res_ptr_);
+  }
 
   template <class U>
   polymorphic_allocator(const polymorphic_allocator<U>& other) noexcept

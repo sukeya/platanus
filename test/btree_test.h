@@ -31,12 +31,9 @@
 
 #include <stdio.h>
 #include <algorithm>
-#include <functional>
 #include <type_traits>
 #include <iosfwd>
-#include <map>
 #include <memory>
-#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -44,7 +41,6 @@
 
 #include "gtest/gtest.h"
 
-#include "platanus/internal/btree_container.h"
 #include "util.h"
 
 namespace platanus {

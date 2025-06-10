@@ -20,7 +20,6 @@
 #include <limits>
 #include <memory>
 #include <memory_resource>
-#include <stdexcept>
 
 namespace platanus::pmr {
 

@@ -38,7 +38,7 @@
 #include <utility>
 #include <vector>
 
-#include "benchmark/benchmark.hpp"
+#include "benchmark/benchmark.h"
 
 #include "platanus/btree_map.hpp"
 #include "platanus/btree_set.hpp"

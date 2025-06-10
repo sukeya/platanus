@@ -29,7 +29,7 @@
 #ifndef PLATANUS_BTREE_TEST_H_
 #define PLATANUS_BTREE_TEST_H_
 
-#include <stdio.h>
+#include <cstdio>
 #include <algorithm>
 #include <type_traits>
 #include <iosfwd>

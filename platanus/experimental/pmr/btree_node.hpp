@@ -166,7 +166,7 @@ class btree_leaf_node : public internal::btree_base_node<Params, btree_leaf_node
   friend void split(
       internal::btree_node_borrower<btree_leaf_node<P>> left,
       internal::btree_node_owner<btree_leaf_node<P>>&&  right,
-      typename btree_leaf_node<P>::count_type          insert_position
+      typename btree_leaf_node<P>::count_type           insert_position
   );
 
   // Indicate whether this node is leaf or not.
@@ -363,17 +363,20 @@ class btree_internal_node : public btree_leaf_node<Params> {
   children_iterator begin_children() noexcept { return children_.begin(); }
 
   // Returns the pointer to the back of the children array.
-  children_iterator end_children(
-  ) noexcept(noexcept(std::next(std::declval<children_iterator>(), std::declval<int>()))) {
+  children_iterator end_children() noexcept(
+      noexcept(std::next(std::declval<children_iterator>(), std::declval<int>()))
+  ) {
     return std::next(begin_children(), count() + 1);
   }
 
-  children_reverse_iterator rbegin_children() noexcept(noexcept(std::reverse_iterator(end_children()
-  ))) {
+  children_reverse_iterator rbegin_children() noexcept(
+      noexcept(std::reverse_iterator(end_children()))
+  ) {
     return std::reverse_iterator(end_children());
   }
-  children_reverse_iterator rend_children() noexcept(noexcept(std::reverse_iterator(begin_children()
-  ))) {
+  children_reverse_iterator rend_children() noexcept(
+      noexcept(std::reverse_iterator(begin_children()))
+  ) {
     return std::reverse_iterator(begin_children());
   }
 
@@ -446,7 +449,7 @@ class btree_internal_node : public btree_leaf_node<Params> {
   friend void split(
       internal::btree_node_borrower<btree_leaf_node<P>> left,
       internal::btree_node_owner<btree_leaf_node<P>>&&  right,
-      typename btree_leaf_node<P>::count_type          insert_position
+      typename btree_leaf_node<P>::count_type           insert_position
   );
 
   // The array of child node. The keys in children_[i] are all less than
@@ -474,7 +477,8 @@ void merge(
 
   if (not left->is_leaf()) {
     assert(not right->is_leaf());
-    auto casted_left = static_cast<internal::btree_node_borrower<btree_internal_node<Params>>>(left);
+    auto casted_left =
+        static_cast<internal::btree_node_borrower<btree_internal_node<Params>>>(left);
     auto casted_right =
         static_cast<internal::btree_node_borrower<btree_internal_node<Params>>>(right);
     // Move the child pointers from the right to the left node.
@@ -493,9 +497,9 @@ void merge(
   // Shift children behind the removed child left.
   if (left->position() + 2 < left->borrow_parent()->children_count()) {
     assert(not left->borrow_parent()->is_leaf());
-    auto casted_parent =
-        static_cast<internal::btree_node_borrower<btree_internal_node<Params>>>(left->borrow_parent()
-        );
+    auto casted_parent = static_cast<internal::btree_node_borrower<btree_internal_node<Params>>>(
+        left->borrow_parent()
+    );
 
     casted_parent
         ->shift_children_left(left->position() + 2, left->borrow_parent()->children_count(), 1);
@@ -510,7 +514,7 @@ template <class Params>
 void split(
     internal::btree_node_borrower<btree_leaf_node<Params>> left,
     internal::btree_node_owner<btree_leaf_node<Params>>&&  right,
-    typename btree_leaf_node<Params>::count_type          insert_position
+    typename btree_leaf_node<Params>::count_type           insert_position
 ) {
   using internal_node = btree_internal_node<Params>;
   using count_type    = typename internal_node::count_type;
@@ -597,7 +601,8 @@ btree_node_borrower<experimental::pmr::btree_leaf_node<Params>> borrow_child(
   assert(n != nullptr);
   assert(not n->is_leaf());
 
-  auto in = static_cast<btree_node_readonly_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
+  auto in =
+      static_cast<btree_node_readonly_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
   return in->borrow_child(i);
 }
 
@@ -609,7 +614,8 @@ btree_node_readonly_borrower<experimental::pmr::btree_leaf_node<Params>> borrow_
   assert(n != nullptr);
   assert(not n->is_leaf());
 
-  auto in = static_cast<btree_node_readonly_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
+  auto in =
+      static_cast<btree_node_readonly_borrower<experimental::pmr::btree_internal_node<Params>>>(n);
   return in->borrow_readonly_child(i);
 }
 
@@ -716,8 +722,9 @@ class btree_node_factory {
   ~btree_node_factory()                                    = default;
 
   btree_node_factory(const btree_node_factory& x)
-      : alloc_(std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.alloc_
-        )) {}
+      : alloc_(
+            std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.alloc_)
+        ) {}
 
   explicit btree_node_factory(const allocator_type& alloc) : alloc_(alloc) {}
 

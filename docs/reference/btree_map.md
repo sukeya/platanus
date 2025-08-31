@@ -16,7 +16,7 @@ class btree_map;
 
 ## Template parameters
 
-| Parameter | Meaning | 
+| Parameter | Meaning |
 | --- | --- |
 | `Key` | Type of a key |
 | `Value` | Type of a value |

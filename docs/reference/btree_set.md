@@ -15,22 +15,22 @@ class btree_set;
 
 ## Template parameters
 
-| Parameter | Meaning | 
-| --- | --- | 
-| `Key` | Type of a key | 
-| `Compare` | Type of a func obj comparing two key in a weak order. If Key doesn't implement three-way comparison operator, the default type does using `<` and `=`. | 
-| `Alloc` | Type of an allocator. The default is `std::allocator<Key>`. | 
+| Parameter | Meaning |
+| --- | --- |
+| `Key` | Type of a key |
+| `Compare` | Type of a func obj comparing two key in a weak order. If Key doesn't implement three-way comparison operator, the default type does using `<` and `=`. |
+| `Alloc` | Type of an allocator. The default is `std::allocator<Key>`. |
 | `MaxNumOfValues` | The max number of values per node. The default is 64. |
 
 
 ## Member types
 
-| Type | Meaning | 
+| Type | Meaning |
 | --- | --- |
-| key_type | Type of key, i.e. `Key` | 
+| key_type | Type of key, i.e. `Key` |
 | value_type | Type of value, i.e. `Key` |
-| key_compare | Type of comparer of key, i.e. `Compare` | 
-| value_compare | Type of comparer of value, i.e. `Compare` | 
+| key_compare | Type of comparer of key, i.e. `Compare` |
+| value_compare | Type of comparer of value, i.e. `Compare` |
 | allocator_type | Type of allocator, i.e. `Alloc` |
 | pointer | Type of pointer to value, i.e. `Key*` |
 | const_pointer | Type of pointer to const value, i.e. `const Key*` |

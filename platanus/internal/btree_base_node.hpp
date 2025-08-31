@@ -66,7 +66,7 @@ class btree_node_search_result {
   bool       is_exact_match() const noexcept { return exact_match_ == 1; }
 
  private:
-  count_type index_ : bit_width{0};
+  count_type index_       : bit_width{0};
   count_type exact_match_ : 1 {0};
 };
 
@@ -169,13 +169,15 @@ class btree_base_node {
   }
 
   // Returns the position of the first value whose key is not less than k.
-  search_result lower_bound(const key_type& k, const key_compare& comp) const
-      noexcept(noexcept(binary_search_compare(k, 0, count(), comp))) {
+  search_result lower_bound(const key_type& k, const key_compare& comp) const noexcept(
+      noexcept(binary_search_compare(k, 0, count(), comp))
+  ) {
     return binary_search_compare(k, 0, count(), comp);
   }
   // Returns the position of the first value whose key is greater than k.
-  search_result upper_bound(const key_type& k, const key_compare& comp) const
-      noexcept(noexcept(binary_search_compare<false>(k, 0, count(), comp))) {
+  search_result upper_bound(const key_type& k, const key_compare& comp) const noexcept(
+      noexcept(binary_search_compare<false>(k, 0, count(), comp))
+  ) {
     return binary_search_compare<false>(k, 0, count(), comp);
   }
 
@@ -289,8 +291,9 @@ class btree_base_node {
   values_iterator begin_values() noexcept { return values_.begin(); }
 
   // Returns the pointer to the back of the values array.
-  values_iterator end_values(
-  ) noexcept(noexcept(std::next(std::declval<values_iterator>(), std::declval<count_type>()))) {
+  values_iterator end_values() noexcept(
+      noexcept(std::next(std::declval<values_iterator>(), std::declval<count_type>()))
+  ) {
     return std::next(begin_values(), count());
   }
 

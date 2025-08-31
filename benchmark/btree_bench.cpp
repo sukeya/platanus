@@ -65,7 +65,7 @@ struct StringComp {
 // Benchmark insertion of values into a container.
 template <typename T>
 static void BM_Insert(benchmark::State& state) {
-  using V          = std::remove_const_t<typename T::value_type>;
+  using V = std::remove_const_t<typename T::value_type>;
 
   std::vector<V> values = platanus::GenerateValues<V>(values_size);
 
@@ -113,7 +113,7 @@ static void BM_Delete(benchmark::State& state) {
   for (auto _ : state) {
     if (values.empty()) {
       state.PauseTiming();
-      values = platanus::GenerateValues<V>(values_size);
+      values    = platanus::GenerateValues<V>(values_size);
       container = T{values.begin(), values.end()};
       state.ResumeTiming();
     }
@@ -181,8 +181,7 @@ struct SetCompAndAllocToSet<BTreeContainer, std::string, N> {
 };
 
 template <
-    template <class, class, class, class, std::size_t>
-    class BTreeContainer,
+    template <class, class, class, class, std::size_t> class BTreeContainer,
     class T,
     std::size_t N>
 struct SetCompAndAllocToMap {
@@ -204,11 +203,7 @@ struct SetCompToPmrSet<BTreeContainer, std::string, N> {
   using type = BTreeContainer<std::string, StringComp, N>;
 };
 
-template <
-    template <class, class, class, std::size_t>
-    class BTreeContainer,
-    class T,
-    std::size_t N>
+template <template <class, class, class, std::size_t> class BTreeContainer, class T, std::size_t N>
 struct SetCompToPmrMap {
   using type = BTreeContainer<T, T, std::ranges::less, N>;
 };

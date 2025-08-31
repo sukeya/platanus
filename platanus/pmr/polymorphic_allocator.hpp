@@ -46,7 +46,8 @@ class polymorphic_allocator {
   }
 
   template <class U>
-  polymorphic_allocator(std::pmr::polymorphic_allocator<U> poly_alloc) noexcept : mem_res_ptr_(poly_alloc.resource()) {
+  polymorphic_allocator(std::pmr::polymorphic_allocator<U> poly_alloc) noexcept
+      : mem_res_ptr_(poly_alloc.resource()) {
     assert(mem_res_ptr_);
   }
 
@@ -80,7 +81,8 @@ class polymorphic_allocator {
   template <class T>
   [[nodiscard]] T* allocate_object(std::size_t n = 1) {
     constexpr std::size_t max = std::numeric_limits<std::size_t>::max();
-    return static_cast<T*>(allocate_bytes((max / sizeof(T) < n) ? max : (n * sizeof(T)), alignof(T))
+    return static_cast<T*>(
+        allocate_bytes((max / sizeof(T) < n) ? max : (n * sizeof(T)), alignof(T))
     );
   }
 

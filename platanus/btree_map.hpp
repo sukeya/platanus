@@ -50,16 +50,13 @@ template <
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<std::pair<const Key, Value>>,
     std::size_t MaxNumOfValues = 64>
-class btree_map : public internal::btree_map_container<internal::btree<
-                      internal::btree_node<
-                          internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
-                      internal::btree_node_factory<
-                          internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
+class btree_map
+    : public internal::btree_map_container<internal::btree<internal::btree_node_and_factory<
+          internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
   using self_type   = btree_map<Key, Value, Compare, Alloc, MaxNumOfValues>;
   using params_type = internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
-  using btree_type =
-      internal::btree<internal::btree_node<params_type>, internal::btree_node_factory<params_type>>;
-  using super_type = internal::btree_map_container<btree_type>;
+  using btree_type  = internal::btree<internal::btree_node_and_factory<params_type>>;
+  using super_type  = internal::btree_map_container<btree_type>;
 
  public:
   using key_type               = typename super_type::key_type;
@@ -79,13 +76,9 @@ class btree_map : public internal::btree_map_container<internal::btree<
   using reverse_iterator       = typename super_type::reverse_iterator;
   using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
-  static constexpr std::size_t sizeof_leaf_node() {
-    return super_type::sizeof_leaf_node();
-  }
+  static constexpr std::size_t sizeof_leaf_node() { return super_type::sizeof_leaf_node(); }
 
-  static constexpr std::size_t sizeof_internal_node() {
-    return super_type::sizeof_internal_node();
-  }
+  static constexpr std::size_t sizeof_internal_node() { return super_type::sizeof_internal_node(); }
 
   btree_map()                            = default;
   btree_map(const self_type&)            = default;
@@ -181,16 +174,12 @@ template <
     typename Alloc             = std::allocator<std::pair<const Key, Value>>,
     std::size_t MaxNumOfValues = 64>
 class btree_multimap
-    : public internal::btree_multi_container<internal::btree<
-          internal::btree_node<
-              internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>,
-          internal::btree_node_factory<
-              internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
+    : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
+          internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
   using self_type   = btree_multimap<Key, Value, Compare, Alloc, MaxNumOfValues>;
   using params_type = internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>;
-  using btree_type =
-      internal::btree<internal::btree_node<params_type>, internal::btree_node_factory<params_type>>;
-  using super_type = internal::btree_multi_container<btree_type>;
+  using btree_type  = internal::btree<internal::btree_node_and_factory<params_type>>;
+  using super_type  = internal::btree_multi_container<btree_type>;
 
  public:
   using mapped_type = typename btree_type::mapped_type;
@@ -211,13 +200,9 @@ class btree_multimap
   using reverse_iterator       = typename super_type::reverse_iterator;
   using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
-  static constexpr std::size_t sizeof_leaf_node() {
-    return super_type::sizeof_leaf_node();
-  }
+  static constexpr std::size_t sizeof_leaf_node() { return super_type::sizeof_leaf_node(); }
 
-  static constexpr std::size_t sizeof_internal_node() {
-    return super_type::sizeof_internal_node();
-  }
+  static constexpr std::size_t sizeof_internal_node() { return super_type::sizeof_internal_node(); }
 
   btree_multimap()                            = default;
   btree_multimap(const self_type&)            = default;
@@ -311,25 +296,19 @@ template <
     typename Value,
     typename Compare           = std::ranges::less,
     std::size_t MaxNumOfValues = 64>
-class btree_map : public internal::btree_map_container<internal::btree<
-                      internal::btree_node<internal::btree_map_params<
-                          Key,
-                          Value,
-                          Compare,
-                          pmr::polymorphic_allocator<>,
-                          MaxNumOfValues>>,
-                      internal::btree_node_factory<internal::btree_map_params<
+class btree_map : public internal::btree_map_container<
+                      internal::btree<internal::btree_node_and_factory<internal::btree_map_params<
                           Key,
                           Value,
                           Compare,
                           pmr::polymorphic_allocator<>,
                           MaxNumOfValues>>>> {
-  using self_type   = btree_map<Key, Value, Compare, MaxNumOfValues>;
-  using params_type = internal::
-      btree_map_params<Key, Value, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
-  using btree_type = internal::btree<
-      internal::btree_node<params_type>,
-      internal::btree_node_factory<params_type>>;
+  using self_type = btree_map<Key, Value, Compare, MaxNumOfValues>;
+  using params_type =
+      internal::btree_map_params<Key, Value, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
+  using btree_type = internal::btree<internal::btree_node_and_factory<
+      internal::
+          btree_map_params<Key, Value, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>>>;
   using super_type = internal::btree_map_container<btree_type>;
 
  public:
@@ -350,13 +329,9 @@ class btree_map : public internal::btree_map_container<internal::btree<
   using reverse_iterator       = typename super_type::reverse_iterator;
   using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
-  static constexpr std::size_t sizeof_leaf_node() {
-    return super_type::sizeof_leaf_node();
-  }
+  static constexpr std::size_t sizeof_leaf_node() { return super_type::sizeof_leaf_node(); }
 
-  static constexpr std::size_t sizeof_internal_node() {
-    return super_type::sizeof_internal_node();
-  }
+  static constexpr std::size_t sizeof_internal_node() { return super_type::sizeof_internal_node(); }
 
   btree_map()                            = default;
   btree_map(const self_type&)            = default;
@@ -450,25 +425,20 @@ template <
     typename Value,
     typename Compare           = std::ranges::less,
     std::size_t MaxNumOfValues = 64>
-class btree_multimap : public internal::btree_multi_container<internal::btree<
-                           internal::btree_node<internal::btree_map_params<
-                               Key,
-                               Value,
-                               Compare,
-                               pmr::polymorphic_allocator<>,
-                               MaxNumOfValues>>,
-                           internal::btree_node_factory<internal::btree_map_params<
-                               Key,
-                               Value,
-                               Compare,
-                               pmr::polymorphic_allocator<>,
-                               MaxNumOfValues>>>> {
-  using self_type   = btree_multimap<Key, Value, Compare, MaxNumOfValues>;
-  using params_type = internal::
-      btree_map_params<Key, Value, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
-  using btree_type = internal::btree<
-      internal::btree_node<params_type>,
-      internal::btree_node_factory<params_type>>;
+class btree_multimap
+    : public internal::btree_multi_container<
+          internal::btree<internal::btree_node_and_factory<internal::btree_map_params<
+              Key,
+              Value,
+              Compare,
+              pmr::polymorphic_allocator<>,
+              MaxNumOfValues>>>> {
+  using self_type = btree_multimap<Key, Value, Compare, MaxNumOfValues>;
+  using params_type =
+      internal::btree_map_params<Key, Value, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
+  using btree_type = internal::btree<internal::btree_node_and_factory<
+      internal::
+          btree_map_params<Key, Value, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>>>;
   using super_type = internal::btree_multi_container<btree_type>;
 
  public:
@@ -490,13 +460,9 @@ class btree_multimap : public internal::btree_multi_container<internal::btree<
   using reverse_iterator       = typename super_type::reverse_iterator;
   using const_reverse_iterator = typename super_type::const_reverse_iterator;
 
-  static constexpr std::size_t sizeof_leaf_node() {
-    return super_type::sizeof_leaf_node();
-  }
+  static constexpr std::size_t sizeof_leaf_node() { return super_type::sizeof_leaf_node(); }
 
-  static constexpr std::size_t sizeof_internal_node() {
-    return super_type::sizeof_internal_node();
-  }
+  static constexpr std::size_t sizeof_internal_node() { return super_type::sizeof_internal_node(); }
 
   btree_multimap()                            = default;
   btree_multimap(const self_type&)            = default;

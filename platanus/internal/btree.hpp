@@ -52,12 +52,13 @@
 #include "btree_util.hpp"
 
 namespace platanus::internal {
-template <class Node, class NodeFactory>
+
+template <class NodeAndFactory>
 class btree {
-  using node_type    = Node;
-  using params_type  = typename Node::params_type;
-  using node_factory = NodeFactory;
-  using self_type    = btree<node_type, node_factory>;
+  using node_type    = typename NodeAndFactory::node_type;
+  using params_type  = typename node_type::params_type;
+  using node_factory = typename NodeAndFactory::node_factory;
+  using self_type    = btree<NodeAndFactory>;
 
   static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
   static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
@@ -100,13 +101,9 @@ class btree {
 
   using allocator_type = typename node_type::allocator_type;
 
-  static constexpr std::size_t sizeof_leaf_node() {
-    return sizeof_leaf_node_v<node_type>;
-  }
+  static constexpr std::size_t sizeof_leaf_node() { return sizeof_leaf_node_v<node_type>; }
 
-  static constexpr std::size_t sizeof_internal_node() {
-    return sizeof_internal_node_v<node_type>;
-  }
+  static constexpr std::size_t sizeof_internal_node() { return sizeof_internal_node_v<node_type>; }
 
   btree()                   = default;
   btree(btree&&)            = default;

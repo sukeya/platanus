@@ -38,7 +38,7 @@
 #include "btree_base_node.hpp"
 #include "btree_util.hpp"
 
-namespace platanus::internal  {
+namespace platanus::internal {
 // A node in the btree holding. The same node type is used for both internal
 // and leaf nodes in the btree, though the nodes are allocated in such a way
 // that the children array is only valid in internal nodes.
@@ -262,17 +262,20 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   children_iterator begin_children() noexcept { return children_ptr_.get(); }
 
   // Returns the pointer to the back of the children array.
-  children_iterator end_children(
-  ) noexcept(noexcept(std::next(std::declval<children_iterator>(), std::declval<int>()))) {
+  children_iterator end_children() noexcept(
+      noexcept(std::next(std::declval<children_iterator>(), std::declval<int>()))
+  ) {
     return std::next(begin_children(), count() + 1);
   }
 
-  children_reverse_iterator rbegin_children() noexcept(noexcept(std::reverse_iterator(end_children()
-  ))) {
+  children_reverse_iterator rbegin_children() noexcept(
+      noexcept(std::reverse_iterator(end_children()))
+  ) {
     return std::reverse_iterator(end_children());
   }
-  children_reverse_iterator rend_children() noexcept(noexcept(std::reverse_iterator(begin_children()
-  ))) {
+  children_reverse_iterator rend_children() noexcept(
+      noexcept(std::reverse_iterator(begin_children()))
+  ) {
     return std::reverse_iterator(begin_children());
   }
 
@@ -448,9 +451,9 @@ struct sizeof_leaf_node<btree_node<Params>> {
 
 template <class Params>
 struct sizeof_internal_node<btree_node<Params>> {
-  static constexpr std::size_t value = sizeof(btree_node<Params>)
-                                       + sizeof(btree_node_owner<btree_node<Params>>)
-                                             * btree_node<Params>::kNodeChildren;
+  static constexpr std::size_t value =
+      sizeof(btree_node<Params>)
+      + sizeof(btree_node_owner<btree_node<Params>>) * btree_node<Params>::kNodeChildren;
 };
 
 template <class Params>
@@ -461,8 +464,7 @@ bool is_leaf(btree_node_readonly_borrower<btree_node<Params>> n) noexcept {
 
 template <class Params>
 btree_node_borrower<btree_node<Params>> borrow_child(
-    btree_node_readonly_borrower<btree_node<Params>> n,
-    typename btree_node<Params>::count_type          i
+    btree_node_readonly_borrower<btree_node<Params>> n, typename btree_node<Params>::count_type i
 ) noexcept {
   assert(n != nullptr);
   return n->borrow_child(i);
@@ -470,8 +472,7 @@ btree_node_borrower<btree_node<Params>> borrow_child(
 
 template <class Params>
 btree_node_readonly_borrower<btree_node<Params>> borrow_readonly_child(
-    btree_node_readonly_borrower<btree_node<Params>> n,
-    typename btree_node<Params>::count_type          i
+    btree_node_readonly_borrower<btree_node<Params>> n, typename btree_node<Params>::count_type i
 ) noexcept {
   assert(n != nullptr);
   return n->borrow_readonly_child(i);
@@ -479,8 +480,7 @@ btree_node_readonly_borrower<btree_node<Params>> borrow_readonly_child(
 
 template <class Params>
 btree_node_owner<btree_node<Params>> extract_child(
-    btree_node_borrower<btree_node<Params>> n,
-    typename btree_node<Params>::count_type i
+    btree_node_borrower<btree_node<Params>> n, typename btree_node<Params>::count_type i
 ) noexcept {
   assert(n != nullptr);
   return n->extract_child(i);
@@ -528,8 +528,7 @@ void split(
 
 template <class Params>
 void merge(
-    btree_node_borrower<btree_node<Params>> n,
-    btree_node_borrower<btree_node<Params>> sibling
+    btree_node_borrower<btree_node<Params>> n, btree_node_borrower<btree_node<Params>> sibling
 ) {
   assert(n != nullptr);
   n->merge(sibling);
@@ -538,8 +537,7 @@ void merge(
 
 namespace std {
 template <class Params, class Alloc>
-struct uses_allocator<platanus::internal::btree_node<Params>, Alloc>
-    : public std::false_type {};
+struct uses_allocator<platanus::internal::btree_node<Params>, Alloc> : public std::false_type {};
 }  // namespace std
 
 namespace platanus::internal {
@@ -572,9 +570,7 @@ class btree_node_factory {
   explicit btree_node_factory(const allocator_type& alloc)
       : node_alloc_(alloc), children_alloc_(alloc) {}
 
-  btree_node_owner<node_type> make_node(
-      bool is_leaf, btree_node_borrower<node_type> parent
-  ) {
+  btree_node_owner<node_type> make_node(bool is_leaf, btree_node_borrower<node_type> parent) {
     return node_type::make_node(is_leaf, parent, node_alloc_, children_alloc_);
   }
 
@@ -585,6 +581,12 @@ class btree_node_factory {
  private:
   node_allocator_type     node_alloc_;
   children_allocator_type children_alloc_;
+};
+
+template <class Params>
+struct btree_node_and_factory {
+  using node_type    = btree_node<Params>;
+  using node_factory = btree_node_factory<Params>;
 };
 }  // namespace platanus::internal
 

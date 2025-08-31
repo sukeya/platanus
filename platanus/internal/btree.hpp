@@ -737,9 +737,9 @@ class btree {
 
 ////
 // btree methods
-template <class N, class F>
+template <class NF>
 template <class T>
-std::pair<typename btree<N, F>::iterator, bool> btree<N, F>::internal_insert_unique(T&& value) {
+std::pair<typename btree<NF>::iterator, bool> btree<NF>::internal_insert_unique(T&& value) {
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
@@ -757,9 +757,9 @@ std::pair<typename btree<N, F>::iterator, bool> btree<N, F>::internal_insert_uni
   return std::make_pair(internal_insert(iter, std::forward<T>(value)), true);
 }
 
-template <class N, class F>
+template <class NF>
 template <typename T>
-typename btree<N, F>::iterator btree<N, F>::internal_insert_unique(iterator hint, T&& v) {
+typename btree<NF>::iterator btree<NF>::internal_insert_unique(iterator hint, T&& v) {
   if (!empty()) {
     const key_type& key = params_type::key(v);
     if (hint == end() || compare_keys(key, hint.key())) {
@@ -783,9 +783,9 @@ typename btree<N, F>::iterator btree<N, F>::internal_insert_unique(iterator hint
   return insert_unique(std::forward<T>(v)).first;
 }
 
-template <class N, class F>
+template <class NF>
 template <typename T>
-typename btree<N, F>::iterator btree<N, F>::internal_insert_multi(T&& value) {
+typename btree<NF>::iterator btree<NF>::internal_insert_multi(T&& value) {
   if (empty()) {
     set_root(make_leaf_root_node());
     set_rightmost(borrow_root());
@@ -795,9 +795,9 @@ typename btree<N, F>::iterator btree<N, F>::internal_insert_multi(T&& value) {
   return internal_insert(upper_bound(params_type::key(value)), std::forward<T>(value));
 }
 
-template <class N, class F>
+template <class NF>
 template <typename T>
-typename btree<N, F>::iterator btree<N, F>::internal_insert_multi(iterator hint, T&& v) {
+typename btree<NF>::iterator btree<NF>::internal_insert_multi(iterator hint, T&& v) {
   if (!empty()) {
     const key_type& key = params_type::key(v);
     if (hint == end() || !compare_keys(hint.key(), key)) {
@@ -818,8 +818,8 @@ typename btree<N, F>::iterator btree<N, F>::internal_insert_multi(iterator hint,
   return insert_multi(std::forward<T>(v));
 }
 
-template <class N, class F>
-void btree<N, F>::copy(const self_type& x) {
+template <class NF>
+void btree<NF>::copy(const self_type& x) {
   clear();
 
   // Assignment can avoid key comparisons because we know the order of the
@@ -837,8 +837,8 @@ void btree<N, F>::copy(const self_type& x) {
   }
 }
 
-template <class N, class F>
-typename btree<N, F>::iterator btree<N, F>::erase(iterator iter) {
+template <class NF>
+typename btree<NF>::iterator btree<NF>::erase(iterator iter) {
   bool internal_delete = false;
   if (not is_leaf(iter.node)) {
     // Deletion of a value on an internal node. Swap the key with the largest
@@ -897,8 +897,8 @@ typename btree<N, F>::iterator btree<N, F>::erase(iterator iter) {
   return res;
 }
 
-template <class N, class F>
-typename btree<N, F>::size_type btree<N, F>::erase(iterator begin, iterator end) {
+template <class NF>
+typename btree<NF>::size_type btree<NF>::erase(iterator begin, iterator end) {
   size_type count = std::distance(begin, end);
   for (size_type i = 0; i < count; i++) {
     begin = erase(begin);
@@ -906,8 +906,8 @@ typename btree<N, F>::size_type btree<N, F>::erase(iterator begin, iterator end)
   return count;
 }
 
-template <class N, class F>
-typename btree<N, F>::size_type btree<N, F>::erase_unique(const key_type& key) {
+template <class NF>
+typename btree<NF>::size_type btree<NF>::erase_unique(const key_type& key) {
   iterator iter = internal_find_unique(key, iterator(borrow_root(), 0));
   if (!iter.node) {
     // The key doesn't exist in the tree, return nothing done.
@@ -917,8 +917,8 @@ typename btree<N, F>::size_type btree<N, F>::erase_unique(const key_type& key) {
   return 1;
 }
 
-template <class N, class F>
-typename btree<N, F>::size_type btree<N, F>::erase_multi(const key_type& key) {
+template <class NF>
+typename btree<NF>::size_type btree<NF>::erase_multi(const key_type& key) {
   iterator begin = lower_bound_multi(key);
   if (begin == end()) {
     // The key doesn't exist in the tree, return nothing done.
@@ -928,8 +928,8 @@ typename btree<N, F>::size_type btree<N, F>::erase_multi(const key_type& key) {
   return erase(begin, upper_bound(key));
 }
 
-template <class N, class F>
-void btree<N, F>::swap(self_type& x) {
+template <class NF>
+void btree<NF>::swap(self_type& x) {
   btree_swap_helper(comp_, x.comp_);
   btree_swap_helper(root_, x.root_);
   btree_swap_helper(node_factory_, x.node_factory_);
@@ -938,8 +938,8 @@ void btree<N, F>::swap(self_type& x) {
   btree_swap_helper(size_, x.size_);
 }
 
-template <class N, class F>
-void btree<N, F>::verify() const {
+template <class NF>
+void btree<NF>::verify() const {
   if (borrow_readonly_root() != nullptr) {
     assert(
         size()
@@ -959,8 +959,8 @@ void btree<N, F>::verify() const {
   }
 }
 
-template <class N, class F>
-void btree<N, F>::rebalance_or_split(iterator& iter) {
+template <class NF>
+void btree<NF>::rebalance_or_split(iterator& iter) {
   node_borrower& node            = iter.node;
   auto&          insert_position = iter.position;
   assert(values_count(node) == max_values_count(node));
@@ -1056,8 +1056,8 @@ void btree<N, F>::rebalance_or_split(iterator& iter) {
   }
 }
 
-template <class N, class F>
-void btree<N, F>::merge_nodes(node_borrower left, node_borrower right) {
+template <class NF>
+void btree<NF>::merge_nodes(node_borrower left, node_borrower right) {
   if (borrow_readonly_rightmost() == right) {
     assert(is_leaf(right));
     set_rightmost(left);
@@ -1065,8 +1065,8 @@ void btree<N, F>::merge_nodes(node_borrower left, node_borrower right) {
   internal::merge(left, right);
 }
 
-template <class N, class F>
-bool btree<N, F>::try_merge_or_rebalance(iterator& iter) {
+template <class NF>
+bool btree<NF>::try_merge_or_rebalance(iterator& iter) {
   assert(iter.node != borrow_readonly_root());
   assert(count(iter.node) < kMinNodeValues);
 
@@ -1117,8 +1117,8 @@ bool btree<N, F>::try_merge_or_rebalance(iterator& iter) {
   return false;
 }
 
-template <class N, class F>
-void btree<N, F>::try_shrink() {
+template <class NF>
+void btree<NF>::try_shrink() {
   if (count(borrow_readonly_root()) > 0) {
     return;
   }
@@ -1137,9 +1137,9 @@ void btree<N, F>::try_shrink() {
   }
 }
 
-template <class N, class F>
+template <class NF>
 template <typename IterType>
-IterType btree<N, F>::internal_last(IterType iter) {
+IterType btree<NF>::internal_last(IterType iter) {
   while (iter.node && iter.position == count(iter.node)) {
     iter.position = position(iter.node);
     iter.node     = borrow_parent(iter.node);
@@ -1147,9 +1147,9 @@ IterType btree<N, F>::internal_last(IterType iter) {
   return iter;
 }
 
-template <class N, class F>
+template <class NF>
 template <typename T>
-typename btree<N, F>::iterator btree<N, F>::internal_insert(iterator iter, T&& v) {
+typename btree<NF>::iterator btree<NF>::internal_insert(iterator iter, T&& v) {
   if (!is_leaf(iter.node)) {
     // We can't insert on an internal node. Instead, we'll insert after the
     // previous value which is guaranteed to be on a leaf node.
@@ -1165,9 +1165,9 @@ typename btree<N, F>::iterator btree<N, F>::internal_insert(iterator iter, T&& v
   return iter;
 }
 
-template <class N, class F>
+template <class NF>
 template <typename IterType>
-std::pair<IterType, bool> btree<N, F>::internal_locate(const key_type& key, IterType iter) const {
+std::pair<IterType, bool> btree<NF>::internal_locate(const key_type& key, IterType iter) const {
   for (;;) {
     node_search_result res = lower_bound(iter.node, key, ref_key_comp());
     iter.position          = res.index();
@@ -1182,9 +1182,9 @@ std::pair<IterType, bool> btree<N, F>::internal_locate(const key_type& key, Iter
   return std::make_pair(iter, false);
 }
 
-template <class N, class F>
+template <class NF>
 template <typename IterType>
-IterType btree<N, F>::internal_find_unique(const key_type& key, IterType iter) const {
+IterType btree<NF>::internal_find_unique(const key_type& key, IterType iter) const {
   if (iter.node) {
     std::pair<IterType, bool> res = internal_locate(key, iter);
     if (res.second) {
@@ -1194,8 +1194,8 @@ IterType btree<N, F>::internal_find_unique(const key_type& key, IterType iter) c
   return IterType(nullptr, 0);
 }
 
-template <class N, class F>
-void btree<N, F>::internal_dump(std::ostream& os, node_readonly_borrower node, int level) const {
+template <class NF>
+void btree<NF>::internal_dump(std::ostream& os, node_readonly_borrower node, int level) const {
   for (int i = 0; i < count(node); ++i) {
     if (!is_leaf(node)) {
       internal_dump(os, borrow_readonly_child(node, i), level + 1);
@@ -1210,8 +1210,8 @@ void btree<N, F>::internal_dump(std::ostream& os, node_readonly_borrower node, i
   }
 }
 
-template <class N, class F>
-int btree<N, F>::internal_verify(
+template <class NF>
+int btree<NF>::internal_verify(
     node_readonly_borrower node, const key_type* lo, const key_type* hi
 ) const {
   assert(count(node) > 0);

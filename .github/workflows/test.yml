@@ -23,6 +23,7 @@ jobs:
         run: |
           ./vcpkg/bootstrap-vcpkg.sh
           cmake --preset CI_test
+          cd ./build/debug && ninja
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       - name: Run tests

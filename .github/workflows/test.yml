@@ -1,0 +1,28 @@
+name: Test
+run-name: Test
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+
+jobs:
+  unit_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up vcpkg
+        run: |
+          git clone --depth 1 -b 2025.08.27 https://github.com/microsoft/vcpkg.git vcpkg
+      - name: Install build tools
+        run: |
+          sudo apt update
+          sudo apt install -y ninja-build build-essential cmake
+          echo "$(pwd)/vcpkg" >> $GITHUB_PATH
+      - name: Build tests
+        run: |
+          ./vcpkg/bootstrap-vcpkg.sh
+          cmake --preset CI_test
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      - name: Run tests
+        run: ./build/debug/test/btree_test

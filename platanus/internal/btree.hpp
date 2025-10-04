@@ -110,32 +110,10 @@ class btree {
   btree& operator=(btree&&) = default;
   ~btree()                  = default;
 
-  btree(const btree& x)
-      : comp_(x.comp_),
-        node_factory_(x.node_factory_),
-        root_(),
-        rightmost_(x.rightmost_),
-        leftmost_(x.leftmost_),
-        size_(x.size_) {
-    copy(x);
-  }
+  btree(const btree& x);
+  btree& operator=(const btree& x);
 
-  btree& operator=(const btree& x) {
-    if (&x == this) {
-      // Don't copy onto ourselves.
-      return *this;
-    }
-    copy(x);
-    return *this;
-  }
-
-  explicit btree(const key_compare& comp, const allocator_type& alloc)
-      : comp_(comp),
-        node_factory_(alloc),
-        root_(),
-        rightmost_(nullptr),
-        leftmost_(nullptr),
-        size_(0) {}
+  explicit btree(const key_compare& comp, const allocator_type& alloc);
 
   explicit btree(const btree& x, const allocator_type& alloc) : btree(key_compare{}, alloc) {
     copy(x);
@@ -735,8 +713,38 @@ class btree {
   size_type size_{0};
 };
 
-////
-// btree methods
+/////////////////////////////////////////////////////////////////////////
+// btree implementation
+template <class NF>
+btree<NF>::btree(const btree& x)
+    : comp_(x.comp_),
+      node_factory_(x.node_factory_),
+      root_(),
+      rightmost_(x.rightmost_),
+      leftmost_(x.leftmost_),
+      size_(x.size_) {
+  copy(x);
+}
+
+template <class NF>
+btree<NF>& btree<NF>::operator=(const btree& x) {
+  if (&x == this) {
+    // Don't copy onto ourselves.
+    return *this;
+  }
+  copy(x);
+  return *this;
+}
+
+template <class NF>
+btree<NF>::btree(const key_compare& comp, const allocator_type& alloc)
+    : comp_(comp),
+      node_factory_(alloc),
+      root_(),
+      rightmost_(nullptr),
+      leftmost_(nullptr),
+      size_(0) {}
+
 template <class NF>
 template <class T>
 std::pair<typename btree<NF>::iterator, bool> btree<NF>::internal_insert_unique(T&& value) {

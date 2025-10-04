@@ -127,22 +127,14 @@ class btree {
 
   // Iterator routines.
   iterator begin() noexcept {
-    if (borrow_leftmost()) {
-      return iterator(borrow_leftmost(), 0);
-    } else {
-      return iterator();
-    }
+    return borrow_leftmost() ? iterator(borrow_leftmost(), 0) : iterator();
   }
   const_iterator begin() const noexcept { return cbegin(); }
   const_iterator cbegin() const noexcept {
     return static_cast<const_iterator>(const_cast<self_type*>(this)->begin());
   }
   iterator end() noexcept {
-    if (borrow_rightmost()) {
-      return iterator(borrow_rightmost(), values_count(borrow_readonly_rightmost()));
-    } else {
-      return iterator();
-    }
+    return borrow_rightmost() ? iterator(borrow_rightmost(), values_count(borrow_readonly_rightmost())) : iterator();
   }
   const_iterator end() const noexcept { return cend(); }
   const_iterator cend() const noexcept {

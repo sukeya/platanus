@@ -305,14 +305,7 @@ class btree {
 
   key_compare key_comp() const noexcept { return comp_; }
 
-  bool compare_keys(const key_type& x, const key_type& y) const {
-    const auto& comp = ref_key_comp();
-    if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
-      return comp(x, y) < 0;
-    } else {
-      return comp(x, y);
-    }
-  }
+  bool compare_keys(const key_type& x, const key_type& y) const;
 
   // Dump the btree to the specified ostream. Requires that operator<< is
   // defined for Key and Value.
@@ -328,6 +321,7 @@ class btree {
   // Size routines.
   size_type size() const noexcept { return size_; }
   size_type max_size() const noexcept { return std::numeric_limits<size_type>::max(); }
+
   bool      empty() const noexcept {
     assert((size() == 0) == (borrow_readonly_root() == nullptr));
     return size() == 0;
@@ -914,6 +908,16 @@ void btree<NF>::swap(self_type& x) {
   btree_swap_helper(rightmost_, x.rightmost_);
   btree_swap_helper(leftmost_, x.leftmost_);
   btree_swap_helper(size_, x.size_);
+}
+
+template <class NF>
+bool btree<NF>::compare_keys(const key_type& x, const key_type& y) const {
+  const auto& comp = ref_key_comp();
+  if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
+    return comp(x, y) < 0;
+  } else {
+    return comp(x, y);
+  }
 }
 
 template <class NF>

@@ -298,12 +298,7 @@ class btree {
   }
 
   // Clear the btree, deleting all of the values it contains.
-  void clear() {
-    root_      = nullptr;
-    rightmost_ = nullptr;
-    leftmost_  = nullptr;
-    size_      = 0;
-  }
+  void clear(); 
 
   // Swap the contents of *this and x.
   void swap(self_type& x);
@@ -901,6 +896,14 @@ typename btree<NF>::size_type btree<NF>::erase_multi(const key_type& key) {
   }
   // Delete all of the keys between begin and upper_bound(key).
   return erase(begin, upper_bound(key));
+}
+
+template <class NF>
+void btree<NF>::clear() {
+  root_      = nullptr;
+  rightmost_ = nullptr;
+  leftmost_  = nullptr;
+  size_      = 0;
 }
 
 template <class NF>

@@ -362,10 +362,7 @@ class btree {
   // total number of bytes used by the btree minus the number of bytes used for
   // storing elements divided by the number of elements.
   double overhead() const noexcept {
-    if (empty()) {
-      return 0.0;
-    }
-    return (bytes_used() - size() * sizeof(mapped_type)) / double(size());
+    return empty() ? 0 : (bytes_used() - size() * sizeof(mapped_type)) / double(size());
   }
 
   // Merges an B-tree. The given B-tree will have the intersection of two B-trees.

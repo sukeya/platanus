@@ -52,19 +52,7 @@
 #include "btree_util.hpp"
 
 namespace platanus::internal {
-
-template <class NodeAndFactory>
-class btree {
-  using node_type    = typename NodeAndFactory::node_type;
-  using params_type  = typename node_type::params_type;
-  using node_factory = typename NodeAndFactory::node_factory;
-  using self_type    = btree<NodeAndFactory>;
-
-  static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
-  static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
-  static constexpr std::size_t kMinNodeValues = kNodeValues / 2;
-
-  struct node_stats {
+struct node_stats final {
     node_stats(std::size_t l, std::size_t i) : leaf_nodes(l), internal_nodes(i) {}
 
     node_stats& operator+=(const node_stats& x) {
@@ -76,6 +64,18 @@ class btree {
     std::size_t leaf_nodes;
     std::size_t internal_nodes;
   };
+
+template <class NodeAndFactory>
+class btree {
+ private:
+  using node_type    = typename NodeAndFactory::node_type;
+  using params_type  = typename node_type::params_type;
+  using node_factory = typename NodeAndFactory::node_factory;
+  using self_type    = btree<NodeAndFactory>;
+
+  static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
+  static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
+  static constexpr std::size_t kMinNodeValues = kNodeValues / 2;
 
   using node_owner             = btree_node_owner<node_type>;
   using node_borrower          = btree_node_borrower<node_type>;

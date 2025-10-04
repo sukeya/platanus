@@ -30,7 +30,7 @@ cmake_minimum_required(VERSION 3.27.7)
 
 project(platanus VERSION 1.1.0 LANGUAGES CXX)
 
-option(build_tests "Build B-tree tests" OFF)
+option(PLATANUS_BUILD_TESTS "Build B-tree tests" OFF)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -93,7 +93,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
 set(msvc_cxx "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
 
-if(BUILD_TESTS)
+if(PLATANUS_BUILD_TESTS)
   enable_testing()
 
   find_package(GTest REQUIRED)
@@ -102,7 +102,7 @@ if(BUILD_TESTS)
   add_subdirectory(test)
 endif()
 
-if(BUILD_BENCHMARK)
+if(PLATANUS_BUILD_BENCHMARK)
   find_package(benchmark REQUIRED)
 
   add_subdirectory(util)

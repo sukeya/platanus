@@ -64,7 +64,7 @@ If you want to test, download and install the following libraries.
 
 Then, run the following commands in the top directory of `platanus`.
 ```
-cmake -S . -B build/debug -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build/debug -DPLATANUS_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
 cd build/debug/test
 ./btree_test
 ```
@@ -73,7 +73,7 @@ cd build/debug/test
 If you want to check how much `platanus` is faster than STL, run the following commands.
 
 ```
-cmake -S . -B build/release -DBUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release
 cd build/release/benchmark
 ./btree_bench
 ```

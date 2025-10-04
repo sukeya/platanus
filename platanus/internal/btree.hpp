@@ -366,151 +366,10 @@ class btree {
   }
 
   // Merges an B-tree. The given B-tree will have the intersection of two B-trees.
-  void merge_unique(self_type& rhd) {
-    if (empty()) {
-      swap(rhd);
-      return;
-    }
-    if (rhd.empty()) {
-      return;
-    }
+  void merge_unique(self_type& rhd);
 
-    auto lhd_min = params_type::key(*(begin()));
-    auto lhd_max = params_type::key(*(rbegin()));
-    auto rhd_min = params_type::key(*(rhd.begin()));
-    auto rhd_max = params_type::key(*(rhd.rbegin()));
-
-    const auto& comp = ref_key_comp();
-
-    {
-      bool is_greater = false;
-      if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
-        is_greater = (comp(lhd_min, rhd_min) < 0);
-      } else {
-        is_greater = comp(lhd_min, rhd_min);
-      }
-      // If lhd_min >= rhd_min,
-      if (not is_greater) {
-        swap(rhd);
-      }
-    }
-
-    // If the value range of rhd is included in that of *this,
-    {
-      bool is_greater = false;
-      if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
-        is_greater = (comp(lhd_max, rhd_max) < 0);
-      } else {
-        is_greater = comp(lhd_max, rhd_max);
-      }
-      // rhd_max <= lhd_max
-      if (not is_greater) {
-        // Store the keys removed from rhd temporarily.
-        std::vector<std::size_t> removed_indexes;
-
-        // Insert the intersection to *this.
-        for (std::size_t i = 0; auto& v : rhd) {
-          auto [_, is_inserted] = insert_unique(std::move(v));
-          if (is_inserted) {
-            removed_indexes.push_back(i);
-          }
-          ++i;
-        }
-
-        // Remove the keys inserted to *this.
-        for (auto i : removed_indexes | std::views::reverse) {
-          iterator hint;
-          if (i < rhd.size() / 2) {
-            hint = std::next(rhd.begin(), i);
-          } else {
-            hint = std::prev(rhd.end(), rhd.size() - i);
-          }
-          rhd.erase(hint);
-        }
-
-        return;
-      }
-    }
-
-    // Store the keys removed from rhd temporarily.
-    std::vector<std::size_t> removed_indexes;
-
-    auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-
-    // Insert the intersection to *this.
-    {
-      for (std::size_t i = 0; auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
-        auto [_, is_inserted] = insert_unique(std::move(v));
-        if (is_inserted) {
-          removed_indexes.push_back(i);
-        }
-        ++i;
-      }
-      // Insert the extra of rhd.
-      for (auto& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
-        insert_unique(end(), std::move(v));
-      }
-    }
-
-    // Remove the extra of rhd.
-    // Using `erase`, the former iterators are made to be invalidated.
-    // So, I use classical for loop.
-    auto num_value_out_of_left = std::distance(rhd_intersection_end, rhd.end());
-    for (std::ptrdiff_t i = 0; i < num_value_out_of_left; ++i) {
-      rhd.erase(std::prev(rhd.end()));
-    }
-    // Remove the keys inserted to *this.
-    for (auto i : removed_indexes | std::views::reverse) {
-      iterator hint;
-      if (i < rhd.size() / 2) {
-        hint = std::next(rhd.begin(), i);
-      } else {
-        hint = std::prev(rhd.end(), rhd.size() - i);
-      }
-      rhd.erase(hint);
-    }
-  }
-
-  void merge_multi(self_type& rhd) {
-    if (empty()) {
-      swap(rhd);
-      return;
-    }
-    if (rhd.empty()) {
-      return;
-    }
-
-    auto lhd_min = params_type::key(*(begin()));
-    auto lhd_max = params_type::key(*(rbegin()));
-    auto rhd_min = params_type::key(*(rhd.begin()));
-
-    const auto& comp = ref_key_comp();
-
-    {
-      bool is_greater = false;
-      if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
-        is_greater = (comp(lhd_min, rhd_min) < 0);
-      } else {
-        is_greater = comp(lhd_min, rhd_min);
-      }
-      // If lhd_min >= rhd_min,
-      if (not is_greater) {
-        swap(rhd);
-      }
-    }
-
-    // Insert the intersection to *this.
-    auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-    for (auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
-      insert_multi(std::move(v));
-    }
-    // Insert the extra of rhd.
-    for (auto& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
-      insert_multi(end(), std::move(v));
-    }
-
-    rhd.clear();
-  }
+  // Merge all elements of rhd to this.
+  void merge_multi(self_type& rhd); 
 
  private:
   // Internal accessor routines.
@@ -609,19 +468,7 @@ class btree {
   // Verifies the tree structure of node.
   int internal_verify(node_readonly_borrower node, const key_type* lo, const key_type* hi) const;
 
-  node_stats internal_stats(node_readonly_borrower node) const noexcept {
-    if (!node) {
-      return node_stats(0, 0);
-    }
-    if (is_leaf(node)) {
-      return node_stats(1, 0);
-    }
-    node_stats res(0, 1);
-    for (size_type i = 0; i <= count(node); ++i) {
-      res += internal_stats(borrow_readonly_child(node, i));
-    }
-    return res;
-  }
+  node_stats internal_stats(node_readonly_borrower node) const noexcept;
 
  private:
   key_compare  comp_{};
@@ -1246,6 +1093,170 @@ int btree<NF>::internal_verify(
   return c;
 }
 
+
+template <class NF>
+void btree<NF>::merge_unique(self_type& rhd) {
+  if (empty()) {
+    swap(rhd);
+    return;
+  }
+  if (rhd.empty()) {
+    return;
+  }
+
+  auto lhd_min = params_type::key(*(begin()));
+  auto lhd_max = params_type::key(*(rbegin()));
+  auto rhd_min = params_type::key(*(rhd.begin()));
+  auto rhd_max = params_type::key(*(rhd.rbegin()));
+
+  const auto& comp = ref_key_comp();
+
+  {
+    bool is_greater = false;
+    if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
+      is_greater = (comp(lhd_min, rhd_min) < 0);
+    } else {
+      is_greater = comp(lhd_min, rhd_min);
+    }
+    // If lhd_min >= rhd_min,
+    if (not is_greater) {
+      swap(rhd);
+    }
+  }
+
+  // If the value range of rhd is included in that of *this,
+  {
+    bool is_greater = false;
+    if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
+      is_greater = (comp(lhd_max, rhd_max) < 0);
+    } else {
+      is_greater = comp(lhd_max, rhd_max);
+    }
+    // If rhd_max <= lhd_max
+    if (not is_greater) {
+      // Store the keys removed from rhd temporarily.
+      std::vector<std::size_t> removed_indexes;
+
+      // Insert the intersection to *this.
+      for (std::size_t i = 0; auto& v : rhd) {
+        auto [_, is_inserted] = insert_unique(std::move(v));
+        if (is_inserted) {
+          removed_indexes.push_back(i);
+        }
+        ++i;
+      }
+
+      // Remove the keys inserted to *this.
+      for (auto i : removed_indexes | std::views::reverse) {
+        iterator hint;
+        if (i < rhd.size() / 2) {
+          hint = std::next(rhd.begin(), i);
+        } else {
+          hint = std::prev(rhd.end(), rhd.size() - i);
+        }
+        rhd.erase(hint);
+      }
+
+      return;
+    }
+  }
+
+  // Store the keys removed from rhd temporarily.
+  std::vector<std::size_t> removed_indexes;
+
+  auto rhd_intersection_end = rhd.upper_bound(lhd_max);
+
+  // Insert the intersection to *this.
+  {
+    for (std::size_t i = 0; auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
+      auto [_, is_inserted] = insert_unique(std::move(v));
+      if (is_inserted) {
+        removed_indexes.push_back(i);
+      }
+      ++i;
+    }
+    // Insert the extra of rhd.
+    for (auto& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
+      insert_unique(end(), std::move(v));
+    }
+  }
+
+  // Remove the extra of rhd.
+  // Using `erase`, the former iterators are made to be invalidated.
+  // So, I use classical for loop.
+  auto num_value_out_of_left = std::distance(rhd_intersection_end, rhd.end());
+  for (std::ptrdiff_t i = 0; i < num_value_out_of_left; ++i) {
+    rhd.erase(std::prev(rhd.end()));
+  }
+  // Remove the keys inserted to *this.
+  for (auto i : removed_indexes | std::views::reverse) {
+    iterator hint;
+    if (i < rhd.size() / 2) {
+      hint = std::next(rhd.begin(), i);
+    } else {
+      hint = std::prev(rhd.end(), rhd.size() - i);
+    }
+    rhd.erase(hint);
+  }
+}
+
+
+template <class NF>
+void btree<NF>::merge_multi(self_type& rhd) {
+  if (empty()) {
+    swap(rhd);
+    return;
+  }
+  if (rhd.empty()) {
+    return;
+  }
+
+  auto lhd_min = params_type::key(*(begin()));
+  auto lhd_max = params_type::key(*(rbegin()));
+  auto rhd_min = params_type::key(*(rhd.begin()));
+
+  const auto& comp = ref_key_comp();
+
+  {
+    bool is_greater = false;
+    if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
+      is_greater = (comp(lhd_min, rhd_min) < 0);
+    } else {
+      is_greater = comp(lhd_min, rhd_min);
+    }
+    // If lhd_min >= rhd_min,
+    if (not is_greater) {
+      swap(rhd);
+    }
+  }
+
+  // Insert the intersection to *this.
+  auto rhd_intersection_end = rhd.upper_bound(lhd_max);
+  for (auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
+    insert_multi(std::move(v));
+  }
+  // Insert the extra of rhd.
+  for (auto& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
+    insert_multi(end(), std::move(v));
+  }
+
+  rhd.clear();
+}
+
+template <class NF>
+node_stats btree<NF>::internal_stats(node_readonly_borrower node) const noexcept {
+  if (!node) {
+    return node_stats(0, 0);
+  }
+  if (is_leaf(node)) {
+    return node_stats(1, 0);
+  }
+  node_stats res(0, 1);
+  for (size_type i = 0; i <= count(node); ++i) {
+    res += internal_stats(borrow_readonly_child(node, i));
+  }
+  return res;
+}
 }  // namespace platanus::internal
 
 #endif  // PLATANUS_INTERNAL_BTREE_H_

@@ -105,8 +105,8 @@ class btree_map
   btree_map(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_map(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_map(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  explicit btree_map(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  explicit btree_map(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_map(
       std::initializer_list<value_type> init,
@@ -230,8 +230,8 @@ class btree_multimap
   btree_multimap(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_multimap(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_multimap(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  explicit btree_multimap(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  explicit btree_multimap(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_multimap(
       std::initializer_list<value_type> init,
@@ -358,8 +358,8 @@ class btree_map : public internal::btree_map_container<
   btree_map(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_map(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_map(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  explicit btree_map(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  explicit btree_map(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_map(
       std::initializer_list<value_type> init,
@@ -490,8 +490,8 @@ class btree_multimap
   btree_multimap(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_multimap(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_multimap(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  explicit btree_multimap(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  explicit btree_multimap(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_multimap(
       std::initializer_list<value_type> init,

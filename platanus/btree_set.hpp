@@ -103,8 +103,8 @@ class btree_set
   btree_set(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_set(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_set(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  explicit btree_set(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  explicit btree_set(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_set(
       std::initializer_list<value_type> init,
@@ -223,8 +223,8 @@ class btree_multiset
   btree_multiset(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_multiset(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_multiset(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  explicit btree_multiset(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  explicit btree_multiset(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_multiset(
       std::initializer_list<value_type> init,
@@ -342,8 +342,8 @@ class btree_set
   btree_set(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_set(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_set(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  explicit btree_set(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  explicit btree_set(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_set(
       std::initializer_list<value_type> init,
@@ -459,8 +459,8 @@ class btree_multiset
   btree_multiset(InputIterator b, InputIterator e, const allocator_type& alloc)
       : super_type(b, e, alloc) {}
 
-  btree_multiset(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
-  btree_multiset(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
+  explicit btree_multiset(const self_type& x, const allocator_type& alloc) : super_type(x, alloc) {}
+  explicit btree_multiset(self_type&& x, const allocator_type& alloc) : super_type(std::move(x), alloc) {}
 
   btree_multiset(
       std::initializer_list<value_type> init,

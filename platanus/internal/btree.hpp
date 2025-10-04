@@ -328,20 +328,7 @@ class btree {
   }
 
   // The height of the btree. An empty tree will have height 0.
-  size_type height() const noexcept {
-    size_type h = 0;
-    if (borrow_readonly_root()) {
-      // Count the length of the chain from the leftmost node up to the
-      // root.
-      ++h;
-      auto n = borrow_readonly_leftmost();
-      while (n != borrow_readonly_root()) {
-        ++h;
-        n = borrow_readonly_parent(n);
-      }
-    }
-    return h;
-  }
+  size_type height() const noexcept;
 
   // The number of internal, leaf and total nodes used by the btree.
   size_type leaf_nodes() const noexcept {
@@ -939,6 +926,22 @@ void btree<NF>::verify() const {
     assert(borrow_readonly_leftmost() == nullptr);
     assert(borrow_readonly_rightmost() == nullptr);
   }
+}
+
+template <class NF>
+typename btree<NF>::size_type btree<NF>::height() const noexcept {
+  size_type h = 0;
+  if (borrow_readonly_root()) {
+    // Count the length of the chain from the leftmost node up to the
+    // root.
+    ++h;
+    auto n = borrow_readonly_leftmost();
+    while (n != borrow_readonly_root()) {
+      ++h;
+      n = borrow_readonly_parent(n);
+    }
+  }
+  return h;
 }
 
 template <class NF>

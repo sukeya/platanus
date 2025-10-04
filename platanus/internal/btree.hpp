@@ -277,13 +277,10 @@ class btree {
   const_iterator find_unique(const key_type& key) const {
     return internal_end(internal_find_unique(key, const_iterator(borrow_readonly_root(), 0)));
   }
+
   iterator find_multi(const key_type& key) {
     iterator iter = lower_bound_multi(key);
-    if (iter != end() && !compare_keys(key, iter.key())) {
-      return iter;
-    } else {
-      return end();
-    }
+    return (iter != end() && !compare_keys(key, iter.key())) ? iter : end();
   }
   const_iterator find_multi(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<self_type*>(this)->find_multi(key));
@@ -292,12 +289,9 @@ class btree {
   // Returns a count of the number of times the key appears in the btree.
   size_type count_unique(const key_type& key) const {
     const_iterator begin = internal_find_unique(key, const_iterator(borrow_readonly_root(), 0));
-    if (!begin.node) {
-      // The key doesn't exist in the tree.
-      return 0;
+    return begin.node ? 1 : 0;
     }
-    return 1;
-  }
+
   // Returns a count of the number of times the key appears in the btree.
   size_type count_multi(const key_type& key) const {
     return std::distance(lower_bound_multi(key), upper_bound(key));

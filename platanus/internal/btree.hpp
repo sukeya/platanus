@@ -166,22 +166,7 @@ class btree {
   }
 
   // Finds the first element whose key is greater than key.
-  iterator upper_bound(const key_type& key) {
-    using internal::upper_bound;
-
-    if (not borrow_readonly_root()) {
-      return end();
-    }
-    auto iter = iterator(borrow_root(), 0);
-    for (;;) {
-      iter.position = upper_bound(iter.node, key, ref_key_comp()).index();
-      if (is_leaf(iter.node)) {
-        break;
-      }
-      iter.node = borrow_child(iter.node, iter.position);
-    }
-    return internal_end(internal_last(iter));
-  }
+  iterator upper_bound(const key_type& key);
   const_iterator upper_bound(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<self_type*>(this)->upper_bound(key));
   }
@@ -794,6 +779,24 @@ typename btree<NF>::iterator btree<NF>::internal_insert_multi(iterator hint, T&&
     }
   }
   return insert_multi(std::forward<T>(v));
+}
+
+template <class NF>
+typename btree<NF>::iterator btree<NF>::upper_bound(const key_type& key) {
+  using internal::upper_bound;
+
+  if (not borrow_readonly_root()) {
+    return end();
+  }
+  auto iter = iterator(borrow_root(), 0);
+  for (;;) {
+    iter.position = upper_bound(iter.node, key, ref_key_comp()).index();
+    if (is_leaf(iter.node)) {
+      break;
+    }
+    iter.node = borrow_child(iter.node, iter.position);
+  }
+  return internal_end(internal_last(iter));
 }
 
 template <class NF>

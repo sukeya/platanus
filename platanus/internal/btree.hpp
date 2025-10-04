@@ -155,28 +155,6 @@ class btree {
     return const_reverse_iterator(begin());
   }
 
-  // Finds the first element whose key is not less than key.
-  template <bool IsUnique = true>
-  iterator internal_lower_bound(const key_type& key) {
-    if (not borrow_readonly_root()) {
-      return end();
-    }
-    auto iter = iterator(borrow_root(), 0);
-    for (;;) {
-      auto result   = lower_bound(iter.node, key, ref_key_comp());
-      iter.position = result.index();
-      if (is_leaf(iter.node)) {
-        break;
-      }
-      if constexpr (IsUnique) {
-        if (result.is_exact_match()) {
-          break;
-        }
-      }
-      iter.node = borrow_child(iter.node, iter.position);
-    }
-    return internal_end(internal_last(iter));
-  }
   iterator       lower_bound_unique(const key_type& key) { return internal_lower_bound(key); }
   const_iterator lower_bound_unique(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<self_type*>(this)->lower_bound_unique(key));
@@ -1145,6 +1123,29 @@ IterType btree<NF>::internal_last(IterType iter) {
     iter.node     = borrow_parent(iter.node);
   }
   return iter;
+}
+
+template <class NF>
+template <bool IsUnique>
+typename btree<NF>::iterator btree<NF>::internal_lower_bound(const key_type& key) {
+  if (not borrow_readonly_root()) {
+    return end();
+  }
+  auto iter = iterator(borrow_root(), 0);
+  for (;;) {
+    auto result   = lower_bound(iter.node, key, ref_key_comp());
+    iter.position = result.index();
+    if (is_leaf(iter.node)) {
+      break;
+    }
+    if constexpr (IsUnique) {
+      if (result.is_exact_match()) {
+        break;
+      }
+    }
+    iter.node = borrow_child(iter.node, iter.position);
+  }
+  return internal_end(internal_last(iter));
 }
 
 template <class NF>

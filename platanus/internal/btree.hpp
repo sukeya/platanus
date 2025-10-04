@@ -451,6 +451,10 @@ class btree {
   template <typename IterType>
   IterType internal_last(IterType iter);
 
+  // Finds the first element whose key is not less than key.
+  template <bool IsUnique = true>
+  iterator internal_lower_bound(const key_type& key);
+
   // Returns an iterator pointing to the leaf position at which key would
   // reside in the tree. This function returns either true (if the
   // key was found in the tree) or false (if it wasn't) in the second

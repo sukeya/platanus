@@ -53,17 +53,17 @@
 
 namespace platanus::internal {
 struct node_stats final {
-    node_stats(std::size_t l, std::size_t i) : leaf_nodes(l), internal_nodes(i) {}
+  node_stats(std::size_t l, std::size_t i) : leaf_nodes(l), internal_nodes(i) {}
 
-    node_stats& operator+=(const node_stats& x) {
-      leaf_nodes += x.leaf_nodes;
-      internal_nodes += x.internal_nodes;
-      return *this;
-    }
+  node_stats& operator+=(const node_stats& x) {
+    leaf_nodes += x.leaf_nodes;
+    internal_nodes += x.internal_nodes;
+    return *this;
+  }
 
-    std::size_t leaf_nodes;
-    std::size_t internal_nodes;
-  };
+  std::size_t leaf_nodes;
+  std::size_t internal_nodes;
+};
 
 template <class NodeAndFactory>
 class btree {
@@ -290,7 +290,7 @@ class btree {
   size_type count_unique(const key_type& key) const {
     const_iterator begin = internal_find_unique(key, const_iterator(borrow_readonly_root(), 0));
     return begin.node ? 1 : 0;
-    }
+  }
 
   // Returns a count of the number of times the key appears in the btree.
   size_type count_multi(const key_type& key) const {
@@ -544,14 +544,12 @@ typename btree<NF>::iterator btree<NF>::internal_insert_unique(iterator hint, T&
   if (!empty()) {
     const key_type& key = params_type::key(v);
     if (hint == end() || compare_keys(key, hint.key())) {
-      iterator prev = hint;
-      if (hint == begin() || compare_keys((--prev).key(), key)) {
+      if (hint == begin() || compare_keys(std::prev(hint).key(), key)) {
         // prev.key() < key < hint.key()
         return internal_insert(hint, std::forward<T>(v));
       }
     } else if (compare_keys(hint.key(), key)) {
-      iterator next = hint;
-      ++next;
+      iterator next = std::next(hint);
       if (next == end() || compare_keys(key, next.key())) {
         // hint.key() < key < next.key()
         return internal_insert(next, std::forward<T>(v));

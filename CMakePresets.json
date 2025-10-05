@@ -10,16 +10,32 @@
       "name": "test",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-g -O1 -fno-omit-frame-pointer",
         "PLATANUS_BUILD_TESTS": "ON"
       },
       "generator": "Ninja"
     },
     {
-      "name": "CI_test",
-      "inherits": ["test"],
+      "name": "vcpkg",
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_BUILD_TYPE": "debug"
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
+    {
+      "name": "test_vcpkg_gcc_like",
+      "inherits": ["test", "vcpkg"],
+      "cacheVariables": {
+        "VCPKG_C_FLAGS_DEBUG": "-g -O1 -fno-omit-frame-pointer",
+        "VCPKG_CXX_FLAGS_DEBUG": "-g -O1 -fno-omit-frame-pointer"
+      }
+    },
+    {
+      "name": "test_vcpkg_gcc_sanitizer",
+      "inherits": ["test_vcpkg_gcc_like"],
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-g -O1 -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak",
+        "VCPKG_C_FLAGS_DEBUG": "-g -O1 -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak",
+        "VCPKG_CXX_FLAGS_DEBUG": "-g -O1 -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak"
       }
     }
   ]

@@ -21,14 +21,14 @@ jobs:
           ./vcpkg/bootstrap-vcpkg.sh
       - name: Build tests
         run: |
-          cmake --preset CI_test -DCMAKE_CXX_COMPILER=g++ -B build/debug/gcc
+          cmake --preset test_vcpkg_gcc_sanitizer -DCMAKE_CXX_COMPILER=g++ -B build/debug/gcc
           cd ./build/debug/gcc && ninja
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       - name: Run tests
         run: ./build/debug/gcc/test/btree_test
 
-  test_clang:
+  test_clang_address:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -46,7 +46,32 @@ jobs:
           ./vcpkg/bootstrap-vcpkg.sh
       - name: Build tests
         run: |
-          cmake --preset CI_test -DCMAKE_CXX_COMPILER=clang++ -B build/debug/clang
+          cmake --preset test_vcpkg_gcc_like -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=address" -B build/debug/clang
+          cd ./build/debug/clang && ninja
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      - name: Run tests
+        run: ./build/debug/clang/test/btree_test
+
+  test_clang_mem_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Checkout vcpkg
+        uses: actions/checkout@v5
+        with:
+          repository: 'microsoft/vcpkg.git'
+          ref: '2025.08.27'
+          path: 'vcpkg'
+      - name: Install build tools
+        run: |
+          sudo apt update
+          sudo apt install -y ninja-build build-essential cmake clang lld
+          echo "$(pwd)/vcpkg" >> $GITHUB_PATH
+          ./vcpkg/bootstrap-vcpkg.sh
+      - name: Build tests
+        run: |
+          cmake --preset test_vcpkg_gcc_like -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=memory" -B build/debug/clang
           cd ./build/debug/clang && ninja
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg

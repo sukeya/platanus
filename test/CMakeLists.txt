@@ -32,10 +32,8 @@ function(add_btree_test target)
     ${target}
     PUBLIC
       # Common options for gcc and clang
-      "$<$<OR:${gcc},${clang}>:-Wall;-Wextra;-g;-fno-omit-frame-pointer;-fsanitize=address,undefined>"
-      "$<${gcc}:-fsanitize=pointer-compare,pointer-subtract,leak>"
-      "$<${clang}:-fno-strict-aliasing;-fsanitize=memory,type>"
-      "$<${msvc}:/Wall;/fsanitize=address>"
+      "$<${gcc_like}>:-Wall;-Wextra>"
+      "$<${msvc}:/Wall>"
   )
   target_link_libraries(${target} GTest::gtest_main platanus util)
 endfunction()

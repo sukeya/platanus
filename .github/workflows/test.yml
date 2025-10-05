@@ -3,12 +3,16 @@ run-name: Test
 on: pull_request
 
 jobs:
-  test_gcc:
+  gcc:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
+      - name: Update compilers
+        run: |
+          sudo apt update
+          sudo apt install -y clang gcc
       - name: Build tests
         run: |
           cmake --preset test_vcpkg_gcc_sanitizer -DCMAKE_CXX_COMPILER=g++ -B build/debug/gcc
@@ -16,12 +20,16 @@ jobs:
       - name: Run tests
         run: ./build/debug/gcc/test/btree_test
 
-  test_clang_address:
+  clang_address:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
+      - name: Update compilers
+        run: |
+          sudo apt update
+          sudo apt install -y clang gcc
       - name: Build tests
         run: |
           cmake --preset test_vcpkg_gcc_like -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=address" -B build/debug/clang/address
@@ -29,15 +37,21 @@ jobs:
       - name: Run tests
         run: ./build/debug/clang/address/test/btree_test
 
-  test_clang_memory:
+  clang_memory:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
+      - name: Update compilers
+        run: |
+          sudo apt update
+          sudo apt install -y clang gcc
+      - name: Install libc++
+        run: sudo apt install -y libc++-18-dev
       - name: Build tests
         run: |
-          cmake --preset test_vcpkg_gcc_like -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=memory" -B build/debug/clang/memory
+          cmake --preset test_vcpkg_gcc_like -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=memory -stdlib=libc++" -B build/debug/clang/memory
           cd ./build/debug/clang/memory && ninja
       - name: Run tests
         run: ./build/debug/clang/memory/test/btree_test

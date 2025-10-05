@@ -12,6 +12,7 @@ jobs:
         with:
           repository: 'microsoft/vcpkg.git'
           ref: '2025.08.27'
+          path: 'vcpkg'
       - name: Install build tools
         run: |
           sudo apt update

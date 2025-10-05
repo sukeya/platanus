@@ -90,8 +90,9 @@ export(EXPORT platanusTargets
 )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
-set(msvc_cxx "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
+set(gcc "$<COMPILE_LANG_AND_ID:CXX,GNU>")
+set(clang "$<COMPILE_LANG_AND_ID:CXX,Clang>")
+set(msvc "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
 
 if(PLATANUS_BUILD_TESTS)
   enable_testing()

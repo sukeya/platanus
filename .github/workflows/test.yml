@@ -3,11 +3,11 @@ run-name: Test
 on: pull_request
 
 jobs:
-  unit_tests:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Set up vcpkg
+      - name: Checkout vcpkg
         uses: actions/checkout@v5
         with:
           repository: 'microsoft/vcpkg.git'
@@ -16,14 +16,30 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt update
-          sudo apt install -y ninja-build build-essential cmake
+          sudo apt install -y ninja-build build-essential cmake clang lld
           echo "$(pwd)/vcpkg" >> $GITHUB_PATH
+          ./vcpkg/bootstrap-vcpkg.sh
+  test_gcc:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
       - name: Build tests
         run: |
-          ./vcpkg/bootstrap-vcpkg.sh
-          cmake --preset CI_test
-          cd ./build/debug && ninja
+          cmake --preset CI_test -DCMAKE_CXX_COMPILER=g++ -B build/debug/gcc
+          cd ./build/debug/gcc && ninja
         env:
           VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       - name: Run tests
-        run: ./build/debug/test/btree_test
+        run: ./build/debug/gcc/test/btree_test
+  test_clang:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build tests
+        run: |
+          cmake --preset CI_test -DCMAKE_CXX_COMPILER=clang++ -B build/debug/clang
+          cd ./build/debug/clang && ninja
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      - name: Run tests
+        run: ./build/debug/clang/test/btree_test

@@ -7,15 +7,20 @@
   },
   "configurePresets": [
     {
-      "name": "CI_test",
-      "binaryDir": "${sourceDir}/build/debug",
+      "name": "test",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "PLATANUS_BUILD_TESTS": "ON",
-        "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        "PLATANUS_BUILD_TESTS": "ON"
       },
       "generator": "Ninja"
+    },
+    {
+      "name": "CI_test",
+      "inherits": ["test"],
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_BUILD_TYPE": "debug"
+      }
     }
   ]
 }

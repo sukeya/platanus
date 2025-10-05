@@ -9,13 +9,9 @@ jobs:
       image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
-      - name: Update compilers
-        run: |
-          sudo apt update
-          sudo apt install -y clang gcc
       - name: Build tests
         run: |
-          cmake --preset test_vcpkg_gcc_sanitizer -DCMAKE_CXX_COMPILER=g++ -B build/debug/gcc
+          cmake --preset test_vcpkg_gcc -B build/debug/gcc
           cd ./build/debug/gcc && ninja
       - name: Run tests
         run: ./build/debug/gcc/test/btree_test
@@ -26,16 +22,14 @@ jobs:
       image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
-      - name: Update compilers
-        run: |
-          sudo apt update
-          sudo apt install -y clang gcc
+      - name: Install llvm
+        run: zsh .github/scripts/install_llvm.sh
       - name: Build tests
         run: |
-          cmake --preset test_vcpkg_gcc_like -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=address" -B build/debug/clang/address
-          cd ./build/debug/clang/address && ninja
+          cmake --preset test_vcpkg_clang -B build/debug/clang
+          cd ./build/debug/clang && ninja
       - name: Run tests
-        run: ./build/debug/clang/address/test/btree_test
+        run: ./build/debug/clang/test/btree_test
 
   clang_memory:
     runs-on: ubuntu-latest
@@ -43,15 +37,11 @@ jobs:
       image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
-      - name: Update compilers
-        run: |
-          sudo apt update
-          sudo apt install -y clang gcc
-      - name: Install libc++
-        run: sudo apt install -y libc++-18-dev
+      - name: Install llvm
+        run: zsh .github/scripts/install_llvm.sh
       - name: Build tests
         run: |
-          cmake --preset test_vcpkg_gcc_like -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="-fsanitize=memory -stdlib=libc++" -B build/debug/clang/memory
+          cmake --preset test_vcpkg_clang_memory -B build/debug/clang/memory
           cd ./build/debug/clang/memory && ninja
       - name: Run tests
         run: ./build/debug/clang/memory/test/btree_test

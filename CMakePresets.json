@@ -10,7 +10,6 @@
       "name": "test",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS": "-g -O1 -fno-omit-frame-pointer",
         "PLATANUS_BUILD_TESTS": "ON"
       },
       "generator": "Ninja"
@@ -22,20 +21,38 @@
       }
     },
     {
-      "name": "test_vcpkg_gcc_like",
+      "name": "test_vcpkg_gcc",
       "inherits": ["test", "vcpkg"],
       "cacheVariables": {
-        "VCPKG_C_FLAGS_DEBUG": "-g -O1 -fno-omit-frame-pointer",
-        "VCPKG_CXX_FLAGS_DEBUG": "-g -O1 -fno-omit-frame-pointer"
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_CXX_FLAGS": "-g -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak",
+        "VCPKG_C_FLAGS": "-g -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak",
+        "VCPKG_CXX_FLAGS": "-g -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak"
       }
     },
     {
-      "name": "test_vcpkg_gcc_sanitizer",
-      "inherits": ["test_vcpkg_gcc_like"],
+      "name": "clang",
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-g -O1 -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak",
-        "VCPKG_C_FLAGS_DEBUG": "-g -O1 -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak",
-        "VCPKG_CXX_FLAGS_DEBUG": "-g -O1 -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak"
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_LINKER_TYPE": "LLD"
+      }
+    },
+    {
+      "name": "test_vcpkg_clang",
+      "inherits": ["test", "vcpkg", "clang"],
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -g -fno-omit-frame-pointer -fsanitize=address,undefined,leak",
+        "VCPKG_C_FLAGS": "-stdlib=libc++ -g -fno-omit-frame-pointer -fsanitize=address,undefined,leak",
+        "VCPKG_CXX_FLAGS": "-stdlib=libc++ -g -fno-omit-frame-pointer -fsanitize=address,undefined,leak"
+      }
+    },
+    {
+      "name": "test_vcpkg_clang_memory",
+      "inherits": ["test", "vcpkg", "clang"],
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -g -fno-omit-frame-pointer -fsanitize=memory",
+        "VCPKG_C_FLAGS": "-stdlib=libc++ -g -fno-omit-frame-pointer -fsanitize=memory",
+        "VCPKG_CXX_FLAGS": "-stdlib=libc++ -g -fno-omit-frame-pointer -fsanitize=memory"
       }
     }
   ]

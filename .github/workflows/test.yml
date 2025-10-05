@@ -1,10 +1,6 @@
 name: Test
 run-name: Test
-on:
-  push:
-    branches:
-      - main
-  pull_request:
+on: pull_request
 
 jobs:
   unit_tests:
@@ -12,8 +8,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Set up vcpkg
-        run: |
-          git clone --depth 1 -b 2025.08.27 https://github.com/microsoft/vcpkg.git vcpkg
+        uses: actions/checkout@v5
+        with:
+          repository: 'microsoft/vcpkg.git'
+          ref: '2025.08.27'
       - name: Install build tools
         run: |
           sudo apt update

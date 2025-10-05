@@ -5,10 +5,12 @@ on: pull_request
 jobs:
   gcc:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
+      - name: Set up
+        run: bash .github/scripts/setup.sh
+      - name: Install gcc
+        run: apt install -y gcc
       - name: Build tests
         run: |
           cmake --preset test_vcpkg_gcc -B build/debug/gcc
@@ -18,12 +20,12 @@ jobs:
 
   clang_address:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
+      - name: Set up
+        run: bash .github/scripts/setup.sh
       - name: Install llvm
-        run: zsh .github/scripts/install_llvm.sh
+        run: bash .github/scripts/install_llvm.sh
       - name: Build tests
         run: |
           cmake --preset test_vcpkg_clang -B build/debug/clang
@@ -33,12 +35,12 @@ jobs:
 
   clang_memory:
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/devcontainers/cpp:ubuntu
     steps:
       - uses: actions/checkout@v5
+      - name: Set up
+        run: bash .github/scripts/setup.sh
       - name: Install llvm
-        run: zsh .github/scripts/install_llvm.sh
+        run: bash .github/scripts/install_llvm.sh
       - name: Build tests
         run: |
           cmake --preset test_vcpkg_clang_memory -B build/debug/clang/memory

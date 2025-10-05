@@ -1,4 +1,4 @@
 #!/bin/bash
 
 sudo apt update
-sudo apt install -y ninja-build build-essential cmake googletest
+sudo apt install -y ninja-build build-essential cmake libgtest-dev

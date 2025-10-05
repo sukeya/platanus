@@ -34,7 +34,7 @@ target_compile_options(
     "$<${clang}:-Wall;-Wextra>"
     "$<${msvc}:/Wall>"
 )
-target_link_libraries(btree_bench platanus util benchmark::benchmark)
+target_link_libraries(btree_bench platanus util GBench::benchmark)
 if (VALUES_SIZE_TEST)
   target_compile_definitions(btree_bench PRIVATE VALUES_SIZE_TEST)
 endif()

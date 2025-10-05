@@ -10,7 +10,7 @@ jobs:
       - name: Set up
         run: bash .github/scripts/setup.sh
       - name: Install gcc
-        run: apt install -y gcc
+        run: sudo apt install -y gcc
       - name: Build tests
         run: |
           cmake --preset test_gcc -B build/debug/gcc

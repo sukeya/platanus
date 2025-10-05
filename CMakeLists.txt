@@ -99,14 +99,28 @@ set(gcc_like $<OR:${gcc},${clang})
 if(PLATANUS_BUILD_TESTS)
   enable_testing()
 
-  find_package(GTest REQUIRED)
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        52eb8108c5bdec04579160ae17225d66034bd723 # release-1.17.0
+    FIND_PACKAGE_ARGS NAMES GTest
+  )
+  FetchContent_MakeAvailable(googletest)
 
   add_subdirectory(util)
   add_subdirectory(test)
 endif()
 
 if(PLATANUS_BUILD_BENCHMARK)
-  find_package(benchmark REQUIRED)
+  include(FetchContent)
+  FetchContent_Declare(
+    google_benchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG        eddb0241389718a23a42db6af5f0164b6e0139af # release-1.9.4
+    FIND_PACKAGE_ARGS NAMES GBench
+  )
+  FetchContent_MakeAvailable(google_benchmark)
 
   add_subdirectory(util)
   add_subdirectory(benchmark)

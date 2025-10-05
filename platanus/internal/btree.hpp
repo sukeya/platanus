@@ -134,7 +134,9 @@ class btree {
     return static_cast<const_iterator>(const_cast<self_type*>(this)->begin());
   }
   iterator end() noexcept {
-    return borrow_rightmost() ? iterator(borrow_rightmost(), values_count(borrow_readonly_rightmost())) : iterator();
+    return borrow_rightmost()
+               ? iterator(borrow_rightmost(), values_count(borrow_readonly_rightmost()))
+               : iterator();
   }
   const_iterator end() const noexcept { return cend(); }
   const_iterator cend() const noexcept {
@@ -166,7 +168,7 @@ class btree {
   }
 
   // Finds the first element whose key is greater than key.
-  iterator upper_bound(const key_type& key);
+  iterator       upper_bound(const key_type& key);
   const_iterator upper_bound(const key_type& key) const {
     return static_cast<const_iterator>(const_cast<self_type*>(this)->upper_bound(key));
   }
@@ -298,7 +300,7 @@ class btree {
   }
 
   // Clear the btree, deleting all of the values it contains.
-  void clear(); 
+  void clear();
 
   // Swap the contents of *this and x.
   void swap(self_type& x);
@@ -322,7 +324,7 @@ class btree {
   size_type size() const noexcept { return size_; }
   size_type max_size() const noexcept { return std::numeric_limits<size_type>::max(); }
 
-  bool      empty() const noexcept {
+  bool empty() const noexcept {
     assert((size() == 0) == (borrow_readonly_root() == nullptr));
     return size() == 0;
   }
@@ -369,7 +371,7 @@ class btree {
   void merge_unique(self_type& rhd);
 
   // Merge all elements of rhd to this.
-  void merge_multi(self_type& rhd); 
+  void merge_multi(self_type& rhd);
 
  private:
   // Internal accessor routines.
@@ -1095,7 +1097,6 @@ int btree<NF>::internal_verify(
   return c;
 }
 
-
 template <class NF>
 void btree<NF>::merge_unique(self_type& rhd) {
   if (empty()) {
@@ -1201,7 +1202,6 @@ void btree<NF>::merge_unique(self_type& rhd) {
     rhd.erase(hint);
   }
 }
-
 
 template <class NF>
 void btree<NF>::merge_multi(self_type& rhd) {

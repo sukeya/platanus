@@ -39,7 +39,7 @@ TEST(Nullptr, access) {
   std::random_device              seed_gen;
   std::mt19937                    engine(seed_gen());
   std::uniform_int_distribution<> dist(0, 9);
-  int*                            p = reinterpret_cast<int*>(dist(engine))
+  int*                            p = reinterpret_cast<int*>(dist(engine));
 }
 
 template <typename K, int N>

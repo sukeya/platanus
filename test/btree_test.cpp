@@ -31,9 +31,16 @@
 #include "platanus/btree_set.hpp"
 #include "btree_test.hpp"
 
+#include <random>
+
 namespace platanus {
 
-TEST(Nullptr, access) { int i = *nullptr; }
+TEST(Nullptr, access) {
+  std::random_device              seed_gen;
+  std::mt19937                    engine(seed_gen());
+  std::uniform_int_distribution<> dist(0, 9);
+  int*                            p = reinterpret_cast<int*>(dist(engine))
+}
 
 template <typename K, int N>
 void SetTest() {

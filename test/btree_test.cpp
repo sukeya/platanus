@@ -40,6 +40,7 @@ TEST(Nullptr, access) {
   std::mt19937                    engine(seed_gen());
   std::uniform_int_distribution<> dist(0, 9);
   int*                            p = reinterpret_cast<int*>(dist(engine));
+  *p                                = 2;
 }
 
 template <typename K, int N>

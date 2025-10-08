@@ -33,6 +33,8 @@
 
 namespace platanus {
 
+TEST(Nullptr, access) { int i = *std::nullptr; }
+
 template <typename K, int N>
 void SetTest() {
   using TestAlloc = TestAllocator<K>;

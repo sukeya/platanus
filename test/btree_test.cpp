@@ -33,7 +33,7 @@
 
 namespace platanus {
 
-TEST(Nullptr, access) { int i = *std::nullptr; }
+TEST(Nullptr, access) { int i = *nullptr; }
 
 template <typename K, int N>
 void SetTest() {

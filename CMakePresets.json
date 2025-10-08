@@ -25,22 +25,21 @@
       "name": "clang",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_LINKER_TYPE": "LLD",
-        "LIBCXX_USE_COMPILER_RT": "YES"
+        "CMAKE_LINKER_TYPE": "LLD"
       }
     },
     {
       "name": "test_clang",
       "inherits": ["test", "clang"],
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++ --rtlib=compiler-rt -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined,leak"
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined,leak"
       }
     },
     {
       "name": "test_clang_memory",
       "inherits": ["test", "clang"],
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++ --rtlib=compiler-rt -O1 -g -fno-omit-frame-pointer -fsanitize=memory"
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O1 -g -fno-omit-frame-pointer -fsanitize=memory"
       }
     }
   ]

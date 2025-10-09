@@ -1,5 +1,5 @@
 # platanus
-`platanus` is an fork of the B-tree library [`cpp-btree`](https://code.google.com/archive/p/cpp-btree/).
+`platanus` is a fork of the B-tree library [`cpp-btree`](https://code.google.com/archive/p/cpp-btree/).
 
 
 ## Comparing to STL set/map
@@ -9,10 +9,9 @@ So a `std::set<std::int32_t>` consumes 32 bytes for each value stored.
 This btree implementation stores the fixed number of values on a nodes (usually 64) and doesn't store child
 pointers for leaf nodes.
 The result is that a `platanus::btree_set<std::int32>` may use much less memory per stored value.
-For the random insertion benchmark in btree_test.cpp, a `platanus::btree_set<std::int32_t>` with 64 values per node uses 4.64 bytes per stored value.
+For the random insertion benchmark, a `platanus::btree_set<std::int32_t>` with 64 values per node uses 4.64 bytes per stored value.
 
-The packing of multiple values on to each node of a btree has another effect besides better space utilization: better cache locality due to fewer cache lines being accessed.
-Better cache locality translates into faster operations.
+The packing of multiple values into nodes of a btree has another effect besides better space utilization: better cache locality due to fewer cache lines being accessed, that is, faster operations.
 
 
 ## Feature
@@ -26,14 +25,11 @@ Better cache locality translates into faster operations.
 
 
 ## Performance
-Generally speaking, `platunus` is slower than `cpp-btree` by approximately 13%, but is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% (the values are median and the order of B-tree is 65 (default)).
-However, forwarding an iterator of `platanus` is extremely faster than doing that of STL, while FIFO of `platanus` is slower than that of STL by approximately 19%.
-So, you should check how much the performance is improved.
+Generally speaking, `platunus` is slower than `cpp-btree` by approximately 13%.
 
-
-## Difference between `pmr` and normal
-Of cource, using `polymorphic_allocator` or not is one of the difference, but another one is whether an internal node has an array of pointers to each child node as a member variable or its pointer.
-I will remove this difference.
+However, `platunus` is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% (the values are median and the order of B-tree is 65 (default)).
+Forwarding an iterator of `platanus` is extremely faster than doing that of STL, while FIFO of `platanus` is slower than that of STL by approximately 19%.
+So, you should select an appropriate one matching your use case.
 
 
 ## Limitation and caveats
@@ -47,24 +43,20 @@ In both cases, the result is that insertions and deletions can invalidate iterat
 This is notably different from STL set/map which takes care to not invalidate iterators on `insert`/`erase` except, of course, for iterators pointing to the value being erased.
 A partial workaround when erasing is available: `erase()` returns an iterator pointing to the item just after the one that was erased (or `end()` if none exists).
 
-Also, all functions and classes in this library are not thread-safe.
+### Thread-safety
+All functions and classes in this library are not thread-safe.
 
 
 ## Installation
 `platanus` is an header only library, so you don't have to install it.
-When using CMake, you only have to link your program to `platanus`.
-For example, `target_link_libraries(your_program PUBLIC platanus)`.
+When using CMake, you only have to link your program to `platanus::platanus`.
+For example, `target_link_libraries(your_program PUBLIC platanus::platanus)`.
 
 
 ## Test
-If you want to test, download and install the following libraries.
-
-- [googletest](https://github.com/google/googletest)
-- [benchmark](https://github.com/google/benchmark)
-
-Then, run the following commands in the top directory of `platanus`.
+If you want to test, for example, run the following commands in the top directory of `platanus`.
 ```
-cmake -S . -B build/debug -DPLATANUS_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build/debug --preset test
 cd build/debug/test
 ./btree_test
 ```
@@ -101,8 +93,6 @@ cmake -S . -B build/release -DBUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DVA
 cd build/release/benchmark
 ./btree_bench
 ```
-
-The result on my environment is [here](./benchmark_result.txt).
 
 
 ## License

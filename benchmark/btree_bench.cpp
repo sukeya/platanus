@@ -249,7 +249,7 @@ using STLMap = std::map<T, T>;
 template <class T>
 using STLMultiMap = std::multimap<T, T>;
 
-#ifdef VALUES_SIZE_TEST
+#ifdef PLATANUS_VALUES_SIZE_TEST
 #define BTREE_BENCHMARK(tree, type, func) \
   BENCHMARK(BM_##func<tree<type, 3>>);    \
   BENCHMARK(BM_##func<tree<type, 8>>);    \

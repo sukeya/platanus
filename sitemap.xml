@@ -2,27 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://sukeya.github.io/platanus/</loc>
-         <lastmod>2024-08-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-10-09</lastmod>
     </url>
     <url>
          <loc>https://sukeya.github.io/platanus/reference/btree_map/</loc>
-         <lastmod>2024-08-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-10-09</lastmod>
     </url>
     <url>
          <loc>https://sukeya.github.io/platanus/reference/btree_multimap/</loc>
-         <lastmod>2024-08-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-10-09</lastmod>
     </url>
     <url>
          <loc>https://sukeya.github.io/platanus/reference/btree_multiset/</loc>
-         <lastmod>2024-08-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-10-09</lastmod>
     </url>
     <url>
          <loc>https://sukeya.github.io/platanus/reference/btree_set/</loc>
-         <lastmod>2024-08-28</lastmod>
-         <changefreq>daily</changefreq>
+         <lastmod>2025-10-09</lastmod>
     </url>
 </urlset>

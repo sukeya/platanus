@@ -94,8 +94,6 @@ cd build/release/benchmark
 ./btree_bench
 ```
 
-The result on my environment is [here](./benchmark_result.txt).
-
 
 ## License
 `platanus` is licensed under [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).

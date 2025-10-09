@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ssh-key: ${{ secrets.CI_DEPLOY }}
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'

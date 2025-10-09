@@ -125,9 +125,7 @@ class btree {
     }
   }
 
-  allocator_type get_allocator() const {
-    return node_factory_.get_node_allocator();
-  }
+  allocator_type get_allocator() const { return node_factory_.get_node_allocator(); }
 
   // Iterator routines.
   iterator begin() noexcept {

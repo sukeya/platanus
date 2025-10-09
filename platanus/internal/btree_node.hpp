@@ -578,9 +578,7 @@ class btree_node_factory {
     return node_type::make_root_node(is_leaf, node_alloc_, children_alloc_);
   }
 
-  node_allocator_type get_node_allocator() const {
-    return node_alloc_;
-  }
+  node_allocator_type get_node_allocator() const { return node_alloc_; }
 
  private:
   node_allocator_type     node_alloc_;

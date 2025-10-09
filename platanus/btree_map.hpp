@@ -118,6 +118,8 @@ class btree_map
   btree_map(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
+  using super_type::get_allocator;
+
   using super_type::begin;
   using super_type::cbegin;
   using super_type::cend;
@@ -243,6 +245,8 @@ class btree_multimap
       : self_type{init.begin(), init.end(), comp, alloc} {}
   btree_multimap(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::get_allocator;
 
   using super_type::begin;
   using super_type::cbegin;
@@ -372,6 +376,8 @@ class btree_map : public internal::btree_map_container<
       : self_type{init.begin(), init.end(), comp, alloc} {}
   btree_map(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::get_allocator;
 
   using super_type::begin;
   using super_type::cbegin;
@@ -505,6 +511,8 @@ class btree_multimap
       : self_type{init.begin(), init.end(), comp, alloc} {}
   btree_multimap(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::get_allocator;
 
   using super_type::begin;
   using super_type::cbegin;

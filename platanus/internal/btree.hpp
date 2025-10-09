@@ -125,6 +125,10 @@ class btree {
     }
   }
 
+  allocator_type get_allocator() const {
+    return node_factory_.get_node_allocator();
+  }
+
   // Iterator routines.
   iterator begin() noexcept {
     return borrow_leftmost() ? iterator(borrow_leftmost(), 0) : iterator();

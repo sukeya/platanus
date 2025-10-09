@@ -526,6 +526,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
 
 // Test assignment to self. Nothing should change.
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wall"
   b_range = b_range;
 #pragma GCC diagnostic pop
   EXPECT_EQ(b_range.size(), b_copy.size());

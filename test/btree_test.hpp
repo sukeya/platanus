@@ -524,8 +524,10 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
     EXPECT_EQ(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
   }
 
-  // Test assignment to self. Nothing should change.
+// Test assignment to self. Nothing should change.
+#pragma GCC diagnostic push
   b_range = b_range;
+#pragma GCC diagnostic pop
   EXPECT_EQ(b_range.size(), b_copy.size());
   EXPECT_EQ(b_range.height(), b_copy.height());
   EXPECT_EQ(b_range.internal_nodes(), b_copy.internal_nodes());

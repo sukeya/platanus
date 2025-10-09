@@ -116,6 +116,8 @@ class btree_set
   btree_set(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
+  using super_type::get_allocator;
+
   using super_type::begin;
   using super_type::cbegin;
   using super_type::cend;
@@ -237,6 +239,8 @@ class btree_multiset
   btree_multiset(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
+  using super_type::get_allocator;
+
   using super_type::begin;
   using super_type::cbegin;
   using super_type::cend;
@@ -357,6 +361,8 @@ class btree_set
   btree_set(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
 
+  using super_type::get_allocator;
+
   using super_type::begin;
   using super_type::cbegin;
   using super_type::cend;
@@ -474,6 +480,8 @@ class btree_multiset
       : self_type{init.begin(), init.end(), comp, alloc} {}
   btree_multiset(std::initializer_list<value_type> init, const allocator_type& alloc)
       : self_type{init.begin(), init.end(), alloc} {}
+
+  using super_type::get_allocator;
 
   using super_type::begin;
   using super_type::cbegin;

@@ -78,6 +78,8 @@ class btree_container {
   btree_container(const self_type& x, const allocator_type& alloc) : tree_(x.tree_, alloc) {}
   btree_container(self_type&& x, const allocator_type& alloc) : tree_(std::move(x.tree_), alloc) {}
 
+  allocator_type get_allocator() const { return tree_.get_allocator(); }
+
   // Iterator routines.
   iterator               begin() noexcept { return tree_.begin(); }
   const_iterator         begin() const noexcept { return cbegin(); }

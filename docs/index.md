@@ -89,7 +89,7 @@ The test cases are:
 If you want to know a good size of values per node, run the following comamnd.
 
 ```
-cmake -S . -B build/release -DBUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DVALUES_SIZE_TEST
+cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DPLATANUS_VALUES_SIZE_TEST
 cd build/release/benchmark
 ./btree_bench
 ```

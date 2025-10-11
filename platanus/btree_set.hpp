@@ -127,6 +127,11 @@ class btree_set
   using super_type::rbegin;
   using super_type::rend;
 
+  using super_type::capacity;
+  using super_type::empty;
+  using super_type::max_size;
+  using super_type::size;
+
   using super_type::clear;
   using super_type::dump;
   using super_type::swap;
@@ -134,15 +139,12 @@ class btree_set
 
   using super_type::average_bytes_per_value;
   using super_type::bytes_used;
-  using super_type::empty;
   using super_type::fullness;
   using super_type::height;
   using super_type::internal_nodes;
   using super_type::leaf_nodes;
-  using super_type::max_size;
   using super_type::nodes;
   using super_type::overhead;
-  using super_type::size;
 
   using super_type::key_comp;
 
@@ -250,6 +252,11 @@ class btree_multiset
   using super_type::rbegin;
   using super_type::rend;
 
+  using super_type::capacity;
+  using super_type::empty;
+  using super_type::max_size;
+  using super_type::size;
+
   using super_type::clear;
   using super_type::dump;
   using super_type::swap;
@@ -257,15 +264,12 @@ class btree_multiset
 
   using super_type::average_bytes_per_value;
   using super_type::bytes_used;
-  using super_type::empty;
   using super_type::fullness;
   using super_type::height;
   using super_type::internal_nodes;
   using super_type::leaf_nodes;
-  using super_type::max_size;
   using super_type::nodes;
   using super_type::overhead;
-  using super_type::size;
 
   using super_type::key_comp;
 
@@ -372,6 +376,11 @@ class btree_set
   using super_type::rbegin;
   using super_type::rend;
 
+  using super_type::capacity;
+  using super_type::empty;
+  using super_type::max_size;
+  using super_type::size;
+
   using super_type::clear;
   using super_type::dump;
   using super_type::swap;
@@ -379,15 +388,12 @@ class btree_set
 
   using super_type::average_bytes_per_value;
   using super_type::bytes_used;
-  using super_type::empty;
   using super_type::fullness;
   using super_type::height;
   using super_type::internal_nodes;
   using super_type::leaf_nodes;
-  using super_type::max_size;
   using super_type::nodes;
   using super_type::overhead;
-  using super_type::size;
 
   using super_type::key_comp;
 
@@ -492,6 +498,11 @@ class btree_multiset
   using super_type::rbegin;
   using super_type::rend;
 
+  using super_type::capacity;
+  using super_type::empty;
+  using super_type::max_size;
+  using super_type::size;
+
   using super_type::clear;
   using super_type::dump;
   using super_type::swap;
@@ -499,15 +510,12 @@ class btree_multiset
 
   using super_type::average_bytes_per_value;
   using super_type::bytes_used;
-  using super_type::empty;
   using super_type::fullness;
   using super_type::height;
   using super_type::internal_nodes;
   using super_type::leaf_nodes;
-  using super_type::max_size;
   using super_type::nodes;
   using super_type::overhead;
-  using super_type::size;
 
   using super_type::key_comp;
 

@@ -104,6 +104,7 @@ class btree_container {
   size_type size() const noexcept { return tree_.size(); }
   size_type max_size() const noexcept { return tree_.max_size(); }
   bool      empty() const noexcept { return tree_.empty(); }
+  size_type capacity() const noexcept { return tree_.capacity(); }
   size_type height() const noexcept { return tree_.height(); }
   size_type internal_nodes() const noexcept { return tree_.internal_nodes(); }
   size_type leaf_nodes() const noexcept { return tree_.leaf_nodes(); }

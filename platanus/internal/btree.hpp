@@ -331,6 +331,8 @@ class btree {
     return size() == 0;
   }
 
+  size_type capacity() const noexcept { return nodes() * kNodeValues; }
+
   // The height of the btree. An empty tree will have height 0.
   size_type height() const noexcept;
 

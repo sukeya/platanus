@@ -42,7 +42,7 @@ add_library(platanus INTERFACE)
 target_compile_features(platanus INTERFACE cxx_std_20)
 target_include_directories(platanus INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/platanus>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 install(TARGETS platanus

@@ -42,7 +42,7 @@ add_library(platanus INTERFACE)
 target_compile_features(platanus INTERFACE cxx_std_20)
 target_include_directories(platanus INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/platanus>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 install(TARGETS platanus
@@ -103,8 +103,8 @@ if(PLATANUS_BUILD_TESTS)
   FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG        52eb8108c5bdec04579160ae17225d66034bd723 # release-1.17.0
-    FIND_PACKAGE_ARGS NAMES GTest
+    GIT_TAG        52eb8108c5bdec04579160ae17225d66034bd723 # v1.17.0
+    OVERRIDE_FIND_PACKAGE
   )
   FetchContent_MakeAvailable(googletest)
 
@@ -117,8 +117,8 @@ if(PLATANUS_BUILD_BENCHMARK)
   FetchContent_Declare(
     google_benchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git
-    GIT_TAG        eddb0241389718a23a42db6af5f0164b6e0139af # release-1.9.4
-    FIND_PACKAGE_ARGS NAMES GBench
+    GIT_TAG        eddb0241389718a23a42db6af5f0164b6e0139af # v1.9.4
+    FIND_PACKAGE_ARGS benchmark 1.9.4 CONFIG
   )
   FetchContent_MakeAvailable(google_benchmark)
 

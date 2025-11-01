@@ -154,12 +154,10 @@ struct btree_iterator<Node, false> {
   using node_borrower          = btree_node_borrower<Node>;
   using node_readonly_borrower = btree_node_readonly_borrower<Node>;
 
-  using key_type        = typename Node::key_type;
-  using value_type      = typename Node::value_type;
-  using reference       = typename Node::reference;
-  using const_reference = typename Node::const_reference;
-  using pointer         = typename Node::pointer;
-  using const_pointer   = typename Node::const_pointer;
+  using key_type   = typename Node::key_type;
+  using value_type = typename Node::value_type;
+  using reference  = typename Node::reference;
+  using pointer    = typename Node::pointer;
 
   using size_type         = typename Node::size_type;
   using difference_type   = typename Node::difference_type;
@@ -226,12 +224,10 @@ struct btree_iterator<Node, true> {
   using node_borrower          = btree_node_borrower<Node>;
   using node_readonly_borrower = btree_node_readonly_borrower<Node>;
 
-  using key_type        = typename Node::key_type;
-  using value_type      = typename Node::value_type;
-  using reference       = typename Node::reference;
-  using const_reference = typename Node::const_reference;
-  using pointer         = typename Node::pointer;
-  using const_pointer   = typename Node::const_pointer;
+  using key_type   = typename Node::key_type;
+  using value_type = typename Node::value_type;
+  using reference  = typename Node::const_reference;
+  using pointer    = typename Node::const_pointer;
 
   using size_type         = typename Node::size_type;
   using difference_type   = typename Node::difference_type;
@@ -260,11 +256,11 @@ struct btree_iterator<Node, true> {
     return key(node, position);
   }
 
-  const_reference operator*() const {
+  reference operator*() const {
     using internal::value;
     return value(node, position);
   }
-  const_pointer operator->() const { return &(this->operator*()); }
+  pointer operator->() const { return &(this->operator*()); }
 
   self_type& operator++() noexcept {
     btree_iterator_impl::increment(node, position);

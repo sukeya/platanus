@@ -201,10 +201,10 @@ void insert(std::initializer_list<value_type> list);
 ```cpp
 size_type erase(const key_type& key);
 iterator  erase(const iterator& iter);
-void      erase(const iterator& b, const iterator& e);
+size_type erase(const iterator& b, const iterator& e);
 ```
 
-1. Erases the specified key from `*this` and returns
+1. Erases the specified key from `*this` and returns the number of erased keys.
 1. Erases the specified iterator from `*this`. The iterator must be valid (i.e. not equal to end()). Return an iterator pointing to the node after the one that was erased (or end() if none exists).
 1. Erases a range from `b` to `e` (`e` isn't included) and return the number of erased keys.
 

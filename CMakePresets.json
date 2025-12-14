@@ -14,11 +14,18 @@
       "generator": "Ninja"
     },
     {
+      "name": "local",
+      "inherits": ["test"],
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
       "name": "test_gcc",
       "inherits": ["test"],
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_CXX_FLAGS": "-O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak"
+        "CMAKE_CXX_FLAGS": "-O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined,pointer-compare,pointer-subtract,leak -D EIGEN_MAX_ALIGN_BYTES=0 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_GLIBCXX_ASSERTIONS -fstrict-flex-arrays=3 -fstack-clash-protection -fstack-protector-strong"
       }
     },
     {
@@ -32,14 +39,14 @@
       "name": "test_clang",
       "inherits": ["test", "clang"],
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined,leak"
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined,leak -D EIGEN_MAX_ALIGN_BYTES=0 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_LIBCPP_ASSERT -fstrict-flex-arrays=3 -fstack-clash-protection -fstack-protector-strong"
       }
     },
     {
       "name": "test_clang_memory",
       "inherits": ["test", "clang"],
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O1 -g -fno-omit-frame-pointer -fsanitize=memory"
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O1 -g -fno-omit-frame-pointer -fsanitize=memory -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_LIBCPP_ASSERT -fstrict-flex-arrays=3 -fstack-clash-protection -fstack-protector-strong"
       }
     }
   ]

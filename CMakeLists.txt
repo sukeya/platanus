@@ -96,9 +96,8 @@ set(msvc "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
 
 set(gcc_like $<OR:${gcc},${clang})
 
-if(PLATANUS_BUILD_TESTS)
-  enable_testing()
 
+function(MakeAvailable_googletest)
   include(FetchContent)
   FetchContent_Declare(
     googletest
@@ -107,6 +106,13 @@ if(PLATANUS_BUILD_TESTS)
     OVERRIDE_FIND_PACKAGE
   )
   FetchContent_MakeAvailable(googletest)
+endfunction()
+
+
+if(PLATANUS_BUILD_TESTS)
+  enable_testing()
+
+  MakeAvailable_googletest()
 
   add_subdirectory(util)
   add_subdirectory(test)
@@ -114,6 +120,9 @@ endif()
 
 if(PLATANUS_BUILD_BENCHMARK)
   include(FetchContent)
+
+  MakeAvailable_googletest()
+
   FetchContent_Declare(
     google_benchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git

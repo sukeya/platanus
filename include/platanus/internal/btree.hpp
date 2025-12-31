@@ -32,19 +32,14 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
-#include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
 #include <limits>
-#include <new>
 #include <ostream>
 #include <ranges>
-#include <string>
 #include <sys/types.h>
-#include <type_traits>
 #include <utility>
 
 #include "btree_iterator.hpp"
@@ -612,7 +607,7 @@ typename btree<NF>::iterator btree<NF>::upper_bound(const key_type& key) {
   }
   auto iter = iterator(borrow_root(), 0);
   for (;;) {
-    iter.position = upper_bound(iter.node, key, ref_key_comp()).index();
+    iter.position = upper_bound(iter.node, key, ref_key_comp()).index;
     if (is_leaf(iter.node)) {
       break;
     }
@@ -993,12 +988,12 @@ typename btree<NF>::iterator btree<NF>::internal_lower_bound(const key_type& key
   auto iter = iterator(borrow_root(), 0);
   for (;;) {
     auto result   = lower_bound(iter.node, key, ref_key_comp());
-    iter.position = result.index();
+    iter.position = result.index;
     if (is_leaf(iter.node)) {
       break;
     }
     if constexpr (IsUnique) {
-      if (result.is_exact_match()) {
+      if (result.is_exact_match) {
         break;
       }
     }
@@ -1029,9 +1024,9 @@ template <class NF>
 template <typename IterType>
 std::pair<IterType, bool> btree<NF>::internal_locate(const key_type& key, IterType iter) const {
   for (;;) {
-    node_search_result res = lower_bound(iter.node, key, ref_key_comp());
-    iter.position          = res.index();
-    if (res.is_exact_match()) {
+    auto res      = lower_bound(iter.node, key, ref_key_comp());
+    iter.position = res.index;
+    if (res.is_exact_match) {
       return std::make_pair(iter, true);
     }
     if (is_leaf(iter.node)) {

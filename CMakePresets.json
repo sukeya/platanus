@@ -14,6 +14,13 @@
       "generator": "Ninja"
     },
     {
+      "name": "local",
+      "inherits": ["test"],
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
       "name": "test_gcc",
       "inherits": ["test"],
       "cacheVariables": {
@@ -40,6 +47,28 @@
       "inherits": ["test", "clang"],
       "cacheVariables": {
         "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O1 -g -fno-omit-frame-pointer -fsanitize=memory"
+      }
+    },
+    {
+      "name": "benchmark",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "generator": "Ninja"
+    },
+    {
+      "name": "benchmark_gcc",
+      "inherits": ["benchmark"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_CXX_FLAGS": "-O2 -DNDEBUG"
+      }
+    },
+    {
+      "name": "benchmark_clang",
+      "inherits": ["benchmark", "clang"],
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O2 -DNDEBUG"
       }
     }
   ]

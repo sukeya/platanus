@@ -48,6 +48,28 @@
       "cacheVariables": {
         "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O1 -g -fno-omit-frame-pointer -fsanitize=memory -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_LIBCPP_ASSERT -fstrict-flex-arrays=3 -fstack-clash-protection -fstack-protector-strong"
       }
+    },
+    {
+      "name": "benchmark",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "generator": "Ninja"
+    },
+    {
+      "name": "benchmark_gcc",
+      "inherits": ["benchmark"],
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_CXX_FLAGS": "-O2 -DNDEBUG"
+      }
+    },
+    {
+      "name": "benchmark_clang",
+      "inherits": ["benchmark", "clang"],
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O2 -DNDEBUG"
+      }
     }
   ]
 }

@@ -32,19 +32,14 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
-#include <functional>
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
 #include <limits>
-#include <new>
 #include <ostream>
 #include <ranges>
-#include <string>
 #include <sys/types.h>
-#include <type_traits>
 #include <utility>
 
 #include "btree_iterator.hpp"

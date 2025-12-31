@@ -30,8 +30,6 @@
 #define PLATANUS_INTERNAL_BTREE_PARAM_H_
 
 #include <cstddef>
-#include <cstdint>
-#include <limits>
 #include <type_traits>
 #include <utility>
 

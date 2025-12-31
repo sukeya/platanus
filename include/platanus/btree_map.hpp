@@ -30,11 +30,8 @@
 #define PLATANUS_BTREE_MAP_H_
 
 #include <algorithm>
-#include <compare>
 #include <functional>
 #include <memory>
-#include <memory_resource>
-#include <string>
 #include <utility>
 
 #include "internal/btree_node.hpp"

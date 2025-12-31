@@ -30,7 +30,6 @@
 #define PLATANUS_INTERNAL_BTREE_NODE_H_
 
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <memory>
 

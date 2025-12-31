@@ -65,9 +65,8 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   using size_type          = typename super_type::size_type;
   using difference_type    = typename super_type::difference_type;
 
-  using search_result     = typename super_type::search_result;
-  using count_type        = typename search_result::count_type;
-  using signed_count_type = typename search_result::signed_count_type;
+  using search_result = typename super_type::search_result;
+  using count_type    = typename search_result::count_type;
 
   using values_type                   = typename super_type::values_type;
   using values_iterator               = typename values_type::iterator;

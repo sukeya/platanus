@@ -99,7 +99,7 @@ class btree_base_node {
   ~btree_base_node()                                 = default;
 
   explicit btree_base_node(btree_node_borrower<Node> parent)
-      : parent_(parent), position_(0), count_(0) {}
+      : position_(0), count_(0), parent_(parent) {}
 
   // Getter for the position of this node in its parent.
   count_type position() const noexcept { return position_; }
@@ -313,12 +313,12 @@ class btree_base_node {
 
   // The array of values.
   values_type values_;
-  // A pointer to the node's parent.
-  node_borrower parent_;
   // The position of the node in the node's parent.
   count_type position_;
   // The count of the number of values in the node.
   count_type count_;
+  // A pointer to the node's parent.
+  node_borrower parent_;
 };
 
 template <typename P, typename N>

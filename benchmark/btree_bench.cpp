@@ -170,71 +170,86 @@ static void BM_Merge(benchmark::State& state) {
   }
 }
 
-template <template <class, class, class, std::size_t> class BTreeContainer, class T, std::size_t N>
+template <
+    template <class, class, class, std::int_least16_t> class BTreeContainer,
+    class T,
+    std::int_least16_t N>
 struct SetCompAndAllocToSet {
   using type = BTreeContainer<T, std::ranges::less, std::allocator<T>, N>;
 };
 
-template <template <class, class, class, std::size_t> class BTreeContainer, std::size_t N>
+template <
+    template <class, class, class, std::int_least16_t> class BTreeContainer,
+    std::int_least16_t N>
 struct SetCompAndAllocToSet<BTreeContainer, std::string, N> {
   using type = BTreeContainer<std::string, StringComp, std::allocator<std::string>, N>;
 };
 
 template <
-    template <class, class, class, class, std::size_t> class BTreeContainer,
+    template <class, class, class, class, std::int_least16_t> class BTreeContainer,
     class T,
-    std::size_t N>
+    std::int_least16_t N>
 struct SetCompAndAllocToMap {
   using type = BTreeContainer<T, T, std::ranges::less, std::allocator<T>, N>;
 };
 
-template <template <class, class, class, class, std::size_t> class BTreeContainer, std::size_t N>
+template <
+    template <class, class, class, class, std::int_least16_t> class BTreeContainer,
+    std::int_least16_t N>
 struct SetCompAndAllocToMap<BTreeContainer, std::string, N> {
   using type = BTreeContainer<std::string, std::string, StringComp, std::allocator<std::string>, N>;
 };
 
-template <template <class, class, std::size_t> class BTreeContainer, class T, std::size_t N>
+template <
+    template <class, class, std::int_least16_t> class BTreeContainer,
+    class T,
+    std::int_least16_t N>
 struct SetCompToPmrSet {
   using type = BTreeContainer<T, std::ranges::less, N>;
 };
 
-template <template <class, class, std::size_t> class BTreeContainer, std::size_t N>
+template <template <class, class, std::int_least16_t> class BTreeContainer, std::int_least16_t N>
 struct SetCompToPmrSet<BTreeContainer, std::string, N> {
   using type = BTreeContainer<std::string, StringComp, N>;
 };
 
-template <template <class, class, class, std::size_t> class BTreeContainer, class T, std::size_t N>
+template <
+    template <class, class, class, std::int_least16_t> class BTreeContainer,
+    class T,
+    std::int_least16_t N>
 struct SetCompToPmrMap {
   using type = BTreeContainer<T, T, std::ranges::less, N>;
 };
 
-template <template <class, class, class, std::size_t> class BTreeContainer, std::size_t N>
+template <
+    template <class, class, class, std::int_least16_t> class BTreeContainer,
+    std::int_least16_t N>
 struct SetCompToPmrMap<BTreeContainer, std::string, N> {
   using type = BTreeContainer<std::string, std::string, StringComp, N>;
 };
 
-template <class T, std::size_t N>
+template <class T, std::int_least16_t N>
 using BTreeSet = typename SetCompAndAllocToSet<platanus::btree_set, T, N>::type;
 
-template <class T, std::size_t N>
+template <class T, std::int_least16_t N>
 using BTreeMultiSet = typename SetCompAndAllocToSet<platanus::btree_multiset, T, N>::type;
 
-template <class T, std::size_t N>
+template <class T, std::int_least16_t N>
 using BTreeMap = typename SetCompAndAllocToMap<platanus::btree_map, T, N>::type;
 
-template <class T, std::size_t N>
+template <class T, std::int_least16_t N>
 using BTreeMultiMap = typename SetCompAndAllocToMap<platanus::btree_multimap, T, N>::type;
 
-template <class T, std::size_t N>
+template <class T, std::int_least16_t N>
 using BTreePmrSet = typename SetCompToPmrSet<platanus::pmr::btree_set, T, N>::type;
 
-template <class T, std::size_t N>
+template <class T, std::int_least16_t N>
 using BTreePmrMultiSet = typename SetCompToPmrSet<platanus::pmr::btree_multiset, T, N>::type;
 
-template <class T, std::size_t N>
+template <class T, std::int_least16_t N>
 using BTreePmrMap = typename SetCompToPmrMap<platanus::pmr::btree_map, T, N>::type;
 
-template <class T, std::size_t N>
+template <class T, std::int_least16_t N>
 using BTreePmrMultiMap = typename SetCompToPmrMap<platanus::pmr::btree_multimap, T, N>::type;
 
 template <class T>

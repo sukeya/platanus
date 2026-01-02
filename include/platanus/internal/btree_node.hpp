@@ -48,9 +48,6 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   using self_type   = btree_node<params_type>;
   using super_type  = btree_base_node<Params, self_type>;
 
-  static constexpr std::size_t kNodeValues   = super_type::kNodeValues;
-  static constexpr std::size_t kNodeChildren = super_type::kNodeChildren;
-
   using key_type           = typename super_type::key_type;
   using mapped_type        = typename super_type::mapped_type;
   using value_type         = typename super_type::value_type;
@@ -65,7 +62,7 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   using difference_type    = typename super_type::difference_type;
 
   using search_result = typename super_type::search_result;
-  using count_type    = typename search_result::count_type;
+  using count_type    = typename super_type::count_type;
 
   using values_type                   = typename super_type::values_type;
   using values_iterator               = typename values_type::iterator;
@@ -110,6 +107,9 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
 
   using children_allocator_type   = typename allocator_traits::template rebind_alloc<node_owner>;
   using children_allocator_traits = std::allocator_traits<children_allocator_type>;
+
+  static constexpr count_type kNodeValues   = super_type::kNodeValues;
+  static constexpr count_type kNodeChildren = super_type::kNodeChildren;
 
   class children_deleter : private children_allocator_type {
    public:
@@ -451,7 +451,8 @@ template <class Params>
 struct sizeof_internal_node<btree_node<Params>> {
   static constexpr std::size_t value =
       sizeof(btree_node<Params>)
-      + sizeof(btree_node_owner<btree_node<Params>>) * btree_node<Params>::kNodeChildren;
+      + sizeof(btree_node_owner<btree_node<Params>>)
+            * static_cast<std::size_t>(btree_node<Params>::kNodeChildren);
 };
 
 template <class Params>

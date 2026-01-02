@@ -16,7 +16,6 @@
 #define PLATANUS_INTERNAL_BTREE_NODE_FWD_H_
 
 #include <cstddef>
-#include <limits>
 
 namespace platanus {
 namespace internal {

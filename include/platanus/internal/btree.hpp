@@ -68,14 +68,16 @@ class btree {
   using node_factory = typename NodeAndFactory::node_factory;
   using self_type    = btree<NodeAndFactory>;
 
-  static constexpr std::size_t kNodeValues    = node_type::kNodeValues;
-  static constexpr std::size_t kNodeChildren  = node_type::kNodeChildren;
-  static constexpr std::size_t kMinNodeValues = kNodeValues / 2;
-
   using node_owner             = btree_node_owner<node_type>;
   using node_borrower          = btree_node_borrower<node_type>;
   using node_readonly_borrower = btree_node_readonly_borrower<node_type>;
   using node_search_result     = typename node_type::search_result;
+
+  using node_count_type = typename node_type::count_type;
+
+  static constexpr node_count_type kNodeValues    = node_type::kNodeValues;
+  static constexpr node_count_type kNodeChildren  = node_type::kNodeChildren;
+  static constexpr node_count_type kMinNodeValues = kNodeValues / 2;
 
  public:
   using key_type               = typename params_type::key_type;

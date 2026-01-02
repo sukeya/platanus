@@ -31,7 +31,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstdint>
 #include <iterator>
 
 #include "btree_node_fwd.hpp"
@@ -39,32 +38,16 @@
 
 namespace platanus::internal {
 
+template <class T>
 struct btree_node_search_result {
  public:
-  using count_type = std::int_least32_t;
-
-  count_type index{0};
-  bool       is_exact_match{false};
+  T    index{0};
+  bool is_exact_match{false};
 };
 
 template <typename Params, class Node>
 class btree_base_node {
  public:
-  static constexpr std::size_t kMaxNumOfValues = []() {
-    // Available space for values.
-    static_assert(
-        Params::kMaxNumOfValues >= 3,
-        "We need a minimum of 3 values per internal node in order to perform"
-        "splitting (1 value for the two nodes involved in the split and 1 value"
-        "propagated to the parent as the delimiter for the split)."
-    );
-
-    return Params::kMaxNumOfValues;
-  }();
-
-  static constexpr std::size_t kNodeValues   = Params::kMaxNumOfValues;
-  static constexpr std::size_t kNodeChildren = Params::kMaxNumOfValues + 1;
-
   using params_type        = Params;
   using key_type           = typename Params::key_type;
   using mapped_type        = typename Params::mapped_type;
@@ -79,8 +62,23 @@ class btree_base_node {
   using size_type          = typename Params::size_type;
   using difference_type    = typename Params::difference_type;
 
-  using search_result = btree_node_search_result;
-  using count_type    = typename search_result::count_type;
+  using count_type    = typename Params::count_type;
+  using search_result = btree_node_search_result<count_type>;
+
+  static constexpr count_type kMaxNumOfValues = []() {
+    // Available space for values.
+    static_assert(
+        Params::kMaxNumOfValues >= 3,
+        "We need a minimum of 3 values per internal node in order to perform"
+        "splitting (1 value for the two nodes involved in the split and 1 value"
+        "propagated to the parent as the delimiter for the split)."
+    );
+
+    return Params::kMaxNumOfValues;
+  }();
+
+  static constexpr count_type kNodeValues   = Params::kMaxNumOfValues;
+  static constexpr count_type kNodeChildren = Params::kMaxNumOfValues + 1;
 
   using values_type                   = std::array<mutable_value_type, kNodeValues>;
   using values_iterator               = typename values_type::iterator;

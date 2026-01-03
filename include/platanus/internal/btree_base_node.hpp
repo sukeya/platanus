@@ -29,65 +29,25 @@
 #ifndef PLATANUS_INTERNAL_BTREE_NODE_COMMON_H_
 #define PLATANUS_INTERNAL_BTREE_NODE_COMMON_H_
 
-#include <bit>
-#include <cstdint>
-#include <type_traits>
+#include <algorithm>
+#include <cassert>
+#include <iterator>
 
 #include "btree_node_fwd.hpp"
 #include "btree_util.hpp"
 
 namespace platanus::internal {
 
-template <std::size_t BitWidth>
-class btree_node_search_result {
+template <class T>
+struct btree_node_search_result {
  public:
-  static_assert(BitWidth > 0 && BitWidth < 16, "BitWidth must be in the range [1, 15].");
-
-  static constexpr std::size_t bit_width         = BitWidth;
-  static constexpr bool        is_less_than_8bit = bit_width < 8;
-
-  using count_type = std::conditional_t<is_less_than_8bit, std::uint_least8_t, std::uint_least16_t>;
-  using signed_count_type =
-      std::conditional_t<is_less_than_8bit, std::int_least16_t, std::int_least32_t>;
-
-  btree_node_search_result()                                           = default;
-  btree_node_search_result(const btree_node_search_result&)            = default;
-  btree_node_search_result& operator=(const btree_node_search_result&) = default;
-  btree_node_search_result(btree_node_search_result&&)                 = default;
-  btree_node_search_result& operator=(btree_node_search_result&&)      = default;
-  ~btree_node_search_result()                                          = default;
-
-  explicit btree_node_search_result(count_type index, bool is_exact_match) noexcept
-      : index_(index), exact_match_(is_exact_match ? 1 : 0) {
-    assert(index < (1 << bit_width));
-  }
-
-  count_type index() const noexcept { return index_; }
-  bool       is_exact_match() const noexcept { return exact_match_ == 1; }
-
- private:
-  count_type index_       : bit_width{0};
-  count_type exact_match_ : 1 {0};
+  T    index{0};
+  bool is_exact_match{false};
 };
 
 template <typename Params, class Node>
 class btree_base_node {
  public:
-  static constexpr std::size_t kMaxNumOfValues = []() {
-    // Available space for values.
-    static_assert(
-        Params::kMaxNumOfValues >= 3,
-        "We need a minimum of 3 values per internal node in order to perform"
-        "splitting (1 value for the two nodes involved in the split and 1 value"
-        "propagated to the parent as the delimiter for the split)."
-    );
-
-    return Params::kMaxNumOfValues;
-  }();
-
-  static constexpr std::size_t kNodeValues   = Params::kMaxNumOfValues;
-  static constexpr std::size_t kNodeChildren = Params::kMaxNumOfValues + 1;
-
   using params_type        = Params;
   using key_type           = typename Params::key_type;
   using mapped_type        = typename Params::mapped_type;
@@ -102,10 +62,23 @@ class btree_base_node {
   using size_type          = typename Params::size_type;
   using difference_type    = typename Params::difference_type;
 
-  using search_result =
-      btree_node_search_result<std::bit_width(static_cast<std::size_t>(kNodeValues))>;
-  using count_type        = typename search_result::count_type;
-  using signed_count_type = typename search_result::signed_count_type;
+  using count_type    = typename Params::count_type;
+  using search_result = btree_node_search_result<count_type>;
+
+  static constexpr count_type kMaxNumOfValues = []() {
+    // Available space for values.
+    static_assert(
+        Params::kMaxNumOfValues >= 3,
+        "We need a minimum of 3 values per internal node in order to perform"
+        "splitting (1 value for the two nodes involved in the split and 1 value"
+        "propagated to the parent as the delimiter for the split)."
+    );
+
+    return Params::kMaxNumOfValues;
+  }();
+
+  static constexpr count_type kNodeValues   = Params::kMaxNumOfValues;
+  static constexpr count_type kNodeChildren = Params::kMaxNumOfValues + 1;
 
   using values_type                   = std::array<mutable_value_type, kNodeValues>;
   using values_iterator               = typename values_type::iterator;
@@ -252,7 +225,7 @@ class btree_base_node {
         }
       }
     }
-    return search_result(s, is_exact_match);
+    return search_result{.index = s, .is_exact_match = is_exact_match};
   }
 
   template <bool WithEqual = true>
@@ -284,7 +257,7 @@ class btree_base_node {
         }
       }
     }
-    return search_result(s, is_exact_match);
+    return search_result{.index = s, .is_exact_match = is_exact_match};
   }
 
   // Returns the pointer to the front of the values array.

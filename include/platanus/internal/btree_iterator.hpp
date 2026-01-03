@@ -36,13 +36,11 @@
 namespace platanus::internal {
 namespace btree_iterator_impl {
 template <class Node>
-using signed_count_type = typename Node::signed_count_type;
+using count_type = typename Node::count_type;
 
 // Increment/decrement the iterator.
 template <class Node>
-void increment_slow(
-    btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& pos
-) noexcept {
+void increment_slow(btree_node_readonly_borrower<Node>& node, count_type<Node>& pos) noexcept {
   if (is_leaf(node)) {
     assert(pos >= count(node));
 
@@ -74,9 +72,7 @@ void increment_slow(
 }
 
 template <class Node>
-void increment(
-    btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& position
-) noexcept {
+void increment(btree_node_readonly_borrower<Node>& node, count_type<Node>& position) noexcept {
   if (is_leaf(node) && ++position < count(node)) {
     return;
   }
@@ -84,16 +80,14 @@ void increment(
 }
 
 template <class Node>
-void increment(btree_node_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+void increment(btree_node_borrower<Node>& node, count_type<Node>& position) noexcept {
   auto tmp = static_cast<btree_node_readonly_borrower<Node>>(node);
   increment(tmp, position);
   node = const_cast<btree_node_borrower<Node>>(tmp);
 }
 
 template <class Node>
-void decrement_slow(
-    btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& pos
-) noexcept {
+void decrement_slow(btree_node_readonly_borrower<Node>& node, count_type<Node>& pos) noexcept {
   if (is_leaf(node)) {
     assert(pos <= -1);
 
@@ -126,9 +120,7 @@ void decrement_slow(
 }
 
 template <class Node>
-void decrement(
-    btree_node_readonly_borrower<Node>& node, signed_count_type<Node>& position
-) noexcept {
+void decrement(btree_node_readonly_borrower<Node>& node, count_type<Node>& position) noexcept {
   if (is_leaf(node) && --position >= 0) {
     return;
   }
@@ -136,7 +128,7 @@ void decrement(
 }
 
 template <class Node>
-void decrement(btree_node_borrower<Node>& node, signed_count_type<Node>& position) noexcept {
+void decrement(btree_node_borrower<Node>& node, count_type<Node>& position) noexcept {
   auto tmp = static_cast<btree_node_readonly_borrower<Node>>(node);
   decrement(tmp, position);
   node = const_cast<btree_node_borrower<Node>>(tmp);
@@ -159,9 +151,9 @@ struct btree_iterator<Node, false> {
   using reference  = typename Node::reference;
   using pointer    = typename Node::pointer;
 
-  using size_type         = typename Node::size_type;
-  using difference_type   = typename Node::difference_type;
-  using signed_count_type = typename Node::signed_count_type;
+  using size_type       = typename Node::size_type;
+  using difference_type = typename Node::difference_type;
+  using count_type      = typename Node::count_type;
 
   using iterator_type     = btree_iterator<Node, false>;
   using iterator_category = std::bidirectional_iterator_tag;
@@ -174,7 +166,7 @@ struct btree_iterator<Node, false> {
   btree_iterator& operator=(btree_iterator&&)      = default;
   ~btree_iterator()                                = default;
 
-  explicit btree_iterator(node_borrower n, signed_count_type p) noexcept : node(n), position(p) {}
+  explicit btree_iterator(node_borrower n, count_type p) noexcept : node(n), position(p) {}
 
   // Accessors for the key/value the iterator is pointing at.
   const key_type& key() const {
@@ -213,7 +205,7 @@ struct btree_iterator<Node, false> {
   // The node in the tree the iterator is pointing at.
   node_borrower node;
   // The position within the node of the tree the iterator is pointing at.
-  signed_count_type position;
+  count_type position;
 };
 
 template <typename Node>
@@ -229,9 +221,9 @@ struct btree_iterator<Node, true> {
   using reference  = typename Node::const_reference;
   using pointer    = typename Node::const_pointer;
 
-  using size_type         = typename Node::size_type;
-  using difference_type   = typename Node::difference_type;
-  using signed_count_type = typename Node::signed_count_type;
+  using size_type       = typename Node::size_type;
+  using difference_type = typename Node::difference_type;
+  using count_type      = typename Node::count_type;
 
   using iterator_type     = btree_iterator<Node, false>;
   using iterator_category = std::bidirectional_iterator_tag;
@@ -244,8 +236,7 @@ struct btree_iterator<Node, true> {
   btree_iterator& operator=(btree_iterator&&)      = default;
   ~btree_iterator()                                = default;
 
-  explicit btree_iterator(node_readonly_borrower n, signed_count_type p) noexcept
-      : node(n), position(p) {}
+  explicit btree_iterator(node_readonly_borrower n, count_type p) noexcept : node(n), position(p) {}
 
   btree_iterator(const btree_iterator<Node, false>& x) noexcept
       : btree_iterator(static_cast<node_readonly_borrower>(x.node), x.position) {}
@@ -287,7 +278,7 @@ struct btree_iterator<Node, true> {
   // The node in the tree the iterator is pointing at.
   node_readonly_borrower node;
   // The position within the node of the tree the iterator is pointing at.
-  signed_count_type position;
+  count_type position;
 };
 
 template <typename Node, bool lb, bool rb>

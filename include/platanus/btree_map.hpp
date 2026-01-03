@@ -30,11 +30,8 @@
 #define PLATANUS_BTREE_MAP_H_
 
 #include <algorithm>
-#include <compare>
 #include <functional>
 #include <memory>
-#include <memory_resource>
-#include <string>
 #include <utility>
 
 #include "internal/btree_node.hpp"
@@ -47,9 +44,9 @@ namespace platanus {
 template <
     typename Key,
     typename Value,
-    typename Compare           = std::ranges::less,
-    typename Alloc             = std::allocator<std::pair<const Key, Value>>,
-    std::size_t MaxNumOfValues = 64>
+    typename Compare                  = std::ranges::less,
+    typename Alloc                    = std::allocator<std::pair<const Key, Value>>,
+    std::int_least16_t MaxNumOfValues = 64>
 class btree_map
     : public internal::btree_map_container<internal::btree<internal::btree_node_and_factory<
           internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
@@ -167,7 +164,7 @@ class btree_map
   using super_type::operator[];
 };
 
-template <typename K, typename V, typename C, typename A, std::size_t N>
+template <typename K, typename V, typename C, typename A, std::int_least16_t N>
 void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
   x.swap(y);
 }
@@ -175,9 +172,9 @@ void swap(btree_map<K, V, C, A, N>& x, btree_map<K, V, C, A, N>& y) {
 template <
     typename Key,
     typename Value,
-    typename Compare           = std::ranges::less,
-    typename Alloc             = std::allocator<std::pair<const Key, Value>>,
-    std::size_t MaxNumOfValues = 64>
+    typename Compare                  = std::ranges::less,
+    typename Alloc                    = std::allocator<std::pair<const Key, Value>>,
+    std::int_least16_t MaxNumOfValues = 64>
 class btree_multimap
     : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
           internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
@@ -294,7 +291,7 @@ class btree_multimap
   using super_type::merge;
 };
 
-template <typename K, typename V, typename C, typename A, std::size_t N>
+template <typename K, typename V, typename C, typename A, std::int_least16_t N>
 void swap(btree_multimap<K, V, C, A, N>& x, btree_multimap<K, V, C, A, N>& y) {
   x.swap(y);
 }
@@ -304,8 +301,8 @@ namespace pmr {
 template <
     typename Key,
     typename Value,
-    typename Compare           = std::ranges::less,
-    std::size_t MaxNumOfValues = 64>
+    typename Compare                  = std::ranges::less,
+    std::int_least16_t MaxNumOfValues = 64>
 class btree_map : public internal::btree_map_container<
                       internal::btree<internal::btree_node_and_factory<internal::btree_map_params<
                           Key,
@@ -430,7 +427,7 @@ class btree_map : public internal::btree_map_container<
   using super_type::operator[];
 };
 
-template <typename K, typename V, typename C, std::size_t N>
+template <typename K, typename V, typename C, std::int_least16_t N>
 void swap(btree_map<K, V, C, N>& x, btree_map<K, V, C, N>& y) {
   x.swap(y);
 }
@@ -438,8 +435,8 @@ void swap(btree_map<K, V, C, N>& x, btree_map<K, V, C, N>& y) {
 template <
     typename Key,
     typename Value,
-    typename Compare           = std::ranges::less,
-    std::size_t MaxNumOfValues = 64>
+    typename Compare                  = std::ranges::less,
+    std::int_least16_t MaxNumOfValues = 64>
 class btree_multimap
     : public internal::btree_multi_container<
           internal::btree<internal::btree_node_and_factory<internal::btree_map_params<
@@ -564,7 +561,7 @@ class btree_multimap
   using super_type::merge;
 };
 
-template <typename K, typename V, typename C, std::size_t N>
+template <typename K, typename V, typename C, std::int_least16_t N>
 void swap(btree_multimap<K, V, C, N>& x, btree_multimap<K, V, C, N>& y) {
   x.swap(y);
 }

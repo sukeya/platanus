@@ -8,7 +8,7 @@ template <
     typename Value,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
-    std::size_t MaxNumOfValues = 512>
+    std::int_least16_t MaxNumOfValues = 512>
 class btree_multimap;
 }
 ```
@@ -324,7 +324,7 @@ Smaller values indicate space wastage.
 ## Non-member function
 ### Swap
 ```cpp
-template <typename K, typename C, typename A, std::size_t N>
+template <typename K, typename C, typename A, std::int_least16_t N>
 void swap(btree_multimap<K, C, A, N>& x, btree_multimap<K, C, A, N>& y);
 ```
 

@@ -31,7 +31,6 @@
 
 #include <concepts>
 #include <compare>
-#include <cstdint>
 #include <type_traits>
 #include <utility>
 
@@ -67,6 +66,15 @@ template <class Key, class Compare>
 concept comp_return_bool = requires(Key lhd, Key rhd, Compare comp) {
   { comp(lhd, rhd) } -> std::same_as<bool>;
 };
+
+template <class T>
+struct EBOTest : public T {
+  void* ptr;
+};
+
+template <class T>
+static constexpr bool can_ebo = (sizeof(T) == 1) && (sizeof(EBOTest<T>) == sizeof(void*));
+
 }  // namespace platanus::internal
 
 #endif  // PLATANUS_INTERNAL_BTREE_UTIL_H_

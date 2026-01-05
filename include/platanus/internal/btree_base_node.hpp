@@ -298,19 +298,6 @@ class btree_base_node {
     std::move(begin, end, std::prev(begin, shift));
   }
 
-  template <class P>
-  friend void merge(
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> left,
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> right
-  );
-
-  template <class P>
-  friend void split(
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> left,
-      btree_node_owner<experimental::pmr::btree_leaf_node<P>>&&  right,
-      typename experimental::pmr::btree_leaf_node<P>::count_type insert_position
-  );
-
   // The array of values.
   values_type values_;
   // The position of the node in the node's parent.

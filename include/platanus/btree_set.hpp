@@ -46,7 +46,7 @@ template <
     typename Key,
     typename Compare                  = std::ranges::less,
     typename Alloc                    = std::allocator<Key>,
-    std::int_least16_t MaxNumOfValues = 64>
+    std::int_least16_t MaxNumOfValues = kFitL1Cache>
 class btree_set
     : public internal::btree_unique_container<internal::btree<internal::btree_node_and_factory<
           internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
@@ -171,7 +171,7 @@ template <
     typename Key,
     typename Compare                  = std::ranges::less,
     typename Alloc                    = std::allocator<Key>,
-    std::int_least16_t MaxNumOfValues = 64>
+    std::int_least16_t MaxNumOfValues = kFitL1Cache>
 class btree_multiset
     : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
           internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
@@ -297,7 +297,7 @@ namespace pmr {
 template <
     typename Key,
     typename Compare                  = std::ranges::less,
-    std::int_least16_t MaxNumOfValues = 64>
+    std::int_least16_t MaxNumOfValues = kFitL1Cache>
 class btree_set
     : public internal::btree_unique_container<internal::btree<internal::btree_node_and_factory<
           internal::
@@ -422,7 +422,7 @@ void swap(btree_set<K, C, N>& x, btree_set<K, C, N>& y) {
 template <
     typename Key,
     typename Compare                  = std::ranges::less,
-    std::int_least16_t MaxNumOfValues = 64>
+    std::int_least16_t MaxNumOfValues = kFitL1Cache>
 class btree_multiset
     : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
           internal::

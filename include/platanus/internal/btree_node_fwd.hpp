@@ -15,6 +15,7 @@
 #ifndef PLATANUS_INTERNAL_BTREE_NODE_FWD_H_
 #define PLATANUS_INTERNAL_BTREE_NODE_FWD_H_
 
+#include <array>
 #include <cstddef>
 
 namespace platanus {
@@ -45,7 +46,13 @@ struct sizeof_internal_node {};
 template <class T>
 static constexpr std::size_t sizeof_internal_node_v = sizeof_internal_node<T>::value;
 
+static constexpr std::int_least16_t kMinNumOfValues = 3;
 }  // namespace internal
+
+static constexpr std::array<int, 2> cache_line_sizes = {64, 1024};
+
+static constexpr std::int_least16_t kFitL1Cache = -1;
+static constexpr std::int_least16_t kFitL2Cache = -2;
 
 }  // namespace platanus
 

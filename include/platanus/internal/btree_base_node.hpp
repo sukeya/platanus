@@ -108,8 +108,23 @@ constexpr typename Params::count_type calc_max_num_of_values(const Params& param
   }
 }
 
+template <class Params>
+constexpr std::size_t calc_align(const Params&) {
+  using allocator_type = typename Params::allocator_type;
+  using value_type     = typename Params::value_type;
+
+  switch (Params::kMaxNumOfValues) {
+    case kFitL1Cache:
+    case kFitL2Cache:
+    case kFitL1CacheFallbackL2:
+      return cache_line_sizes[0];
+    default:
+      return std::max({alignof(value_type), alignof(void*), alignof(allocator_type)});
+  }
+}
+
 template <class Params, class Node>
-class btree_base_node {
+class alignas(calc_align(Params{})) btree_base_node {
  public:
   using params_type        = Params;
   using key_type           = typename Params::key_type;

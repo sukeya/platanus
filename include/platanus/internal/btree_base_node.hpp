@@ -31,7 +31,11 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <iterator>
+#include <limits>
+#include <stdexcept>
 
 #include "btree_node_fwd.hpp"
 #include "btree_util.hpp"
@@ -45,8 +49,82 @@ struct btree_node_search_result {
   bool is_exact_match{false};
 };
 
-template <typename Params, class Node>
-class btree_base_node {
+template <class Params>
+constexpr int calc_num_of_values(const Params&, int cache_line_size) {
+  using allocator_type = typename Params::allocator_type;
+  using count_type     = typename Params::count_type;
+  using value_type     = typename Params::value_type;
+
+  const int count_size      = sizeof(count_type);
+  const int ptr_size        = sizeof(void*);
+  const int half_ptr_size   = ptr_size / 2;
+  const int value_size      = sizeof(value_type);
+  const int unique_ptr_size = sizeof(std::unique_ptr<void>);
+
+  // Calculate the number of values fitted with a cache line.
+  // WARNING: the following calculation assumes this class should be inherited by btree_node only.
+  const int children_ptr_size =
+      can_ebo<allocator_type> ? unique_ptr_size : unique_ptr_size + sizeof(allocator_type);
+
+  const int aligned_count_size = count_size < half_ptr_size ? half_ptr_size : count_size;
+
+  if (value_size % ptr_size == 0) {
+    return (cache_line_size - 2 * aligned_count_size - ptr_size - children_ptr_size) / value_size;
+  } else if (value_size % ptr_size <= half_ptr_size) {
+    return (cache_line_size - 2 * count_size - ptr_size - children_ptr_size) / value_size;
+  } else {
+    throw std::runtime_error("Unsupported value size.");
+  }
+}
+
+template <class Params>
+constexpr typename Params::count_type calc_max_num_of_values(const Params& params) {
+  using count_type = typename Params::count_type;
+
+  int num_of_values = Params::kMaxNumOfValues;
+
+  if (num_of_values == kFitL1Cache) {
+    num_of_values = calc_num_of_values(params, cache_line_sizes[0]);
+  } else if (num_of_values == kFitL2Cache) {
+    num_of_values = calc_num_of_values(params, cache_line_sizes[1]);
+  } else if (num_of_values == kFitL1CacheFallbackL2) {
+    num_of_values = calc_num_of_values(params, cache_line_sizes[0]);
+    if (num_of_values < kMinNumOfValues) {
+      num_of_values = calc_num_of_values(params, cache_line_sizes[1]);
+    }
+  }
+
+  if (num_of_values < kMinNumOfValues) {
+    // Available space for values.
+    throw std::runtime_error(
+        "We need a minimum of 3 values per internal node in order to perform"
+        "splitting (1 value for the two nodes involved in the split and 1 value"
+        "propagated to the parent as the delimiter for the split)."
+    );
+  } else if (num_of_values > std::numeric_limits<count_type>::max()) {
+    return std::numeric_limits<count_type>::max();
+  } else {
+    return num_of_values;
+  }
+}
+
+template <class Params>
+constexpr std::size_t calc_align(const Params&) {
+  using allocator_type = typename Params::allocator_type;
+  using value_type     = typename Params::value_type;
+
+  switch (Params::kMaxNumOfValues) {
+    case kFitL1Cache:
+    case kFitL2Cache:
+    case kFitL1CacheFallbackL2:
+      return cache_line_sizes[0];
+    default:
+      return std::max({alignof(value_type), alignof(void*), alignof(allocator_type)});
+  }
+}
+
+template <class Params, class Node>
+class alignas(calc_align(Params{})) btree_base_node {
  public:
   using params_type        = Params;
   using key_type           = typename Params::key_type;
@@ -65,20 +143,10 @@ class btree_base_node {
   using count_type    = typename Params::count_type;
   using search_result = btree_node_search_result<count_type>;
 
-  static constexpr count_type kMaxNumOfValues = []() {
-    // Available space for values.
-    static_assert(
-        Params::kMaxNumOfValues >= 3,
-        "We need a minimum of 3 values per internal node in order to perform"
-        "splitting (1 value for the two nodes involved in the split and 1 value"
-        "propagated to the parent as the delimiter for the split)."
-    );
+  static constexpr count_type kMaxNumOfValues = calc_max_num_of_values(Params{});
 
-    return Params::kMaxNumOfValues;
-  }();
-
-  static constexpr count_type kNodeValues   = Params::kMaxNumOfValues;
-  static constexpr count_type kNodeChildren = Params::kMaxNumOfValues + 1;
+  static constexpr count_type kNodeValues   = kMaxNumOfValues;
+  static constexpr count_type kNodeChildren = kMaxNumOfValues + 1;
 
   using values_type                   = std::array<mutable_value_type, kNodeValues>;
   using values_iterator               = typename values_type::iterator;
@@ -99,7 +167,7 @@ class btree_base_node {
   ~btree_base_node()                                 = default;
 
   explicit btree_base_node(btree_node_borrower<Node> parent)
-      : parent_(parent), position_(0), count_(0) {}
+      : position_(0), count_(0), parent_(parent) {}
 
   // Getter for the position of this node in its parent.
   count_type position() const noexcept { return position_; }
@@ -298,27 +366,14 @@ class btree_base_node {
     std::move(begin, end, std::prev(begin, shift));
   }
 
-  template <class P>
-  friend void merge(
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> left,
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> right
-  );
-
-  template <class P>
-  friend void split(
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> left,
-      btree_node_owner<experimental::pmr::btree_leaf_node<P>>&&  right,
-      typename experimental::pmr::btree_leaf_node<P>::count_type insert_position
-  );
-
   // The array of values.
   values_type values_;
-  // A pointer to the node's parent.
-  node_borrower parent_;
   // The position of the node in the node's parent.
   count_type position_;
   // The count of the number of values in the node.
   count_type count_;
+  // A pointer to the node's parent.
+  node_borrower parent_;
 };
 
 template <typename P, typename N>

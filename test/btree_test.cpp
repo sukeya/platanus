@@ -26,9 +26,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memory>
+
 #include "gtest/gtest.h"
+
 #include "platanus/btree_map.hpp"
 #include "platanus/btree_set.hpp"
+#include "platanus/internal/btree_node.hpp"
+#include "platanus/internal/btree_node_fwd.hpp"
+#include "platanus/internal/btree_param.hpp"
 #include "btree_test.hpp"
 
 namespace platanus {
@@ -216,6 +222,33 @@ TEST(Btree, multimap_vec2i_64) {
       btree_multimap<K, K, Vec2iComp, std::allocator<K>, N>,
       std::multimap<K, K, Vec2iComp>>();
   BtreeMultiMapTest<btree_multimap<K, K, Vec2iComp, std::allocator<K>, N>>();
+}
+
+TEST(btree_node, kFitL1Cache) {
+  using Node = platanus::internal::btree_node<platanus::internal::btree_set_params<
+      std::int32_t,
+      std::less<std::int32_t>,
+      std::allocator<std::int32_t>,
+      platanus::kFitL1Cache>>;
+  EXPECT_LE(sizeof(Node), cache_line_sizes[0]);
+}
+
+TEST(btree_node, kFitL1CacheFallbackL2) {
+  using Node = platanus::internal::btree_node<platanus::internal::btree_set_params<
+      std::string,
+      std::less<std::string>,
+      std::allocator<std::string>,
+      platanus::kFitL1CacheFallbackL2>>;
+  EXPECT_LE(sizeof(Node), cache_line_sizes[1]);
+}
+
+TEST(btree_node, kFitL2Cache) {
+  using Node = platanus::internal::btree_node<platanus::internal::btree_set_params<
+      std::string,
+      std::less<std::string>,
+      std::allocator<std::string>,
+      platanus::kFitL2Cache>>;
+  EXPECT_LE(sizeof(Node), cache_line_sizes[1]);
 }
 
 }  // namespace platanus

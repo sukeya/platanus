@@ -274,9 +274,9 @@ using STLMultiMap = std::multimap<T, T>;
   BENCHMARK(BM_##func<tree<type, 128>>);  \
   BENCHMARK(BM_##func<tree<type, 256>>);
 #else
-#define BTREE_BENCHMARK(tree, type, func) \
-  BENCHMARK(BM_##func<tree<type, 64>>);   \
-  BENCHMARK(BM_##func<tree<type, 128>>);
+#define BTREE_BENCHMARK(tree, type, func)                            \
+  BENCHMARK(BM_##func<tree<type, platanus::kFitL1CacheFallbackL2>>); \
+  BENCHMARK(BM_##func<tree<type, platanus::kFitL2Cache>>);
 #endif
 
 #define STL_AND_BTREE_BENCHMARK(container, type, func) \

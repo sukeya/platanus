@@ -224,31 +224,31 @@ TEST(Btree, multimap_vec2i_64) {
   BtreeMultiMapTest<btree_multimap<K, K, Vec2iComp, std::allocator<K>, N>>();
 }
 
-TEST(Btree, L1_cache_size_fit) {
+TEST(btree_node, kFitL1Cache) {
   using Node = platanus::internal::btree_node<platanus::internal::btree_set_params<
       std::int32_t,
       std::less<std::int32_t>,
       std::allocator<std::int32_t>,
       platanus::kFitL1Cache>>;
-  EXPECT_EQ(Node::kMaxNumOfValues, 11);
+  EXPECT_LE(sizeof(Node), cache_line_sizes[0]);
 }
 
-TEST(Btree, L1_cache_size_fallback) {
+TEST(btree_node, kFitL1CacheFallbackL2) {
   using Node = platanus::internal::btree_node<platanus::internal::btree_set_params<
       std::string,
       std::less<std::string>,
       std::allocator<std::string>,
-      platanus::kFitL1Cache>>;
-  EXPECT_EQ(Node::kMaxNumOfValues, 41);
+      platanus::kFitL1CacheFallbackL2>>;
+  EXPECT_LE(sizeof(Node), cache_line_sizes[1]);
 }
 
-TEST(Btree, L2_cache_size_fit) {
+TEST(btree_node, kFitL2Cache) {
   using Node = platanus::internal::btree_node<platanus::internal::btree_set_params<
       std::string,
       std::less<std::string>,
       std::allocator<std::string>,
       platanus::kFitL2Cache>>;
-  EXPECT_EQ(Node::kMaxNumOfValues, 41);
+  EXPECT_LE(sizeof(Node), cache_line_sizes[1]);
 }
 
 }  // namespace platanus

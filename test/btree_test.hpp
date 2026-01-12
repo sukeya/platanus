@@ -1045,13 +1045,13 @@ struct Vec2iComp {
   bool operator()(const Vec2i& lhd, const Vec2i& rhd) const noexcept { return comp(lhd, rhd, 0); }
 };
 
-#define BTREE_TEST(test_func, name)                                                \
-  TEST(Btree##name, int32_3) { test_func<int32_t, 3>(); }                          \
-  TEST(Btree##name, int64_3) { test_func<int64_t, 3>(); }                          \
-  TEST(Btree##name, string_3) { test_func<std::string, 3>(); }                     \
-  TEST(Btree##name, pair_3) { test_func<std::pair<int, int>, 3>(); }               \
-  TEST(Btree##name, int32_fit_L1) { test_func<int32_t, platanus::kFitL1Cache>(); } \
-  TEST(Btree##name, string_fit_L2) { test_func<std::string, platanus::kFitL2Cache>(); }
+#define BTREE_TEST(test_func, name)                                  \
+  TEST(Btree##name, int32_3) { test_func<int32_t, 3>(); }            \
+  TEST(Btree##name, int64_3) { test_func<int64_t, 3>(); }            \
+  TEST(Btree##name, string_3) { test_func<std::string, 3>(); }       \
+  TEST(Btree##name, pair_3) { test_func<std::pair<int, int>, 3>(); } \
+  TEST(Btree##name, int32_64) { test_func<int32_t, 64>(); }          \
+  TEST(Btree##name, string_64) { test_func<std::string, 64>(); }
 }  // namespace platanus
 
 namespace std {

@@ -46,7 +46,7 @@ template <
     typename Value,
     typename Compare                  = std::ranges::less,
     typename Alloc                    = std::allocator<std::pair<const Key, Value>>,
-    std::int_least16_t MaxNumOfValues = kFitL1Cache>
+    std::int_least16_t MaxNumOfValues = 64>
 class btree_map
     : public internal::btree_map_container<internal::btree<internal::btree_node_and_factory<
           internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
@@ -174,7 +174,7 @@ template <
     typename Value,
     typename Compare                  = std::ranges::less,
     typename Alloc                    = std::allocator<std::pair<const Key, Value>>,
-    std::int_least16_t MaxNumOfValues = kFitL1Cache>
+    std::int_least16_t MaxNumOfValues = 64>
 class btree_multimap
     : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
           internal::btree_map_params<Key, Value, Compare, Alloc, MaxNumOfValues>>>> {
@@ -302,7 +302,7 @@ template <
     typename Key,
     typename Value,
     typename Compare                  = std::ranges::less,
-    std::int_least16_t MaxNumOfValues = kFitL1Cache>
+    std::int_least16_t MaxNumOfValues = 64>
 class btree_map : public internal::btree_map_container<
                       internal::btree<internal::btree_node_and_factory<internal::btree_map_params<
                           Key,
@@ -436,7 +436,7 @@ template <
     typename Key,
     typename Value,
     typename Compare                  = std::ranges::less,
-    std::int_least16_t MaxNumOfValues = kFitL1Cache>
+    std::int_least16_t MaxNumOfValues = 64>
 class btree_multimap
     : public internal::btree_multi_container<
           internal::btree<internal::btree_node_and_factory<internal::btree_map_params<

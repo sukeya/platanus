@@ -1255,7 +1255,7 @@ node_stats btree<NF>::internal_stats(node_readonly_borrower node) const noexcept
     return node_stats(1, 0);
   }
   node_stats res(0, 1);
-  for (size_type i = 0; i <= count(node); ++i) {
+  for (int i = 0; i <= count(node); ++i) {
     res += internal_stats(borrow_readonly_child(node, i));
   }
   return res;

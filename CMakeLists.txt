@@ -114,13 +114,14 @@ endif()
 
 if(PLATANUS_BUILD_BENCHMARK)
   include(FetchContent)
+  set(BENCHMARK_ENABLE_TESTING OFF)
   FetchContent_Declare(
-    google_benchmark
+    benchmark
     GIT_REPOSITORY https://github.com/google/benchmark.git
     GIT_TAG        eddb0241389718a23a42db6af5f0164b6e0139af # v1.9.4
-    FIND_PACKAGE_ARGS benchmark 1.9.4 CONFIG
+    OVERRIDE_FIND_PACKAGE
   )
-  FetchContent_MakeAvailable(google_benchmark)
+  FetchContent_MakeAvailable(benchmark)
 
   add_subdirectory(util)
   add_subdirectory(benchmark)

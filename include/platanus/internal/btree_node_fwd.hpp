@@ -47,10 +47,6 @@ static constexpr std::size_t sizeof_internal_node_v = sizeof_internal_node<T>::v
 
 }  // namespace internal
 
-namespace experimental::pmr {
-template <class P>
-class btree_leaf_node;
-}  // namespace experimental::pmr
 }  // namespace platanus
 
 #endif

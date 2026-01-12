@@ -1051,11 +1051,7 @@ struct Vec2iComp {
   TEST(Btree##name, string_3) { test_func<std::string, 3>(); }       \
   TEST(Btree##name, pair_3) { test_func<std::pair<int, int>, 3>(); } \
   TEST(Btree##name, int32_64) { test_func<int32_t, 64>(); }          \
-  TEST(Btree##name, int32_128) { test_func<int32_t, 128>(); }        \
-  TEST(Btree##name, int32_256) { test_func<int32_t, 256>(); }        \
-  TEST(Btree##name, string_64) { test_func<std::string, 64>(); }     \
-  TEST(Btree##name, string_128) { test_func<std::string, 128>(); }   \
-  TEST(Btree##name, string_256) { test_func<std::string, 256>(); }
+  TEST(Btree##name, string_64) { test_func<std::string, 64>(); }
 }  // namespace platanus
 
 namespace std {

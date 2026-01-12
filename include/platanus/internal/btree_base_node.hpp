@@ -99,7 +99,7 @@ class btree_base_node {
   ~btree_base_node()                                 = default;
 
   explicit btree_base_node(btree_node_borrower<Node> parent)
-      : parent_(parent), position_(0), count_(0) {}
+      : position_(0), count_(0), parent_(parent) {}
 
   // Getter for the position of this node in its parent.
   count_type position() const noexcept { return position_; }
@@ -298,27 +298,14 @@ class btree_base_node {
     std::move(begin, end, std::prev(begin, shift));
   }
 
-  template <class P>
-  friend void merge(
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> left,
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> right
-  );
-
-  template <class P>
-  friend void split(
-      btree_node_borrower<experimental::pmr::btree_leaf_node<P>> left,
-      btree_node_owner<experimental::pmr::btree_leaf_node<P>>&&  right,
-      typename experimental::pmr::btree_leaf_node<P>::count_type insert_position
-  );
-
   // The array of values.
   values_type values_;
-  // A pointer to the node's parent.
-  node_borrower parent_;
   // The position of the node in the node's parent.
   count_type position_;
   // The count of the number of values in the node.
   count_type count_;
+  // A pointer to the node's parent.
+  node_borrower parent_;
 };
 
 template <typename P, typename N>

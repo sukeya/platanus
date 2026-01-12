@@ -51,9 +51,8 @@ static constexpr std::int_least16_t kMinNumOfValues = 3;
 
 static constexpr std::array<int, 2> cache_line_sizes = {64, 1024};
 
-static constexpr std::int_least16_t kFitL1Cache           = -1;
-static constexpr std::int_least16_t kFitL2Cache           = -2;
-static constexpr std::int_least16_t kFitL1CacheFallbackL2 = -3;
+static constexpr std::int_least16_t kFitL1Cache = -1;
+static constexpr std::int_least16_t kFitL2Cache = -2;
 
 }  // namespace platanus
 

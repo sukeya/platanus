@@ -50,6 +50,19 @@ struct btree_node_search_result {
 };
 
 template <class Params>
+constexpr typename Params::count_type limit_num_of_values(const Params&, int num_of_values) {
+  using count_type = typename Params::count_type;
+
+  if (num_of_values < kMinNumOfValues) {
+    return kMinNumOfValues;
+  } else if (num_of_values > std::numeric_limits<count_type>::max()) {
+    return std::numeric_limits<count_type>::max();
+  } else {
+    return static_cast<count_type>(num_of_values);
+  }
+}
+
+template <class Params>
 constexpr int calc_num_of_values(const Params&, int cache_line_size) {
   using allocator_type = typename Params::allocator_type;
   using count_type     = typename Params::count_type;
@@ -79,32 +92,31 @@ constexpr int calc_num_of_values(const Params&, int cache_line_size) {
 
 template <class Params>
 constexpr typename Params::count_type calc_max_num_of_values(const Params& params) {
-  using count_type = typename Params::count_type;
+  const std::int_least16_t kMaxNumOfValues = Params::kMaxNumOfValues;
 
-  int num_of_values = Params::kMaxNumOfValues;
-
-  if (num_of_values == kFitL1Cache) {
-    num_of_values = calc_num_of_values(params, cache_line_sizes[0]);
-  } else if (num_of_values == kFitL2Cache) {
-    num_of_values = calc_num_of_values(params, cache_line_sizes[1]);
-  } else if (num_of_values == kFitL1CacheFallbackL2) {
-    num_of_values = calc_num_of_values(params, cache_line_sizes[0]);
-    if (num_of_values < kMinNumOfValues) {
-      num_of_values = calc_num_of_values(params, cache_line_sizes[1]);
+  if (kMaxNumOfValues == kFitL1Cache || kMaxNumOfValues == kFitL2Cache) {
+    std::size_t start = 0;
+    if (kMaxNumOfValues == kFitL2Cache) {
+      start = 1;
     }
-  }
-
-  if (num_of_values < kMinNumOfValues) {
+    int num_of_values = 0;
+    // Check if a node is fitted with a cache line
+    for (std::size_t i = start; i < cache_line_sizes.size(); ++i) {
+      num_of_values = calc_num_of_values(params, cache_line_sizes[i]);
+      if (num_of_values >= kMinNumOfValues) {
+        return limit_num_of_values(params, num_of_values);
+      }
+    }
+    return static_cast<typename Params::count_type>(limit_num_of_values(params, num_of_values));
+  } else if (kMaxNumOfValues < kMinNumOfValues) {
     // Available space for values.
     throw std::runtime_error(
         "We need a minimum of 3 values per internal node in order to perform"
         "splitting (1 value for the two nodes involved in the split and 1 value"
         "propagated to the parent as the delimiter for the split)."
     );
-  } else if (num_of_values > std::numeric_limits<count_type>::max()) {
-    return std::numeric_limits<count_type>::max();
   } else {
-    return num_of_values;
+    return kMaxNumOfValues;
   }
 }
 

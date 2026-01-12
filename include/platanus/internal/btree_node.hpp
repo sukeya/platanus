@@ -42,8 +42,7 @@ namespace platanus::internal {
 // and leaf nodes in the btree, though the nodes are allocated in such a way
 // that the children array is only valid in internal nodes.
 template <typename Params>
-class alignas(calc_align(Params{})) btree_node
-    : public btree_base_node<Params, btree_node<Params>> {
+class btree_node : public btree_base_node<Params, btree_node<Params>> {
  public:
   using params_type = Params;
   using self_type   = btree_node<params_type>;

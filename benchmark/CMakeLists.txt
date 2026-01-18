@@ -30,9 +30,8 @@ add_executable(btree_bench btree_bench.cpp)
 target_compile_options(
   btree_bench
   PUBLIC
-    "$<${gcc}:-Wall;-Wextra>"
-    "$<${clang}:-Wall;-Wextra>"
-    "$<${msvc}:/Wall>"
+    "$<${gcc_like}:-Wall;-Wextra;-Werror>"
+    "$<${msvc}:/Wall;/WX>"
 )
 target_link_libraries(btree_bench platanus util benchmark::benchmark)
 if (PLATANUS_VALUES_SIZE_TEST)

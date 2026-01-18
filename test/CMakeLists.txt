@@ -32,8 +32,8 @@ function(add_btree_test target)
     ${target}
     PUBLIC
       # Common options for gcc and clang
-      "$<${gcc_like}>:-Wall;-Wextra>"
-      "$<${msvc}:/Wall>"
+      "$<${gcc_like}:-Wall;-Wextra;-Werror>"
+      "$<${msvc}:/Wall;/WX>"
   )
   target_link_libraries(${target} GTest::gtest_main platanus util)
 endfunction()

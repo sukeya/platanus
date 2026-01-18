@@ -33,6 +33,7 @@ project(platanus VERSION 1.1.0 LANGUAGES CXX)
 option(PLATANUS_BUILD_TESTS "Build B-tree tests" OFF)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_OPTIMIZE_DEPENDENCIES ON)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -89,7 +90,6 @@ export(EXPORT platanusTargets
   NAMESPACE platanus::
 )
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(gcc "$<COMPILE_LANG_AND_ID:CXX,GNU>")
 set(clang "$<COMPILE_LANG_AND_ID:CXX,Clang>")
 set(msvc "$<COMPILE_LANG_AND_ID:CXX,MSVC>")

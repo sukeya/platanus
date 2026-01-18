@@ -316,8 +316,8 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
       children_iterator dest, node_borrower src, children_iterator first, children_iterator last
   ) {
     auto n = last - first;
-    assert(0 <= n && n <= std::numeric_limits<int>::max());
-    receive_children_n(dest, src, first, static_cast<int>(n));
+    assert(0 <= n && n <= std::numeric_limits<count_type>::max());
+    receive_children_n(dest, src, first, static_cast<count_type>(n));
   }
 
   // Receive the children from [first, first + n) in *src and set them to [dest, dest + n) in *this.

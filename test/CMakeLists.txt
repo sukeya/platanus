@@ -26,12 +26,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set(is_gcc "$<COMPILE_LANG_AND_ID:CXX,GNU>")
+
 function(add_btree_test target)
   add_executable(${target} ${target}.cpp)
   target_compile_options(
     ${target}
     PUBLIC
-      -Werror -Wall -Wextra -Wformat=2 -Wconversion -Wtrampolines -Wimplicit-fallthrough
+      -Werror -Wall -Wextra -Wformat=2 -Wconversion -Wimplicit-fallthrough
+      $<${is_gcc}:-Wtrampolines>
   )
   target_link_libraries(${target} GTest::gtest_main platanus util)
 endfunction()

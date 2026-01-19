@@ -207,9 +207,9 @@ class base_checker {
   }
 
   // Deletion routines.
-  int erase(const key_type& key) {
-    int size = tree_.size();
-    int res  = checker_.erase(key);
+  size_t erase(const key_type& key) {
+    size_t size = tree_.size();
+    size_t res  = checker_.erase(key);
     EXPECT_EQ(res, tree_.count(key));
     EXPECT_EQ(res, tree_.erase(key));
     EXPECT_EQ(tree_.count(key), 0);
@@ -219,14 +219,14 @@ class base_checker {
   }
 
   iterator erase(iterator iter) {
-    key_type                       key          = iter.key();
-    int                            size         = tree_.size();
-    int                            count        = tree_.count(key);
-    typename CheckerType::iterator checker_iter = checker_.find(key);
+    key_type key          = iter.key();
+    size_t   size         = tree_.size();
+    size_t   count        = tree_.count(key);
+    auto     checker_iter = checker_.find(key);
     for (iterator tmp(tree_.find(key)); tmp != iter; ++tmp) {
       ++checker_iter;
     }
-    typename CheckerType::iterator checker_next = checker_iter;
+    auto checker_next = checker_iter;
     ++checker_next;
     checker_.erase(checker_iter);
     iter = tree_.erase(iter);
@@ -240,14 +240,13 @@ class base_checker {
   }
 
   void erase(iterator begin, iterator end) {
-    int                            size          = tree_.size();
-    int                            count         = std::distance(begin, end);
-    typename CheckerType::iterator checker_begin = checker_.find(begin.key());
+    size_t size          = tree_.size();
+    size_t count         = std::distance(begin, end);
+    auto   checker_begin = checker_.find(begin.key());
     for (iterator tmp(tree_.find(begin.key())); tmp != begin; ++tmp) {
       ++checker_begin;
     }
-    typename CheckerType::iterator checker_end =
-        end == tree_.end() ? checker_.end() : checker_.find(end.key());
+    auto checker_end = end == tree_.end() ? checker_.end() : checker_.find(end.key());
     if (end != tree_.end()) {
       for (iterator tmp(tree_.find(end.key())); tmp != end; ++tmp) {
         ++checker_end;
@@ -282,7 +281,7 @@ class base_checker {
     }
 
     // Move through the forward iterators using decrement.
-    for (int n = tree_.size() - 1; n >= 0; --n) {
+    for (ptrdiff_t n = tree_.size() - 1; n >= 0; --n) {
       iter_check(tree_iter, checker_iter);
       --tree_iter;
       --checker_iter;
@@ -298,7 +297,7 @@ class base_checker {
     }
 
     // Move through the reverse iterators using decrement.
-    for (int n = tree_.size() - 1; n >= 0; --n) {
+    for (ptrdiff_t n = tree_.size() - 1; n >= 0; --n) {
       riter_check(tree_riter, checker_riter);
       --tree_riter;
       --checker_riter;
@@ -486,7 +485,7 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
       name,
       const_b.fullness(),
       const_b.overhead(),
-      double(const_b.bytes_used()) / const_b.size()
+      double(const_b.bytes_used()) / double(const_b.size())
   );
 
   // Test copy constructor.
@@ -753,14 +752,14 @@ void MergeTest(const std::vector<V>& values) {
       "merge 1st half:",
       former.fullness(),
       former.overhead(),
-      double(former.bytes_used()) / former.size()
+      double(former.bytes_used()) / double(former.size())
   );
   printf(
       "      %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
       "merge 2st half:",
       later.fullness(),
       later.overhead(),
-      double(later.bytes_used()) / later.size()
+      double(later.bytes_used()) / double(later.size())
   );
 
   former.merge(later);
@@ -792,7 +791,7 @@ void MergeTest(const std::vector<V>& values) {
       "merged:    ",
       former.fullness(),
       former.overhead(),
-      double(former.bytes_used()) / former.size()
+      double(former.bytes_used()) / double(former.size())
   );
 }
 
@@ -931,7 +930,7 @@ void BtreeAllocatorTest() {
   // This should swap the allocators!
   swap(b1, b2);
 
-  for (std::size_t i = 0; i < 1000; i++) {
+  for (int i = 0; i < 1000; i++) {
     b1.insert(Generator<value_type>::Generate(i));
   }
 
@@ -953,7 +952,7 @@ void BtreeMapTest() {
   // Verify we can insert using operator[].
   std::pair<std::remove_const_t<typename value_type::first_type>, mapped_type> min, max;
   auto                                                                         comp = b.key_comp();
-  for (std::size_t i = 0; i < 1000; i++) {
+  for (int i = 0; i < 1000; i++) {
     value_type v = Generator<value_type>::Generate(i);
     if (i == 0) {
       min = v;
@@ -997,7 +996,7 @@ struct SubstringLess {
 
 // Test using a class that doesn't implement any comparison operator as key.
 struct Vec2i {
-  static constexpr std::size_t N = 2;
+  static constexpr int N = 2;
 
   int a[N];
 };
@@ -1015,9 +1014,9 @@ bool operator!=(const Vec2i& lhd, const Vec2i& rhd) { return not(lhd == rhd); }
 
 template <>
 struct Generator<Vec2i> {
-  static Vec2i Generate(std::size_t n) {
+  static Vec2i Generate(int n) {
     Vec2i v;
-    for (std::size_t i = 0; i < Vec2i::N; ++i) {
+    for (int i = 0; i < Vec2i::N; ++i) {
       v.a[i] = n;
     }
     return v;

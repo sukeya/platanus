@@ -70,7 +70,7 @@ struct Generator<std::pair<T_, U_>> {
   using T = std::remove_const_t<T_>;
   using U = std::remove_const_t<U_>;
 
-  static std::pair<T, U> Generate(std::size_t i) {
+  static std::pair<T, U> Generate(int i) {
     return std::make_pair(Generator<T>::Generate(i), Generator<U>::Generate(i));
   }
 };
@@ -78,15 +78,15 @@ struct Generator<std::pair<T_, U_>> {
 // Generates values in the range
 template <typename V>
 std::vector<V> GenerateValues(std::size_t n) {
-  std::random_device                         seed_gen;
-  std::mt19937_64                            engine{seed_gen()};
-  std::uniform_int_distribution<std::size_t> dist{0, std::numeric_limits<std::int32_t>::max()};
+  std::random_device                 seed_gen;
+  std::mt19937_64                    engine{seed_gen()};
+  std::uniform_int_distribution<int> dist{0, std::numeric_limits<int>::max()};
 
-  std::vector<V>        values;
-  std::set<std::size_t> unique_values;
+  std::vector<V> values;
+  std::set<int>  unique_values;
 
   while (values.size() < n) {
-    std::size_t i;
+    int i;
     do {
       i = dist(engine);
     } while (unique_values.find(i) != unique_values.end());

@@ -353,19 +353,19 @@ class btree {
   }
 
   // The average number of bytes used per value stored in the btree.
-  double average_bytes_per_value() const noexcept { return bytes_used() / size(); }
+  double average_bytes_per_value() const noexcept { return double(bytes_used()) / double(size()); }
 
   // The fullness of the btree. Computed as the number of elements in the btree
   // divided by the maximum number of elements a tree with the current number
   // of nodes could hold. A value of 1 indicates perfect space
   // utilization. Smaller values indicate space wastage.
-  double fullness() const noexcept { return double(size()) / (nodes() * kNodeValues); }
+  double fullness() const noexcept { return double(size()) / double(nodes() * kNodeValues); }
 
   // The overhead of the btree structure in bytes per node. Computed as the
   // total number of bytes used by the btree minus the number of bytes used for
   // storing elements divided by the number of elements.
   double overhead() const noexcept {
-    return empty() ? 0 : (bytes_used() - size() * sizeof(mapped_type)) / double(size());
+    return empty() ? 0 : double(bytes_used() - size() * sizeof(mapped_type)) / double(size());
   }
 
   // Merges an B-tree. The given B-tree will have the intersection of two B-trees.

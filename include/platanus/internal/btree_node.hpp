@@ -325,8 +325,8 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   void receive_children_n(
       children_iterator dest, node_borrower src, children_iterator first, count_type n
   ) {
-    auto dest_idx  = dest - begin_children();
-    auto first_idx = first - src->begin_children();
+    auto dest_idx  = count_type(dest - begin_children());
+    auto first_idx = count_type(first - src->begin_children());
     assert(0 <= dest_idx && 0 <= first_idx);
     assert(
         0 <= n && dest_idx + n <= max_children_count() && first_idx + n <= src->max_children_count()

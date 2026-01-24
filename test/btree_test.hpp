@@ -53,7 +53,7 @@ inline static constexpr int test_values = 10'000;
 ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
   if (buf_begin == nullptr) return 0;
   if (buf_end <= buf_begin) return 0;
-  ptrdiff_t num = 0;
+  std::ptrdiff_t num = 0;
   for (const char* bp = buf_begin; bp != buf_end; bp++) {
     if (*bp == c) num++;
   }
@@ -61,7 +61,7 @@ ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
 }
 
 // for when the string is not null-terminated.
-ptrdiff_t strcount(const char* buf, size_t len, char c) { return strcount(buf, buf + len, c); }
+ptrdiff_t strcount(const char* buf, std::size_t len, char c) { return strcount(buf, buf + len, c); }
 
 ptrdiff_t strcount(const std::string& buf, char c) { return strcount(buf.c_str(), buf.size(), c); }
 
@@ -208,9 +208,9 @@ class base_checker {
   }
 
   // Deletion routines.
-  size_t erase(const key_type& key) {
-    size_t size = tree_.size();
-    size_t res  = checker_.erase(key);
+  std::size_t erase(const key_type& key) {
+    std::size_t size = tree_.size();
+    std::size_t res  = checker_.erase(key);
     EXPECT_EQ(res, tree_.count(key));
     EXPECT_EQ(res, tree_.erase(key));
     EXPECT_EQ(tree_.count(key), 0);
@@ -220,10 +220,10 @@ class base_checker {
   }
 
   iterator erase(iterator iter) {
-    key_type key          = iter.key();
-    size_t   size         = tree_.size();
-    size_t   count        = tree_.count(key);
-    auto     checker_iter = checker_.find(key);
+    key_type    key          = iter.key();
+    std::size_t size         = tree_.size();
+    std::size_t count        = tree_.count(key);
+    auto        checker_iter = checker_.find(key);
     for (iterator tmp(tree_.find(key)); tmp != iter; ++tmp) {
       ++checker_iter;
     }
@@ -241,8 +241,8 @@ class base_checker {
   }
 
   void erase(iterator begin, iterator end) {
-    size_t    size  = tree_.size();
-    ptrdiff_t count = std::distance(begin, end);
+    std::size_t    size  = tree_.size();
+    std::ptrdiff_t count = std::distance(begin, end);
     EXPECT_GE(count, 0);
     auto checker_begin = checker_.find(begin.key());
     for (iterator tmp(tree_.find(begin.key())); tmp != begin; ++tmp) {
@@ -924,10 +924,10 @@ void BtreeAllocatorTest() {
   using value_type     = typename T::value_type;
   using allocator_type = typename T::allocator_type;
 
-  size_t alloc1 = 0;
-  size_t alloc2 = 0;
-  auto   b1     = T{allocator_type{&alloc1}};
-  auto   b2     = T{allocator_type{&alloc2}};
+  std::size_t alloc1 = 0;
+  std::size_t alloc2 = 0;
+  auto        b1     = T{allocator_type{&alloc1}};
+  auto        b2     = T{allocator_type{&alloc2}};
 
   // This should swap the allocators!
   swap(b1, b2);
@@ -993,7 +993,7 @@ struct SubstringLess {
     std::string_view bs(b.data(), std::min(n, b.size()));
     return as <=> bs;
   }
-  size_t n;
+  std::size_t n;
 };
 
 // Test using a class that doesn't implement any comparison operator as key.

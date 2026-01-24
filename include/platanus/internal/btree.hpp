@@ -295,7 +295,9 @@ class btree {
 
   // Returns a count of the number of times the key appears in the btree.
   size_type count_multi(const key_type& key) const {
-    return std::distance(lower_bound_multi(key), upper_bound(key));
+    std::ptrdiff_t diff = std::distance(lower_bound_multi(key), upper_bound(key));
+    assert(diff >= 0);
+    return static_cast<size_type>(diff);
   }
 
   // Clear the btree, deleting all of the values it contains.
@@ -699,7 +701,11 @@ typename btree<NF>::iterator btree<NF>::erase(iterator iter) {
 
 template <class NF>
 typename btree<NF>::size_type btree<NF>::erase(iterator begin, iterator end) {
-  size_type count = std::distance(begin, end);
+  std::ptrdiff_t dist = std::distance(begin, end);
+  if (dist < 0) {
+    return 0;
+  }
+  size_type count = static_cast<size_type>(dist);
   for (size_type i = 0; i < count; i++) {
     begin = erase(begin);
   }
@@ -760,8 +766,7 @@ template <class NF>
 void btree<NF>::verify() const {
   if (borrow_readonly_root() != nullptr) {
     assert(
-        size()
-        == static_cast<std::size_t>(internal_verify(borrow_readonly_root(), nullptr, nullptr))
+        size() == static_cast<size_type>(internal_verify(borrow_readonly_root(), nullptr, nullptr))
     );
     assert(borrow_readonly_leftmost() == (++const_iterator(borrow_readonly_root(), -1)).node);
     assert(
@@ -1139,10 +1144,10 @@ void btree<NF>::merge_unique(self_type& rhd) {
     // If rhd_max <= lhd_max
     if (not is_greater) {
       // Store the keys removed from rhd temporarily.
-      std::vector<std::size_t> removed_indexes;
+      std::vector<std::ptrdiff_t> removed_indexes;
 
       // Insert the intersection to *this.
-      for (std::size_t i = 0; auto& v : rhd) {
+      for (std::ptrdiff_t i = 0; auto& v : rhd) {
         auto [_, is_inserted] = insert_unique(std::move(v));
         if (is_inserted) {
           removed_indexes.push_back(i);
@@ -1152,13 +1157,7 @@ void btree<NF>::merge_unique(self_type& rhd) {
 
       // Remove the keys inserted to *this.
       for (auto i : removed_indexes | std::views::reverse) {
-        iterator hint;
-        if (i < rhd.size() / 2) {
-          hint = std::next(rhd.begin(), i);
-        } else {
-          hint = std::prev(rhd.end(), rhd.size() - i);
-        }
-        rhd.erase(hint);
+        rhd.erase(std::next(rhd.begin(), i));
       }
 
       return;
@@ -1166,13 +1165,13 @@ void btree<NF>::merge_unique(self_type& rhd) {
   }
 
   // Store the keys removed from rhd temporarily.
-  std::vector<std::size_t> removed_indexes;
+  std::vector<std::ptrdiff_t> removed_indexes;
 
   auto rhd_intersection_end = rhd.upper_bound(lhd_max);
 
   // Insert the intersection to *this.
   {
-    for (std::size_t i = 0; auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
+    for (std::ptrdiff_t i = 0; auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
       auto [_, is_inserted] = insert_unique(std::move(v));
       if (is_inserted) {
         removed_indexes.push_back(i);
@@ -1188,19 +1187,13 @@ void btree<NF>::merge_unique(self_type& rhd) {
   // Remove the extra of rhd.
   // Using `erase`, the former iterators are made to be invalidated.
   // So, I use classical for loop.
-  auto num_value_out_of_left = std::distance(rhd_intersection_end, rhd.end());
+  std::ptrdiff_t num_value_out_of_left = std::distance(rhd_intersection_end, rhd.end());
   for (std::ptrdiff_t i = 0; i < num_value_out_of_left; ++i) {
     rhd.erase(std::prev(rhd.end()));
   }
   // Remove the keys inserted to *this.
   for (auto i : removed_indexes | std::views::reverse) {
-    iterator hint;
-    if (i < rhd.size() / 2) {
-      hint = std::next(rhd.begin(), i);
-    } else {
-      hint = std::prev(rhd.end(), rhd.size() - i);
-    }
-    rhd.erase(hint);
+    rhd.erase(std::next(rhd.begin(), i));
   }
 }
 

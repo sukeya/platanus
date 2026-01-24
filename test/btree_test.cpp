@@ -30,6 +30,8 @@
 #include "platanus/btree_map.hpp"
 #include "platanus/btree_set.hpp"
 #include "btree_test.hpp"
+#include <cstddef>
+#include <string>
 
 namespace platanus {
 
@@ -134,7 +136,7 @@ TEST(Btree, Comparison) {
 
   btree_map<std::string, int64_t> my_map;
   for (int i = 0; i < kSetSize; ++i) {
-    my_map[std::string(i, 'a')] = i;
+    my_map[std::string(static_cast<typename std::string::size_type>(i), 'a')] = i;
   }
   btree_map<std::string, int64_t> my_map_copy(my_map);
   EXPECT_TRUE(my_map_copy == my_map);

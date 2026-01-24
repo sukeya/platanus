@@ -57,12 +57,12 @@ struct remove_const<pair<T, U>> {
 namespace platanus {
 template <typename K>
 struct Generator {
-  static constexpr K Generate(std::size_t i) { return static_cast<K>(i); }
+  static constexpr K Generate(int i) { return static_cast<K>(i); }
 };
 
 template <>
 struct Generator<std::string> {
-  static std::string Generate(std::size_t i) { return std::to_string(i); }
+  static std::string Generate(int i) { return std::to_string(i); }
 };
 
 template <typename T_, typename U_>

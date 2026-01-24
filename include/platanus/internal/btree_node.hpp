@@ -214,16 +214,24 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   bool is_leaf() const noexcept { return children_ptr_ ? false : true; }
 
   // Getters/setter for the child at position i in the node.
-  node_borrower borrow_child(count_type i) const noexcept { return children_ptr_[i].get(); }
-  node_readonly_borrower borrow_readonly_child(count_type i) const noexcept {
-    return children_ptr_[i].get();
+  node_borrower borrow_child(count_type i) const noexcept {
+    assert(0 <= i && i < kNodeChildren);
+    return children_ptr_[static_cast<std::size_t>(i)].get();
   }
-  node_owner extract_child(count_type i) noexcept { return std::move(children_ptr_[i]); }
-  void       set_child(count_type i, node_owner&& new_child) noexcept {
-    children_ptr_[i]              = std::move(new_child);
-    auto borrowed_new_child       = borrow_child(i);
-    borrowed_new_child->parent_   = this;
-    borrowed_new_child->position_ = i;
+  node_readonly_borrower borrow_readonly_child(count_type i) const noexcept {
+    assert(0 <= i && i < kNodeChildren);
+    return children_ptr_[static_cast<std::size_t>(i)].get();
+  }
+  node_owner extract_child(count_type i) noexcept {
+    assert(0 <= i && i < kNodeChildren);
+    return std::move(children_ptr_[static_cast<std::size_t>(i)]);
+  }
+  void set_child(count_type i, node_owner&& new_child) noexcept {
+    assert(0 <= i && i < kNodeChildren);
+    children_ptr_[static_cast<std::size_t>(i)] = std::move(new_child);
+    auto borrowed_new_child                    = borrow_child(i);
+    borrowed_new_child->parent_                = this;
+    borrowed_new_child->position_              = i;
   }
 
   // Rebalances a node with its right sibling.

@@ -29,6 +29,7 @@
 #ifndef PLATANUS_BTREE_TEST_H_
 #define PLATANUS_BTREE_TEST_H_
 
+#include <cstddef>
 #include <cstdio>
 #include <algorithm>
 #include <type_traits>
@@ -240,9 +241,10 @@ class base_checker {
   }
 
   void erase(iterator begin, iterator end) {
-    size_t size          = tree_.size();
-    size_t count         = std::distance(begin, end);
-    auto   checker_begin = checker_.find(begin.key());
+    size_t    size  = tree_.size();
+    ptrdiff_t count = std::distance(begin, end);
+    EXPECT_GE(count, 0);
+    auto checker_begin = checker_.find(begin.key());
     for (iterator tmp(tree_.find(begin.key())); tmp != begin; ++tmp) {
       ++checker_begin;
     }
@@ -255,7 +257,7 @@ class base_checker {
     checker_.erase(checker_begin, checker_end);
     tree_.erase(begin, end);
     EXPECT_EQ(tree_.size(), checker_.size());
-    EXPECT_EQ(tree_.size(), size - count);
+    EXPECT_EQ(tree_.size(), size - size_t(count));
   }
 
   // Utility routines.
@@ -281,7 +283,7 @@ class base_checker {
     }
 
     // Move through the forward iterators using decrement.
-    for (ptrdiff_t n = tree_.size() - 1; n >= 0; --n) {
+    for (ptrdiff_t n = static_cast<ptrdiff_t>(tree_.size()) - 1; n >= 0; --n) {
       iter_check(tree_iter, checker_iter);
       --tree_iter;
       --checker_iter;
@@ -297,7 +299,7 @@ class base_checker {
     }
 
     // Move through the reverse iterators using decrement.
-    for (ptrdiff_t n = tree_.size() - 1; n >= 0; --n) {
+    for (ptrdiff_t n = static_cast<ptrdiff_t>(tree_.size()) - 1; n >= 0; --n) {
       riter_check(tree_riter, checker_riter);
       --tree_riter;
       --checker_riter;
@@ -887,7 +889,7 @@ class TestAllocator : public Alloc {
   using size_type = typename Alloc::size_type;
 
   TestAllocator() : bytes_used_(nullptr) {}
-  TestAllocator(int64_t* bytes_used) : bytes_used_(bytes_used) {}
+  TestAllocator(size_t* bytes_used) : bytes_used_(bytes_used) {}
 
   // Constructor used for rebinding
   template <class U>
@@ -911,10 +913,10 @@ class TestAllocator : public Alloc {
     using other = TestAllocator<U, typename std::allocator_traits<Alloc>::template rebind_alloc<U>>;
   };
 
-  int64_t* bytes_used() const { return bytes_used_; }
+  size_t* bytes_used() const { return bytes_used_; }
 
  private:
-  int64_t* bytes_used_;
+  size_t* bytes_used_;
 };
 
 template <typename T>
@@ -922,10 +924,10 @@ void BtreeAllocatorTest() {
   using value_type     = typename T::value_type;
   using allocator_type = typename T::allocator_type;
 
-  int64_t alloc1 = 0;
-  int64_t alloc2 = 0;
-  auto    b1     = T{allocator_type{&alloc1}};
-  auto    b2     = T{allocator_type{&alloc2}};
+  size_t alloc1 = 0;
+  size_t alloc2 = 0;
+  auto   b1     = T{allocator_type{&alloc1}};
+  auto   b2     = T{allocator_type{&alloc2}};
 
   // This should swap the allocators!
   swap(b1, b2);

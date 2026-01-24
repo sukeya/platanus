@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <iterator>
 
 #include "btree_node_fwd.hpp"
@@ -127,10 +128,17 @@ class btree_base_node {
   }
 
   // Getters for the key/value at position i in the node.
-  const key_type& key(count_type i) const noexcept { return params_type::key(values_[i]); }
-  reference       value(count_type i) noexcept { return reinterpret_cast<reference>(values_[i]); }
+  const key_type& key(count_type i) const noexcept {
+    assert(0 <= i && i < kNodeValues);
+    return params_type::key(values_[static_cast<std::size_t>(i)]);
+  }
+  reference value(count_type i) noexcept {
+    assert(0 <= i && i < kNodeValues);
+    return reinterpret_cast<reference>(values_[static_cast<std::size_t>(i)]);
+  }
   const_reference value(count_type i) const noexcept {
-    return reinterpret_cast<const_reference>(values_[i]);
+    assert(0 <= i && i < kNodeValues);
+    return reinterpret_cast<const_reference>(values_[static_cast<std::size_t>(i)]);
   }
 
   // Swap value i in this node with value j in node x.
@@ -138,7 +146,12 @@ class btree_base_node {
   value_swap(count_type i, btree_node_borrower<btree_base_node> x, count_type j) noexcept(noexcept(
       btree_swap_helper(std::declval<mutable_value_type&>(), std::declval<mutable_value_type&>())
   )) {
-    btree_swap_helper(values_[i], x->values_[j]);
+    assert(0 <= i && i < kNodeValues);
+    assert(0 <= j && j < kNodeValues);
+    btree_swap_helper(
+        values_[static_cast<std::size_t>(i)],
+        x->values_[static_cast<std::size_t>(j)]
+    );
   }
 
   // Returns the position of the first value whose key is not less than k.
@@ -191,12 +204,19 @@ class btree_base_node {
 
   template <typename T>
   void value_init(count_type i, T&& x) {
-    values_[i] = std::forward<T>(x);
+    assert(0 <= i && i < kNodeValues);
+    values_[static_cast<std::size_t>(i)] = std::forward<T>(x);
   }
 
-  mutable_value_type&& extract_value(count_type i) { return std::move(values_[i]); }
+  mutable_value_type&& extract_value(count_type i) {
+    assert(0 <= i && i < kNodeValues);
+    return std::move(values_[static_cast<std::size_t>(i)]);
+  }
 
-  void replace_value(count_type i, mutable_value_type&& v) { values_[i] = std::move(v); }
+  void replace_value(count_type i, mutable_value_type&& v) {
+    assert(0 <= i && i < kNodeValues);
+    values_[static_cast<std::size_t>(i)] = std::move(v);
+  }
 
   // Returns the position of the first value whose key is not less than k using
   // binary search.

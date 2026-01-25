@@ -285,8 +285,10 @@ class btree_unique_container : public btree_container<Tree> {
   // Erase the specified iterator from the btree. The iterator must be valid
   // (i.e. not equal to end()).  Return an iterator pointing to the node after
   // the one that was erased (or end() if none exists).
-  iterator erase(const iterator& iter) { return this->tree_.erase(iter); }
-  void     erase(const iterator& first, const iterator& last) { this->tree_.erase(first, last); }
+  iterator erase(const_iterator iter) { return this->tree_.erase(iter); }
+  iterator erase(const_iterator first, const_iterator last) {
+    return this->tree_.erase(first, last);
+  }
 
   void merge(btree_unique_container& x) { this->tree_.merge_unique(x.tree_); }
   void merge(btree_unique_container&& x) { merge(x); }
@@ -567,8 +569,10 @@ class btree_multi_container : public btree_container<Tree> {
   // Erase the specified iterator from the btree. The iterator must be valid
   // (i.e. not equal to end()).  Return an iterator pointing to the node after
   // the one that was erased (or end() if none exists).
-  iterator erase(const iterator& iter) { return this->tree_.erase(iter); }
-  void     erase(const iterator& first, const iterator& last) { this->tree_.erase(first, last); }
+  iterator erase(const_iterator iter) { return this->tree_.erase(iter); }
+  iterator erase(const_iterator first, const_iterator last) {
+    return this->tree_.erase(first, last);
+  }
 
   void merge(btree_multi_container& x) { this->tree_.merge_multi(x.tree_); }
   void merge(btree_multi_container&& x) { merge(x); }

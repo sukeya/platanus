@@ -703,7 +703,7 @@ template <class NF>
 typename btree<NF>::size_type btree<NF>::erase(iterator begin, iterator end) {
   std::ptrdiff_t dist = std::distance(begin, end);
   if (dist < 0) {
-    return 0;
+    throw std::invalid_argument("Cannot erase a range which distance is negative");
   }
   size_type count = static_cast<size_type>(dist);
   for (size_type i = 0; i < count; i++) {

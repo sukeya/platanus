@@ -38,7 +38,7 @@
 
 namespace platanus::internal {
 
-template <typename Key, typename Compare, typename Alloc, std::int_least16_t MaxNumOfValues>
+template <typename Key, typename Compare, typename Alloc, int MaxNumOfValues>
 requires comp_requirement<Key, Compare>
 struct btree_common_params {
   using key_compare   = Compare;
@@ -49,18 +49,13 @@ struct btree_common_params {
   using size_type       = std::size_t;
   using difference_type = std::ptrdiff_t;
 
-  using count_type = std::int_least16_t;
+  using count_type = int;
 
   static constexpr count_type kMaxNumOfValues = MaxNumOfValues;
 };
 
 // A parameters structure for holding the type parameters for a btree_map.
-template <
-    typename Key,
-    typename Data,
-    typename Compare,
-    typename Alloc,
-    std::int_least16_t MaxNumOfValues>
+template <typename Key, typename Data, typename Compare, typename Alloc, int MaxNumOfValues>
 struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues> {
   using mapped_type        = Data;
   using value_type         = std::pair<const Key, mapped_type>;
@@ -80,7 +75,7 @@ struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNum
 };
 
 // A parameters structure for holding the type parameters for a btree_set.
-template <typename Key, typename Compare, typename Alloc, std::int_least16_t MaxNumOfValues>
+template <typename Key, typename Compare, typename Alloc, int MaxNumOfValues>
 struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues> {
   using mapped_type        = std::false_type;
   using value_type         = Key;

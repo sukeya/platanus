@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <memory>
 
 #include "btree_node_fwd.hpp"
@@ -184,7 +185,6 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   }
 
   using super_type::position;
-  using super_type::set_position;
 
   using super_type::count;
   using super_type::max_count;
@@ -214,16 +214,16 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   bool is_leaf() const noexcept { return children_ptr_ ? false : true; }
 
   // Getters/setter for the child at position i in the node.
-  node_borrower borrow_child(count_type i) const noexcept { return children_ptr_[i].get(); }
+  node_borrower borrow_child(count_type i) const noexcept { return children_ptr_at(i).get(); }
   node_readonly_borrower borrow_readonly_child(count_type i) const noexcept {
-    return children_ptr_[i].get();
+    return children_ptr_at(i).get();
   }
-  node_owner extract_child(count_type i) noexcept { return std::move(children_ptr_[i]); }
+  node_owner extract_child(count_type i) noexcept { return std::move(children_ptr_at(i)); }
   void       set_child(count_type i, node_owner&& new_child) noexcept {
-    children_ptr_[i]              = std::move(new_child);
-    auto borrowed_new_child       = borrow_child(i);
-    borrowed_new_child->parent_   = this;
-    borrowed_new_child->position_ = i;
+    children_ptr_at(i)      = std::move(new_child);
+    auto borrowed_new_child = borrow_child(i);
+    borrowed_new_child->set_parent(this);
+    borrowed_new_child->set_position(i);
   }
 
   // Rebalances a node with its right sibling.
@@ -239,6 +239,8 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
 
  private:
   using super_type::set_count;
+  using super_type::set_parent;
+  using super_type::set_position;
 
   using super_type::value_init;
 
@@ -255,6 +257,16 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
 
   using super_type::shift_values_left;
   using super_type::shift_values_right;
+
+  node_owner& children_ptr_at(count_type i) {
+    assert(0 <= i && i < kNodeChildren);
+    return children_ptr_[static_cast<std::size_t>(i)];
+  }
+
+  const node_owner& children_ptr_at(count_type i) const {
+    assert(0 <= i && i < kNodeChildren);
+    return children_ptr_[static_cast<std::size_t>(i)];
+  }
 
   // Returns the pointer to the front of the children array.
   children_iterator begin_children() noexcept { return children_ptr_.get(); }
@@ -316,8 +328,8 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
       children_iterator dest, node_borrower src, children_iterator first, children_iterator last
   ) {
     auto n = last - first;
-    assert(0 <= n && n <= std::numeric_limits<int>::max());
-    receive_children_n(dest, src, first, static_cast<int>(n));
+    assert(0 <= n && n <= std::numeric_limits<count_type>::max());
+    receive_children_n(dest, src, first, static_cast<count_type>(n));
   }
 
   // Receive the children from [first, first + n) in *src and set them to [dest, dest + n) in *this.
@@ -325,8 +337,8 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   void receive_children_n(
       children_iterator dest, node_borrower src, children_iterator first, count_type n
   ) {
-    auto dest_idx  = dest - begin_children();
-    auto first_idx = first - src->begin_children();
+    auto dest_idx  = count_type(dest - begin_children());
+    auto first_idx = count_type(first - src->begin_children());
     assert(0 <= dest_idx && 0 <= first_idx);
     assert(
         0 <= n && dest_idx + n <= max_children_count() && first_idx + n <= src->max_children_count()
@@ -336,7 +348,6 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
     }
   }
 
- private:
   // The pointer to the array of child pointers. The keys in children_[i] are all less than
   // key(i). The keys in children_[i + 1] are all greater than key(i). There
   // are always count + 1 children.

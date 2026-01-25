@@ -90,12 +90,6 @@ export(EXPORT platanusTargets
   NAMESPACE platanus::
 )
 
-set(gcc "$<COMPILE_LANG_AND_ID:CXX,GNU>")
-set(clang "$<COMPILE_LANG_AND_ID:CXX,Clang>")
-set(msvc "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
-
-set(gcc_like "$<OR:${gcc},${clang}>")
-
 if(PLATANUS_BUILD_TESTS)
   enable_testing()
 

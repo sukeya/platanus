@@ -44,9 +44,9 @@ namespace platanus {
 
 template <
     typename Key,
-    typename Compare                  = std::ranges::less,
-    typename Alloc                    = std::allocator<Key>,
-    std::int_least16_t MaxNumOfValues = 64>
+    typename Compare   = std::ranges::less,
+    typename Alloc     = std::allocator<Key>,
+    int MaxNumOfValues = 64>
 class btree_set
     : public internal::btree_unique_container<internal::btree<internal::btree_node_and_factory<
           internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
@@ -162,16 +162,16 @@ class btree_set
   using super_type::merge;
 };
 
-template <typename K, typename C, typename A, std::int_least16_t N>
+template <typename K, typename C, typename A, int N>
 void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
   x.swap(y);
 }
 
 template <
     typename Key,
-    typename Compare                  = std::ranges::less,
-    typename Alloc                    = std::allocator<Key>,
-    std::int_least16_t MaxNumOfValues = 64>
+    typename Compare   = std::ranges::less,
+    typename Alloc     = std::allocator<Key>,
+    int MaxNumOfValues = 64>
 class btree_multiset
     : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
           internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
@@ -287,17 +287,14 @@ class btree_multiset
   using super_type::merge;
 };
 
-template <typename K, typename C, typename A, std::int_least16_t N>
+template <typename K, typename C, typename A, int N>
 void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y) {
   x.swap(y);
 }
 
 namespace pmr {
 
-template <
-    typename Key,
-    typename Compare                  = std::ranges::less,
-    std::int_least16_t MaxNumOfValues = 64>
+template <typename Key, typename Compare = std::ranges::less, int MaxNumOfValues = 64>
 class btree_set
     : public internal::btree_unique_container<internal::btree<internal::btree_node_and_factory<
           internal::
@@ -414,15 +411,12 @@ class btree_set
   using super_type::merge;
 };
 
-template <typename K, typename C, std::int_least16_t N>
+template <typename K, typename C, int N>
 void swap(btree_set<K, C, N>& x, btree_set<K, C, N>& y) {
   x.swap(y);
 }
 
-template <
-    typename Key,
-    typename Compare                  = std::ranges::less,
-    std::int_least16_t MaxNumOfValues = 64>
+template <typename Key, typename Compare = std::ranges::less, int MaxNumOfValues = 64>
 class btree_multiset
     : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
           internal::
@@ -539,7 +533,7 @@ class btree_multiset
   using super_type::merge;
 };
 
-template <typename K, typename C, std::int_least16_t N>
+template <typename K, typename C, int N>
 void swap(btree_multiset<K, C, N>& x, btree_multiset<K, C, N>& y) {
   x.swap(y);
 }

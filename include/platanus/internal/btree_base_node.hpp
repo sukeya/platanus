@@ -104,11 +104,6 @@ class btree_base_node {
 
   // Getter for the position of this node in its parent.
   count_type position() const noexcept { return position_; }
-  void       set_position(count_type v) noexcept {
-    assert(borrow_parent() != nullptr);
-    assert(0 <= v && v < kNodeChildren);
-    position_ = v;
-  }
 
   // Getter/setter for the number of values stored in this node.
   count_type           count() const noexcept { return count_; }
@@ -128,17 +123,10 @@ class btree_base_node {
   }
 
   // Getters for the key/value at position i in the node.
-  const key_type& key(count_type i) const noexcept {
-    assert(0 <= i && i < kNodeValues);
-    return params_type::key(values_[static_cast<std::size_t>(i)]);
-  }
-  reference value(count_type i) noexcept {
-    assert(0 <= i && i < kNodeValues);
-    return reinterpret_cast<reference>(values_[static_cast<std::size_t>(i)]);
-  }
-  const_reference value(count_type i) const noexcept {
-    assert(0 <= i && i < kNodeValues);
-    return reinterpret_cast<const_reference>(values_[static_cast<std::size_t>(i)]);
+  const key_type& key(count_type i) const noexcept { return params_type::key(value(i)); }
+  reference       value(count_type i) { return reinterpret_cast<reference>(mut_value(i)); }
+  const_reference value(count_type i) const {
+    return reinterpret_cast<const_reference>(mut_value(i));
   }
 
   // Swap value i in this node with value j in node x.
@@ -146,12 +134,7 @@ class btree_base_node {
   value_swap(count_type i, btree_node_borrower<btree_base_node> x, count_type j) noexcept(noexcept(
       btree_swap_helper(std::declval<mutable_value_type&>(), std::declval<mutable_value_type&>())
   )) {
-    assert(0 <= i && i < kNodeValues);
-    assert(0 <= j && j < kNodeValues);
-    btree_swap_helper(
-        values_[static_cast<std::size_t>(i)],
-        x->values_[static_cast<std::size_t>(j)]
-    );
+    btree_swap_helper(mut_value(i), x->mut_value(j));
   }
 
   // Returns the position of the first value whose key is not less than k.
@@ -197,26 +180,27 @@ class btree_base_node {
   void rebalance_left_to_right(node_borrower sibling, count_type to_move);
 
  protected:
+  void set_position(count_type v) noexcept {
+    assert(borrow_parent() != nullptr);
+    assert(0 <= v && v < kNodeChildren);
+    position_ = v;
+  }
+
   void set_count(count_type v) noexcept {
     assert(0 <= v && v <= max_count());
     count_ = v;
   }
 
+  void set_parent(node_borrower parent) noexcept { parent_ = parent; }
+
   template <typename T>
   void value_init(count_type i, T&& x) {
-    assert(0 <= i && i < kNodeValues);
-    values_[static_cast<std::size_t>(i)] = std::forward<T>(x);
+    mut_value(i) = std::forward<T>(x);
   }
 
-  mutable_value_type&& extract_value(count_type i) {
-    assert(0 <= i && i < kNodeValues);
-    return std::move(values_[static_cast<std::size_t>(i)]);
-  }
+  mutable_value_type&& extract_value(count_type i) { return std::move(mut_value(i)); }
 
-  void replace_value(count_type i, mutable_value_type&& v) {
-    assert(0 <= i && i < kNodeValues);
-    values_[static_cast<std::size_t>(i)] = std::move(v);
-  }
+  void replace_value(count_type i, mutable_value_type&& v) { mut_value(i) = std::move(v); }
 
   // Returns the position of the first value whose key is not less than k using
   // binary search.
@@ -316,6 +300,16 @@ class btree_base_node {
     auto begin = std::next(begin_values(), first);
     auto end   = std::next(begin_values(), last);
     std::move(begin, end, std::prev(begin, shift));
+  }
+
+ private:
+  mutable_value_type& mut_value(count_type i) {
+    assert(0 <= i && i < kNodeValues);
+    return values_[static_cast<std::size_t>(i)];
+  }
+  const mutable_value_type& mut_value(count_type i) const {
+    assert(0 <= i && i < kNodeValues);
+    return values_[static_cast<std::size_t>(i)];
   }
 
   // The array of values.

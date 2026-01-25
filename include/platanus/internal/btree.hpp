@@ -40,6 +40,7 @@
 #include <ostream>
 #include <ranges>
 #include <sys/types.h>
+#include <stdexcept>
 #include <utility>
 
 #include "btree_iterator.hpp"
@@ -255,12 +256,13 @@ class btree {
   void copy(const self_type& x);
 
   // Erase the specified element from the btree. The iterator must be valid
-  // (i.e. not equal to end()).  Return an iterator pointing to the node after
+  // (i.e. not equal to end()). Return an iterator pointing to the value after
   // the one that was erased (or end() if none exists).
-  iterator erase(iterator iter);
+  iterator erase(const_iterator iter);
 
-  // Erases range. Returns the number of keys erased.
-  size_type erase(iterator begin, iterator end);
+  // Erases range. Return an iterator pointing to the value after
+  // the erased values (or end() if none exists).
+  iterator erase(const_iterator begin, const_iterator end);
 
   // Erases the specified key from the btree. Returns 1 if an element was
   // erased and 0 otherwise.
@@ -640,7 +642,8 @@ void btree<NF>::copy(const self_type& x) {
 }
 
 template <class NF>
-typename btree<NF>::iterator btree<NF>::erase(iterator iter) {
+typename btree<NF>::iterator btree<NF>::erase(const_iterator cit) {
+  auto iter            = iterator{const_cast<node_borrower>(cit.node), cit.position};
   bool internal_delete = false;
   if (not is_leaf(iter.node)) {
     // Deletion of a value on an internal node. Swap the key with the largest
@@ -700,16 +703,17 @@ typename btree<NF>::iterator btree<NF>::erase(iterator iter) {
 }
 
 template <class NF>
-typename btree<NF>::size_type btree<NF>::erase(iterator begin, iterator end) {
+typename btree<NF>::iterator btree<NF>::erase(const_iterator begin, const_iterator end) {
   std::ptrdiff_t dist = std::distance(begin, end);
   if (dist < 0) {
     throw std::invalid_argument("Cannot erase a range which distance is negative");
   }
   size_type count = static_cast<size_type>(dist);
+  auto      it    = iterator{const_cast<node_borrower>(begin.node), begin.position};
   for (size_type i = 0; i < count; i++) {
-    begin = erase(begin);
+    it = erase(it);
   }
-  return count;
+  return it;
 }
 
 template <class NF>
@@ -731,7 +735,11 @@ typename btree<NF>::size_type btree<NF>::erase_multi(const key_type& key) {
     return 0;
   }
   // Delete all of the keys between begin and upper_bound(key).
-  return erase(begin, upper_bound(key));
+  auto sup_key = upper_bound(key);
+  auto dist    = std::distance(begin, sup_key);
+  erase(begin, sup_key);
+  assert(dist >= 0);
+  return static_cast<size_type>(dist);
 }
 
 template <class NF>

@@ -240,7 +240,7 @@ class base_checker {
     return iter_check(iter, checker_next);
   }
 
-  void erase(iterator begin, iterator end) {
+  void erase(const_iterator begin, const_iterator end) {
     std::size_t    size  = tree_.size();
     std::ptrdiff_t count = std::distance(begin, end);
     EXPECT_GE(count, 0);

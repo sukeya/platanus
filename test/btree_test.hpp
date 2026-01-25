@@ -257,7 +257,7 @@ class base_checker {
     checker_.erase(checker_begin, checker_end);
     tree_.erase(begin, end);
     EXPECT_EQ(tree_.size(), checker_.size());
-    EXPECT_EQ(tree_.size(), size - size_t(count));
+    EXPECT_EQ(tree_.size(), size - std::size_t(count));
   }
 
   // Utility routines.
@@ -283,7 +283,7 @@ class base_checker {
     }
 
     // Move through the forward iterators using decrement.
-    for (ptrdiff_t n = static_cast<ptrdiff_t>(tree_.size()) - 1; n >= 0; --n) {
+    for (std::ptrdiff_t n = static_cast<std::ptrdiff_t>(tree_.size()) - 1; n >= 0; --n) {
       iter_check(tree_iter, checker_iter);
       --tree_iter;
       --checker_iter;
@@ -889,7 +889,7 @@ class TestAllocator : public Alloc {
   using size_type = typename Alloc::size_type;
 
   TestAllocator() : bytes_used_(nullptr) {}
-  TestAllocator(size_t* bytes_used) : bytes_used_(bytes_used) {}
+  TestAllocator(std::size_t* bytes_used) : bytes_used_(bytes_used) {}
 
   // Constructor used for rebinding
   template <class U>
@@ -913,10 +913,10 @@ class TestAllocator : public Alloc {
     using other = TestAllocator<U, typename std::allocator_traits<Alloc>::template rebind_alloc<U>>;
   };
 
-  size_t* bytes_used() const { return bytes_used_; }
+  std::size_t* bytes_used() const { return bytes_used_; }
 
  private:
-  size_t* bytes_used_;
+  std::size_t* bytes_used_;
 };
 
 template <typename T>

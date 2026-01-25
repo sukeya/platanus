@@ -477,7 +477,9 @@ class btree {
   void internal_dump(std::ostream& os, node_readonly_borrower node, int level) const;
 
   // Verifies the tree structure of node.
-  int internal_verify(node_readonly_borrower node, const key_type* lo, const key_type* hi) const;
+  std::size_t internal_verify(
+      node_readonly_borrower node, const key_type* lo, const key_type* hi
+  ) const;
 
   node_stats internal_stats(node_readonly_borrower node) const noexcept;
 
@@ -773,9 +775,7 @@ bool btree<NF>::compare_keys(const key_type& x, const key_type& y) const {
 template <class NF>
 void btree<NF>::verify() const {
   if (borrow_readonly_root() != nullptr) {
-    assert(
-        size() == static_cast<size_type>(internal_verify(borrow_readonly_root(), nullptr, nullptr))
-    );
+    assert(size() == internal_verify(borrow_readonly_root(), nullptr, nullptr));
     assert(borrow_readonly_leftmost() == (++const_iterator(borrow_readonly_root(), -1)).node);
     assert(
         borrow_readonly_rightmost()
@@ -1081,7 +1081,7 @@ void btree<NF>::internal_dump(std::ostream& os, node_readonly_borrower node, int
 }
 
 template <class NF>
-int btree<NF>::internal_verify(
+std::size_t btree<NF>::internal_verify(
     node_readonly_borrower node, const key_type* lo, const key_type* hi
 ) const {
   assert(count(node) > 0);
@@ -1095,7 +1095,9 @@ int btree<NF>::internal_verify(
   for (int i = 1; i < count(node); ++i) {
     assert(!compare_keys(key(node, i), key(node, i - 1)));
   }
-  int c = count(node);
+  int num = count(node);
+  assert(num >= 0);
+  std::size_t c = static_cast<std::size_t>(num);
   if (!is_leaf(node)) {
     for (int i = 0; i <= count(node); ++i) {
       assert(borrow_readonly_child(node, i) != nullptr);

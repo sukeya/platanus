@@ -31,8 +31,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstddef>
-#include <iterator>
+#include <memory>
 
 #include "btree_node_fwd.hpp"
 #include "btree_util.hpp"
@@ -312,14 +311,14 @@ class btree_base_node {
     return values_[static_cast<std::size_t>(i)];
   }
 
-  // The array of values.
-  values_type values_;
   // The position of the node in the node's parent.
   count_type position_;
   // The count of the number of values in the node.
   count_type count_;
   // A pointer to the node's parent.
   node_borrower parent_;
+  // The array of values.
+  values_type values_;
 };
 
 template <typename P, typename N>

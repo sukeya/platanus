@@ -119,7 +119,7 @@ class btree {
 
   explicit btree(self_type&& x, const allocator_type& alloc) : btree(std::move(x.comp_), alloc) {
     for (auto&& v : x) {
-      insert_multi(end(), std::move(x));
+      insert_multi(end(), std::move(v));
     }
   }
 

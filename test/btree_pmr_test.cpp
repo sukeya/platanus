@@ -53,7 +53,7 @@ TEST(node_factory, leaf_node) {
           btree_set_params<int, std::ranges::less, platanus::pmr::polymorphic_allocator<>, 3>>();
 
   auto root = node_factory.make_root_node(false);
-  internal::set_child(root.get(), 0, node_factory.make_node(true, root.get()));
+  root.get()->set_child(0, node_factory.make_node(true, root.get()));
 }
 
 TEST(node_factory, internal_node) {
@@ -62,6 +62,6 @@ TEST(node_factory, internal_node) {
           btree_set_params<int, std::ranges::less, platanus::pmr::polymorphic_allocator<>, 3>>();
 
   auto root = node_factory.make_root_node(false);
-  internal::set_child(root.get(), 0, node_factory.make_node(false, root.get()));
+  root.get()->set_child(0, node_factory.make_node(false, root.get()));
 }
 }  // namespace platanus

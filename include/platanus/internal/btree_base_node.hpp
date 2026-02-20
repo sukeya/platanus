@@ -32,7 +32,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <iterator>
+#include <memory>
+#include <type_traits>
 
 #include "btree_node_fwd.hpp"
 #include "btree_util.hpp"
@@ -287,7 +290,14 @@ class btree_base_node {
     assert(last + shift <= max_values_count());
     auto begin = std::next(begin_values(), first);
     auto end   = std::next(begin_values(), last);
-    std::move_backward(begin, end, std::next(end, shift));
+    if constexpr (std::is_trivially_copyable_v<mutable_value_type>) {
+      auto* src = std::to_address(begin);
+      // std::memmove handles overlapping ranges, so right shifts (destination starts inside source)
+      // remain well-defined for trivially copyable values.
+      std::memmove(src + shift, src, static_cast<std::size_t>(last - first) * sizeof(*src));
+    } else {
+      std::move_backward(begin, end, std::next(end, shift));
+    }
   }
 
   // Shift values from first to last by shift toward left.
@@ -299,7 +309,14 @@ class btree_base_node {
     assert(0 <= first - shift);
     auto begin = std::next(begin_values(), first);
     auto end   = std::next(begin_values(), last);
-    std::move(begin, end, std::prev(begin, shift));
+    if constexpr (std::is_trivially_copyable_v<mutable_value_type>) {
+      auto* src = std::to_address(begin);
+      // std::memmove handles overlapping ranges, so left shifts (destination ends inside source)
+      // remain well-defined for trivially copyable values.
+      std::memmove(src - shift, src, static_cast<std::size_t>(last - first) * sizeof(*src));
+    } else {
+      std::move(begin, end, std::prev(begin, shift));
+    }
   }
 
  private:

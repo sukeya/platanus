@@ -7,4 +7,4 @@ See [here](https://sukeya.github.io/platanus/).
 
 
 ## License
-`platanus` is licensed under [Apache License, Version 2.0](COPYING).
+`platanus` is licensed under [Apache License, Version 2.0](LICENSE).

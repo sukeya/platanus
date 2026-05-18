@@ -37,6 +37,7 @@ function(add_btree_test target)
       $<${is_gcc}:-Wtrampolines>
   )
   target_link_libraries(${target} GTest::gtest_main platanus util)
+  add_test(NAME ${target} COMMAND ${target})
 endfunction()
 
 add_btree_test(btree_test)

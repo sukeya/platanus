@@ -111,7 +111,7 @@ class btree {
 
   explicit btree(const key_compare& comp, const allocator_type& alloc);
 
-  explicit btree(const btree& x, const allocator_type& alloc) : btree(key_compare{}, alloc) {
+  explicit btree(const btree& x, const allocator_type& alloc) : btree(x.key_comp(), alloc) {
     copy(x);
   }
 

@@ -127,10 +127,10 @@ class btree_set
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -252,10 +252,10 @@ class btree_multiset
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -376,10 +376,10 @@ class btree_set
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -498,10 +498,10 @@ class btree_multiset
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;

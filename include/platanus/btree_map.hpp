@@ -126,10 +126,10 @@ class btree_map
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -256,10 +256,10 @@ class btree_multimap
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -389,10 +389,10 @@ class btree_map : public internal::btree_map_container<
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -526,10 +526,10 @@ class btree_multimap
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;

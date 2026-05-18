@@ -128,7 +128,8 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
 
     void operator()(pointer p) {
       if (p != nullptr) {
-        // FIXME some children whose index is over children_count() haven't been freed.
+        // FIXME Some children whose index is over children_count() haven't been freed, so I free
+        // all children.
         for (count_type i = 0; i < kNodeChildren; ++i) {
           if (p[i]) {
             children_allocator_traits::destroy(*this, &p[i]);

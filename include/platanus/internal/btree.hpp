@@ -83,7 +83,6 @@ class btree {
   using mapped_type            = typename params_type::mapped_type;
   using value_type             = typename params_type::value_type;
   using key_compare            = typename params_type::key_compare;
-  using value_compare          = typename params_type::value_compare;
   using pointer                = typename params_type::pointer;
   using const_pointer          = typename params_type::const_pointer;
   using reference              = typename params_type::reference;

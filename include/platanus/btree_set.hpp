@@ -60,7 +60,6 @@ class btree_set
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -185,7 +184,6 @@ class btree_multiset
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -309,7 +307,6 @@ class btree_set
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -431,7 +428,6 @@ class btree_multiset
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;

@@ -58,7 +58,6 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   using reference          = typename super_type::reference;
   using const_reference    = typename super_type::const_reference;
   using key_compare        = typename super_type::key_compare;
-  using value_compare      = typename super_type::value_compare;
   using size_type          = typename super_type::size_type;
   using difference_type    = typename super_type::difference_type;
 

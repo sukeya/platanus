@@ -7,7 +7,7 @@ template <
     typename Key,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
-    std::int_least16_t MaxNumOfValues = 512>
+    int MaxNumOfValues         = 64>
 class btree_set;
 }
 ```

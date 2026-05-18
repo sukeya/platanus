@@ -7,8 +7,8 @@ template <
     typename Key,
     typename Value,
     typename Compare           = std::ranges::less,
-    typename Alloc             = std::allocator<Key>,
-    std::int_least16_t MaxNumOfValues = 512>
+    typename Alloc             = std::allocator<std::pair<const Key, Value>>,
+    int MaxNumOfValues         = 64>
 class btree_multimap;
 }
 ```
@@ -21,7 +21,7 @@ class btree_multimap;
 | `Key` | Type of a key |
 | `Value` | Type of a value |
 | `Compare` | Type of a func obj comparing two key in a weak order. If Key doesn't implement three-way comparison operator, the default type does using `<` and `=`. |
-| `Alloc` | Type of an allocator. The default is `std::allocator<Key>`. |
+| `Alloc` | Type of an allocator. The default is `std::allocator<std::pair<const Key, Value>>`. |
 | `MaxNumOfValues` | The max number of values per node. The default is 64. |
 
 

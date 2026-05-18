@@ -128,8 +128,11 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
 
     void operator()(pointer p) {
       if (p != nullptr) {
-        // FIXME Some children whose index is over children_count() haven't been freed, so I free
-        // all children.
+        // The children array is allocated with kNodeChildren slots, but only [0, count()] are
+        // logically active. After split/merge operations, slots beyond count() may still hold
+        // initialized node_owner objects (i.e. non-null unique_ptrs) that were moved out of but
+        // not yet destroyed. Iterating over all kNodeChildren slots and destroying each non-null
+        // entry ensures those residual owners are also released.
         for (count_type i = 0; i < kNodeChildren; ++i) {
           if (p[i]) {
             children_allocator_traits::destroy(*this, &p[i]);

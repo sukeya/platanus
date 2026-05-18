@@ -498,13 +498,7 @@ class btree {
 /////////////////////////////////////////////////////////////////////////
 // btree implementation
 template <class NF>
-btree<NF>::btree(const btree& x)
-    : comp_(x.comp_),
-      node_factory_(x.node_factory_),
-      root_(),
-      rightmost_(x.rightmost_),
-      leftmost_(x.leftmost_),
-      size_(x.size_) {
+btree<NF>::btree(const btree& x) : comp_(x.comp_), node_factory_(x.node_factory_) {
   copy(x);
 }
 

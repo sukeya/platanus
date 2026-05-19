@@ -26,11 +26,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.27.7)
+cmake_minimum_required(VERSION 3.31)
 
 project(platanus VERSION 1.1.0 LANGUAGES CXX)
 
 option(PLATANUS_BUILD_TESTS "Build B-tree tests" OFF)
+option(PLATANUS_BUILD_BENCHMARK "Build B-tree benchmark" OFF)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_OPTIMIZE_DEPENDENCIES ON)
@@ -42,7 +43,7 @@ add_library(platanus INTERFACE)
 
 target_compile_features(platanus INTERFACE cxx_std_20)
 target_include_directories(platanus INTERFACE
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/platanus>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
@@ -53,7 +54,7 @@ install(TARGETS platanus
 
 install(
   DIRECTORY
-    ${CMAKE_CURRENT_SOURCE_DIR}/platanus
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/platanus
   DESTINATION
     ${CMAKE_INSTALL_INCLUDEDIR}
 )

@@ -34,12 +34,10 @@
 #include <cstddef>
 #include <cstring>
 #include <initializer_list>
-#include <iostream>
 #include <iterator>
 #include <limits>
 #include <ostream>
 #include <ranges>
-#include <sys/types.h>
 #include <stdexcept>
 #include <utility>
 
@@ -85,7 +83,6 @@ class btree {
   using mapped_type            = typename params_type::mapped_type;
   using value_type             = typename params_type::value_type;
   using key_compare            = typename params_type::key_compare;
-  using value_compare          = typename params_type::value_compare;
   using pointer                = typename params_type::pointer;
   using const_pointer          = typename params_type::const_pointer;
   using reference              = typename params_type::reference;
@@ -113,7 +110,7 @@ class btree {
 
   explicit btree(const key_compare& comp, const allocator_type& alloc);
 
-  explicit btree(const btree& x, const allocator_type& alloc) : btree(key_compare{}, alloc) {
+  explicit btree(const btree& x, const allocator_type& alloc) : btree(x.key_comp(), alloc) {
     copy(x);
   }
 
@@ -332,7 +329,7 @@ class btree {
     return size() == 0;
   }
 
-  size_type capacity() const noexcept { return nodes() * kNodeValues; }
+  size_type theoretical_max_size() const noexcept { return nodes() * kNodeValues; }
 
   // The height of the btree. An empty tree will have height 0.
   size_type height() const noexcept;
@@ -498,13 +495,7 @@ class btree {
 /////////////////////////////////////////////////////////////////////////
 // btree implementation
 template <class NF>
-btree<NF>::btree(const btree& x)
-    : comp_(x.comp_),
-      node_factory_(x.node_factory_),
-      root_(),
-      rightmost_(x.rightmost_),
-      leftmost_(x.leftmost_),
-      size_(x.size_) {
+btree<NF>::btree(const btree& x) : comp_(x.comp_), node_factory_(x.node_factory_) {
   copy(x);
 }
 
@@ -1121,87 +1112,42 @@ void btree<NF>::merge_unique(self_type& rhd) {
     return;
   }
 
-  auto lhd_min = params_type::key(*(begin()));
-  auto lhd_max = params_type::key(*(rbegin()));
-  auto rhd_min = params_type::key(*(rhd.begin()));
-  auto rhd_max = params_type::key(*(rhd.rbegin()));
-
-  const auto& comp = ref_key_comp();
-
+  // Ensure *this has the smaller minimum key.
   {
-    bool is_greater = false;
+    const auto& lhd_first          = params_type::key(*begin());
+    const auto& rhd_first          = params_type::key(*rhd.begin());
+    bool        lhd_min_is_smaller = false;
     if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
-      is_greater = (comp(lhd_min, rhd_min) < 0);
+      lhd_min_is_smaller = (ref_key_comp()(lhd_first, rhd_first) < 0);
     } else {
-      is_greater = comp(lhd_min, rhd_min);
+      lhd_min_is_smaller = ref_key_comp()(lhd_first, rhd_first);
     }
-    // If lhd_min >= rhd_min,
-    if (not is_greater) {
+    if (!lhd_min_is_smaller) {
       swap(rhd);
     }
   }
 
-  // If the value range of rhd is included in that of *this,
-  {
-    bool is_greater = false;
-    if constexpr (comp_return_weak_ordering<key_type, key_compare>) {
-      is_greater = (comp(lhd_max, rhd_max) < 0);
+  // Capture lhd_max after any swap (by value; a reference can be invalidated by insert).
+  const auto lhd_max = params_type::key(*rbegin());
+
+  auto it = rhd.begin();
+
+  // Phase 1: intersection range (key <= lhd_max) — check for duplicates.
+  // insert_unique moves *it only when the key is unique; on duplicate it returns without moving.
+  while (it != rhd.end() && !compare_keys(lhd_max, params_type::key(*it))) {
+    auto [_, is_inserted] = insert_unique(std::move(*it));
+    if (is_inserted) {
+      it = rhd.erase(it);  // erase moved-from element, receive next valid iterator
     } else {
-      is_greater = comp(lhd_max, rhd_max);
-    }
-    // If rhd_max <= lhd_max
-    if (not is_greater) {
-      // Store the keys removed from rhd temporarily.
-      std::vector<std::ptrdiff_t> removed_indexes;
-
-      // Insert the intersection to *this.
-      for (std::ptrdiff_t i = 0; auto& v : rhd) {
-        auto [_, is_inserted] = insert_unique(std::move(v));
-        if (is_inserted) {
-          removed_indexes.push_back(i);
-        }
-        ++i;
-      }
-
-      // Remove the keys inserted to *this.
-      for (auto i : removed_indexes | std::views::reverse) {
-        rhd.erase(std::next(rhd.begin(), i));
-      }
-
-      return;
+      ++it;  // duplicate: value was not moved, stays in rhd
     }
   }
 
-  // Store the keys removed from rhd temporarily.
-  std::vector<std::ptrdiff_t> removed_indexes;
-
-  auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-
-  // Insert the intersection to *this.
-  {
-    for (std::ptrdiff_t i = 0; auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
-      auto [_, is_inserted] = insert_unique(std::move(v));
-      if (is_inserted) {
-        removed_indexes.push_back(i);
-      }
-      ++i;
-    }
-    // Insert the extra of rhd.
-    for (auto& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
-      insert_unique(end(), std::move(v));
-    }
-  }
-
-  // Remove the extra of rhd.
-  // Using `erase`, the former iterators are made to be invalidated.
-  // So, I use classical for loop.
-  std::ptrdiff_t num_value_out_of_left = std::distance(rhd_intersection_end, rhd.end());
-  for (std::ptrdiff_t i = 0; i < num_value_out_of_left; ++i) {
-    rhd.erase(std::prev(rhd.end()));
-  }
-  // Remove the keys inserted to *this.
-  for (auto i : removed_indexes | std::views::reverse) {
-    rhd.erase(std::next(rhd.begin(), i));
+  // Phase 2: extra range (key > lhd_max) — no duplicates possible.
+  // Use end() hint for O(1) amortized insert.
+  while (it != rhd.end()) {
+    insert_unique(end(), std::move(*it));
+    it = rhd.erase(it);
   }
 }
 

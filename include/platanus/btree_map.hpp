@@ -60,7 +60,6 @@ class btree_map
   using value_type             = typename super_type::value_type;
   using mapped_type            = typename super_type::mapped_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -126,10 +125,10 @@ class btree_map
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -189,7 +188,6 @@ class btree_multimap
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -256,10 +254,10 @@ class btree_multimap
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -323,7 +321,6 @@ class btree_map : public internal::btree_map_container<
   using value_type             = typename super_type::value_type;
   using mapped_type            = typename super_type::mapped_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -389,10 +386,10 @@ class btree_map : public internal::btree_map_container<
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;
@@ -459,7 +456,6 @@ class btree_multimap
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -526,10 +522,10 @@ class btree_multimap
   using super_type::rbegin;
   using super_type::rend;
 
-  using super_type::capacity;
   using super_type::empty;
   using super_type::max_size;
   using super_type::size;
+  using super_type::theoretical_max_size;
 
   using super_type::clear;
   using super_type::dump;

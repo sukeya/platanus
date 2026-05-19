@@ -58,7 +58,6 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
   using reference          = typename super_type::reference;
   using const_reference    = typename super_type::const_reference;
   using key_compare        = typename super_type::key_compare;
-  using value_compare      = typename super_type::value_compare;
   using size_type          = typename super_type::size_type;
   using difference_type    = typename super_type::difference_type;
 
@@ -128,7 +127,11 @@ class btree_node : public btree_base_node<Params, btree_node<Params>> {
 
     void operator()(pointer p) {
       if (p != nullptr) {
-        // FIXME some children whose index is over children_count() haven't been freed.
+        // The children array is allocated with kNodeChildren slots, but only [0, count()] are
+        // logically active. After split/merge operations, slots beyond count() may still hold
+        // initialized node_owner objects (i.e. non-null unique_ptrs) that were moved out of but
+        // not yet destroyed. Iterating over all kNodeChildren slots and destroying each non-null
+        // entry ensures those residual owners are also released.
         for (count_type i = 0; i < kNodeChildren; ++i) {
           if (p[i]) {
             children_allocator_traits::destroy(*this, &p[i]);

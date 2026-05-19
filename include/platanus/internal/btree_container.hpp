@@ -48,7 +48,6 @@ class btree_container {
   using key_type               = typename Tree::key_type;
   using value_type             = typename Tree::value_type;
   using key_compare            = typename Tree::key_compare;
-  using value_compare          = typename Tree::value_compare;
   using allocator_type         = typename Tree::allocator_type;
   using pointer                = typename Tree::pointer;
   using const_pointer          = typename Tree::const_pointer;
@@ -104,7 +103,7 @@ class btree_container {
   size_type size() const noexcept { return tree_.size(); }
   size_type max_size() const noexcept { return tree_.max_size(); }
   bool      empty() const noexcept { return tree_.empty(); }
-  size_type capacity() const noexcept { return tree_.capacity(); }
+  size_type theoretical_max_size() const noexcept { return tree_.theoretical_max_size(); }
   size_type height() const noexcept { return tree_.height(); }
   size_type internal_nodes() const noexcept { return tree_.internal_nodes(); }
   size_type leaf_nodes() const noexcept { return tree_.leaf_nodes(); }
@@ -153,7 +152,6 @@ class btree_unique_container : public btree_container<Tree> {
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -306,7 +304,6 @@ class btree_map_container : public btree_unique_container<Tree> {
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;
@@ -438,7 +435,6 @@ class btree_multi_container : public btree_container<Tree> {
   using key_type               = typename super_type::key_type;
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
-  using value_compare          = typename super_type::value_compare;
   using allocator_type         = typename super_type::allocator_type;
   using pointer                = typename super_type::pointer;
   using const_pointer          = typename super_type::const_pointer;

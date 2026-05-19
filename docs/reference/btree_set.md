@@ -7,7 +7,7 @@ template <
     typename Key,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<Key>,
-    std::int_least16_t MaxNumOfValues = 512>
+    int MaxNumOfValues         = 64>
 class btree_set;
 }
 ```
@@ -30,7 +30,6 @@ class btree_set;
 | key_type | Type of key, i.e. `Key` |
 | value_type | Type of value, i.e. `Key` |
 | key_compare | Type of comparer of key, i.e. `Compare` |
-| value_compare | Type of comparer of value, i.e. `Compare` |
 | allocator_type | Type of allocator, i.e. `Alloc` |
 | pointer | Type of pointer to value, i.e. `Key*` |
 | const_pointer | Type of pointer to const value, i.e. `const Key*` |

@@ -14,11 +14,9 @@ jobs:
       - name: Build tests
         run: |
           cmake --preset test_gcc -B build/debug/gcc
-          cd ./build/debug/gcc && ninja
+          cmake --build build/debug/gcc
       - name: Run tests
-        run: |
-          ./build/debug/gcc/test/btree_test
-          ./build/debug/gcc/test/btree_pmr_test
+        run: ctest --test-dir build/debug/gcc --output-on-failure
 
   clang:
     runs-on: ubuntu-latest
@@ -31,11 +29,9 @@ jobs:
       - name: Build tests
         run: |
           cmake --preset test_clang -B build/debug/clang
-          cd ./build/debug/clang && ninja
+          cmake --build build/debug/clang
       - name: Run tests
-        run: |
-          ./build/debug/clang/test/btree_test
-          ./build/debug/clang/test/btree_pmr_test
+        run: ctest --test-dir build/debug/clang --output-on-failure
 
   clang_memory:
     # libstdc++ and libc++ have uninitialized variables,
@@ -51,8 +47,6 @@ jobs:
       - name: Build tests
         run: |
           cmake --preset test_clang_memory -B build/debug/clang/memory
-          cd ./build/debug/clang/memory && ninja
+          cmake --build build/debug/clang/memory
       - name: Run tests
-        run: |
-          ./build/debug/clang/memory/test/btree_test
-          ./build/debug/clang/memory/test/btree_pmr_test
+        run: ctest --test-dir build/debug/clang/memory --output-on-failure

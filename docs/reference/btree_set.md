@@ -31,8 +31,6 @@ class btree_set;
 | value_type | Type of value, i.e. `Key` |
 | key_compare | Type of comparer of key, i.e. `Compare` |
 | allocator_type | Type of allocator, i.e. `Alloc` |
-| pointer | Type of pointer to value, i.e. `Key*` |
-| const_pointer | Type of pointer to const value, i.e. `const Key*` |
 | reference | Type of reference to value, i.e. `Key&` |
 | const_reference | Type of reference to const value, i.e. `const Key&` |
 | size_type | Unsigned integer type of size of `btree_set`, i.e. `std::size_t` |
@@ -106,6 +104,8 @@ btree_set& operator=(btree_set&&) = default;
 
 
 ### Iterator
+> **Note:** Because iterators do **not** support `operator->()`. Use `(*it).`.
+
 ```cpp
 // (1)
 iterator               begin();

@@ -83,8 +83,6 @@ class btree {
   using mapped_type            = typename params_type::mapped_type;
   using value_type             = typename params_type::value_type;
   using key_compare            = typename params_type::key_compare;
-  using pointer                = typename params_type::pointer;
-  using const_pointer          = typename params_type::const_pointer;
   using reference              = typename params_type::reference;
   using const_reference        = typename params_type::const_reference;
   using size_type              = typename params_type::size_type;
@@ -1182,11 +1180,11 @@ void btree<NF>::merge_multi(self_type& rhd) {
 
   // Insert the intersection to *this.
   auto rhd_intersection_end = rhd.upper_bound(lhd_max);
-  for (auto& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
+  for (auto&& v : std::ranges::subrange{rhd.begin(), rhd_intersection_end}) {
     insert_multi(std::move(v));
   }
   // Insert the extra of rhd.
-  for (auto& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
+  for (auto&& v : std::ranges::subrange{rhd_intersection_end, rhd.end()}) {
     insert_multi(end(), std::move(v));
   }
 

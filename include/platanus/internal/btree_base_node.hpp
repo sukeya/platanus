@@ -33,6 +33,7 @@
 #include <cassert>
 #include <cstddef>
 #include <iterator>
+#include <type_traits>
 
 #include "btree_node_fwd.hpp"
 #include "btree_util.hpp"
@@ -54,8 +55,6 @@ class btree_base_node {
   using mapped_type        = typename Params::mapped_type;
   using value_type         = typename Params::value_type;
   using mutable_value_type = typename Params::mutable_value_type;
-  using pointer            = typename Params::pointer;
-  using const_pointer      = typename Params::const_pointer;
   using reference          = typename Params::reference;
   using const_reference    = typename Params::const_reference;
   using key_compare        = typename Params::key_compare;
@@ -91,6 +90,10 @@ class btree_base_node {
   using node_borrower          = btree_node_borrower<Node>;
   using node_readonly_borrower = btree_node_readonly_borrower<Node>;
 
+ private:
+  static constexpr bool is_set = std::is_same_v<typename params_type::mapped_type, std::false_type>;
+
+ public:
   btree_base_node()                                  = default;
   btree_base_node(const btree_base_node&)            = default;
   btree_base_node(btree_base_node&&)                 = default;
@@ -123,9 +126,27 @@ class btree_base_node {
 
   // Getters for the key/value at position i in the node.
   const key_type& key(count_type i) const noexcept { return params_type::key(value(i)); }
-  reference       value(count_type i) { return reinterpret_cast<reference>(mut_value(i)); }
-  const_reference value(count_type i) const {
-    return reinterpret_cast<const_reference>(mut_value(i));
+  // Set version
+  reference value(count_type i)
+  requires(is_set)
+  {
+    return mut_value(i);
+  }
+  const_reference value(count_type i) const
+  requires(is_set)
+  {
+    return mut_value(i);
+  }
+  // Map version
+  reference value(count_type i)
+  requires(!is_set)
+  {
+    return reference(mut_value(i).first, mut_value(i).second);
+  }
+  const_reference value(count_type i) const
+  requires(!is_set)
+  {
+    return const_reference(mut_value(i).first, mut_value(i).second);
   }
 
   // Swap value i in this node with value j in node x.

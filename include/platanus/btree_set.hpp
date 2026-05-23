@@ -61,8 +61,6 @@ class btree_set
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
   using allocator_type         = typename super_type::allocator_type;
-  using pointer                = typename super_type::pointer;
-  using const_pointer          = typename super_type::const_pointer;
   using reference              = typename super_type::reference;
   using const_reference        = typename super_type::const_reference;
   using size_type              = typename super_type::size_type;
@@ -185,8 +183,6 @@ class btree_multiset
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
   using allocator_type         = typename super_type::allocator_type;
-  using pointer                = typename super_type::pointer;
-  using const_pointer          = typename super_type::const_pointer;
   using reference              = typename super_type::reference;
   using const_reference        = typename super_type::const_reference;
   using size_type              = typename super_type::size_type;
@@ -308,8 +304,6 @@ class btree_set
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
   using allocator_type         = typename super_type::allocator_type;
-  using pointer                = typename super_type::pointer;
-  using const_pointer          = typename super_type::const_pointer;
   using reference              = typename super_type::reference;
   using const_reference        = typename super_type::const_reference;
   using size_type              = typename super_type::size_type;
@@ -429,8 +423,6 @@ class btree_multiset
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
   using allocator_type         = typename super_type::allocator_type;
-  using pointer                = typename super_type::pointer;
-  using const_pointer          = typename super_type::const_pointer;
   using reference              = typename super_type::reference;
   using const_reference        = typename super_type::const_reference;
   using size_type              = typename super_type::size_type;

@@ -149,7 +149,6 @@ struct btree_iterator<Node, false> {
   using key_type   = typename Node::key_type;
   using value_type = typename Node::value_type;
   using reference  = typename Node::reference;
-  using pointer    = typename Node::pointer;
 
   using size_type       = typename Node::size_type;
   using difference_type = typename Node::difference_type;
@@ -172,7 +171,6 @@ struct btree_iterator<Node, false> {
   const key_type& key() const { return node->key(position); }
 
   reference operator*() const { return node->value(position); }
-  pointer   operator->() const { return &(this->operator*()); }
 
   self_type& operator++() noexcept {
     btree_iterator_impl::increment(node, position);
@@ -213,7 +211,6 @@ struct btree_iterator<Node, true> {
   using key_type   = typename Node::key_type;
   using value_type = typename Node::value_type;
   using reference  = typename Node::const_reference;
-  using pointer    = typename Node::const_pointer;
 
   using size_type       = typename Node::size_type;
   using difference_type = typename Node::difference_type;
@@ -239,7 +236,6 @@ struct btree_iterator<Node, true> {
   const key_type& key() const { return node->key(position); }
 
   reference operator*() const { return node->value(position); }
-  pointer   operator->() const { return &(this->operator*()); }
 
   self_type& operator++() noexcept {
     btree_iterator_impl::increment(node, position);

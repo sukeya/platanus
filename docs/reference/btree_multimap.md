@@ -34,10 +34,8 @@ class btree_multimap;
 | mapped_type | Type of mapped value, i.e. `Value` |
 | key_compare | Type of comparer of key, i.e. `Compare` |
 | allocator_type | Type of allocator, i.e. `Alloc` |
-| pointer | Type of pointer to value, i.e. `value_type*` |
-| const_pointer | Type of pointer to const value, i.e. `const value_type*` |
-| reference | Type of reference to value, i.e. `value_type&` |
-| const_reference | Type of reference to const value, i.e. `const value_type&` |
+| reference | Type of reference to value, i.e. `std::pair<const Key&, Value&>` |
+| const_reference | Type of reference to const value, i.e. `std::pair<const Key&, const Value&>` |
 | size_type | Unsigned integer type of size of `btree_multimap`, i.e. `std::size_t` |
 | difference_type | Signed integer type of the difference of two iterators |
 | iterator | Type of iterator |
@@ -109,6 +107,9 @@ btree_multimap& operator=(btree_multimap&&) = default;
 
 
 ### Iterator
+
+> **Note:** Because `reference` is a proxy type (`std::pair<const Key&, Value&>`), iterators do **not** support `operator->()`. Use `(*it).first` / `(*it).second` instead of `it->first` / `it->second`.
+
 ```cpp
 // (1)
 iterator               begin();

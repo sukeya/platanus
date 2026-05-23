@@ -62,13 +62,13 @@ struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNum
 
   using key_compare =
       typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
-  using pointer         = value_type*;
-  using const_pointer   = const value_type*;
-  using reference       = value_type&;
-  using const_reference = const value_type&;
+  using reference       = std::pair<const Key&, mapped_type&>;
+  using const_reference = std::pair<const Key&, const mapped_type&>;
 
   static const Key& key(const value_type& x) noexcept { return x.first; }
   static const Key& key(const mutable_value_type& x) noexcept { return x.first; }
+  static const Key& key(const reference& x) noexcept { return x.first; }
+  static const Key& key(const const_reference& x) noexcept { return x.first; }
 };
 
 // A parameters structure for holding the type parameters for a btree_set.
@@ -80,8 +80,6 @@ struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNum
 
   using key_compare =
       typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
-  using pointer         = value_type*;
-  using const_pointer   = const value_type*;
   using reference       = value_type&;
   using const_reference = const value_type&;
 

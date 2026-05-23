@@ -49,8 +49,6 @@ class btree_container {
   using value_type             = typename Tree::value_type;
   using key_compare            = typename Tree::key_compare;
   using allocator_type         = typename Tree::allocator_type;
-  using pointer                = typename Tree::pointer;
-  using const_pointer          = typename Tree::const_pointer;
   using reference              = typename Tree::reference;
   using const_reference        = typename Tree::const_reference;
   using size_type              = typename Tree::size_type;
@@ -153,8 +151,6 @@ class btree_unique_container : public btree_container<Tree> {
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
   using allocator_type         = typename super_type::allocator_type;
-  using pointer                = typename super_type::pointer;
-  using const_pointer          = typename super_type::const_pointer;
   using reference              = typename super_type::reference;
   using const_reference        = typename super_type::const_reference;
   using size_type              = typename super_type::size_type;
@@ -305,8 +301,6 @@ class btree_map_container : public btree_unique_container<Tree> {
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
   using allocator_type         = typename super_type::allocator_type;
-  using pointer                = typename super_type::pointer;
-  using const_pointer          = typename super_type::const_pointer;
   using reference              = typename super_type::reference;
   using const_reference        = typename super_type::const_reference;
   using size_type              = typename super_type::size_type;
@@ -406,7 +400,7 @@ class btree_map_container : public btree_unique_container<Tree> {
     if (it == this->end()) {
       throw std::out_of_range("platanus::btree_map.at : Not found key.");
     }
-    return it->second;
+    return (*it).second;
   }
   const mapped_type& at(const key_type& key) const {
     return static_cast<const mapped_type&>(const_cast<self_type*>(this)->at(key));
@@ -418,9 +412,9 @@ class btree_map_container : public btree_unique_container<Tree> {
   mapped_type& internal_operator(T&& key) {
     auto iter = this->find(key);
     if (iter != this->end()) {
-      return iter->second;
+      return (*iter).second;
     } else {
-      return this->insert(iter, std::make_pair(std::forward<T>(key), mapped_type{}))->second;
+      return (*this->insert(iter, std::make_pair(std::forward<T>(key), mapped_type{}))).second;
     }
   }
 };
@@ -436,8 +430,6 @@ class btree_multi_container : public btree_container<Tree> {
   using value_type             = typename super_type::value_type;
   using key_compare            = typename super_type::key_compare;
   using allocator_type         = typename super_type::allocator_type;
-  using pointer                = typename super_type::pointer;
-  using const_pointer          = typename super_type::const_pointer;
   using reference              = typename super_type::reference;
   using const_reference        = typename super_type::const_reference;
   using size_type              = typename super_type::size_type;

@@ -46,6 +46,16 @@
 
 namespace platanus {
 
+// Cross-type equality for btree proxy reference types (pair<K&,V&>) vs value_type (pair<K,V>).
+template <class T1, class T2>
+bool equal_value(const T1& a, const T2& b) {
+  return a == b;
+}
+template <class K1, class V1, class K2, class V2>
+bool equal_value(const std::pair<K1, V1>& a, const std::pair<K2, V2>& b) {
+  return a.first == b.first && a.second == b.second;
+}
+
 // The number of values to use for tests.
 inline static constexpr int test_values = 10'000;
 
@@ -77,8 +87,6 @@ class base_checker {
   using key_type               = typename TreeType::key_type;
   using value_type             = typename TreeType::value_type;
   using key_compare            = typename TreeType::key_compare;
-  using pointer                = typename TreeType::pointer;
-  using const_pointer          = typename TreeType::const_pointer;
   using reference              = typename TreeType::reference;
   using const_reference        = typename TreeType::const_reference;
   using size_type              = typename TreeType::size_type;
@@ -121,7 +129,7 @@ class base_checker {
     if (tree_iter == tree_.end()) {
       EXPECT_EQ(checker_iter, checker_.end());
     } else {
-      EXPECT_EQ(*tree_iter, *checker_iter);
+      EXPECT_TRUE(equal_value(*tree_iter, *checker_iter));
     }
     return tree_iter;
   }
@@ -131,7 +139,7 @@ class base_checker {
     if (tree_iter == tree_.rend()) {
       EXPECT_EQ(checker_iter, checker_.rend());
     } else {
-      EXPECT_EQ(*tree_iter, *checker_iter);
+      EXPECT_TRUE(equal_value(*tree_iter, *checker_iter));
     }
     return tree_iter;
   }
@@ -141,7 +149,7 @@ class base_checker {
         typename KeyOfValue<typename TreeType::key_type, typename TreeType::value_type>::type;
 
     const key_type& key = KeyGetter::Get(x);
-    EXPECT_EQ(*find(key), x);
+    EXPECT_TRUE(equal_value(*find(key), x));
     lower_bound(key);
     upper_bound(key);
     equal_range(key);
@@ -279,7 +287,7 @@ class base_checker {
     typename CheckerType::const_iterator checker_iter(checker_.begin());
     const_iterator                       tree_iter(tree_.begin());
     for (; tree_iter != tree_.end(); ++tree_iter, ++checker_iter) {
-      EXPECT_EQ(*tree_iter, *checker_iter);
+      EXPECT_TRUE(equal_value(*tree_iter, *checker_iter));
     }
 
     // Move through the forward iterators using decrement.
@@ -295,7 +303,7 @@ class base_checker {
     typename CheckerType::const_reverse_iterator checker_riter(checker_.rbegin());
     const_reverse_iterator                       tree_riter(tree_.rbegin());
     for (; tree_riter != tree_.rend(); ++tree_riter, ++checker_riter) {
-      EXPECT_EQ(*tree_riter, *checker_riter);
+      EXPECT_TRUE(equal_value(*tree_riter, *checker_riter));
     }
 
     // Move through the reverse iterators using decrement.
@@ -371,7 +379,7 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
     std::size_t                                     size        = this->tree_.size();
     std::pair<typename CheckerType::iterator, bool> checker_res = this->checker_.insert(y);
     std::pair<iterator, bool> tree_res = this->tree_.insert(std::forward<T>(x));
-    EXPECT_EQ(*tree_res.first, *checker_res.first);
+    EXPECT_TRUE(equal_value(*tree_res.first, *checker_res.first));
     EXPECT_EQ(tree_res.second, checker_res.second);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + tree_res.second);
@@ -386,7 +394,7 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
     typename CheckerType::size_type                 size        = this->tree_.size();
     std::pair<typename CheckerType::iterator, bool> checker_res = this->checker_.insert(y);
     iterator tree_res = this->tree_.insert(position, std::forward<T>(x));
-    EXPECT_EQ(*tree_res, *checker_res.first);
+    EXPECT_TRUE(equal_value(*tree_res, *checker_res.first));
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + checker_res.second);
     return tree_res;
@@ -435,7 +443,7 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
     typename CheckerType::size_type size        = this->tree_.size();
     typename CheckerType::iterator  checker_res = this->checker_.insert(T{x});
     iterator                        tree_res    = this->tree_.insert(std::forward<T>(x));
-    EXPECT_EQ(*tree_res, *checker_res);
+    EXPECT_TRUE(equal_value(*tree_res, *checker_res));
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + 1);
     return tree_res;
@@ -451,7 +459,7 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
         T{x}
     );
     iterator tree_res = this->tree_.insert(position, std::forward<T>(x));
-    EXPECT_EQ(*tree_res, *checker_res);
+    EXPECT_TRUE(equal_value(*tree_res, *checker_res));
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
     EXPECT_EQ(this->tree_.size(), size + 1);
     return tree_res;
@@ -497,7 +505,9 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_LE(b_copy.internal_nodes(), const_b.internal_nodes());
   EXPECT_LE(b_copy.leaf_nodes(), const_b.leaf_nodes());
   for (const auto& v : values) {
-    EXPECT_EQ(*b_copy.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
+    EXPECT_TRUE(
+        equal_value(*b_copy.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v))
+    );
   }
 
   // Test range constructor.
@@ -507,7 +517,9 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_LE(b_range.internal_nodes(), const_b.internal_nodes());
   EXPECT_LE(b_range.leaf_nodes(), const_b.leaf_nodes());
   for (const auto& v : values) {
-    EXPECT_EQ(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
+    EXPECT_TRUE(
+        equal_value(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v))
+    );
   }
 
   // Test range insertion for values that already exist.
@@ -522,7 +534,9 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_EQ(b_range.internal_nodes(), b_copy.internal_nodes());
   EXPECT_EQ(b_range.leaf_nodes(), b_copy.leaf_nodes());
   for (const auto& v : values) {
-    EXPECT_EQ(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
+    EXPECT_TRUE(
+        equal_value(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v))
+    );
   }
 
 // Test assignment to self. Nothing should change.
@@ -549,7 +563,9 @@ void DoTest(const char* name, T* b, const std::vector<V>& values) {
   EXPECT_EQ(b_copy.size(), 0);
   EXPECT_EQ(b_range.size(), const_b.size());
   for (const auto& v : values) {
-    EXPECT_EQ(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v));
+    EXPECT_TRUE(
+        equal_value(*b_range.find(KeyGetter::Get(v)), static_cast<typename T::value_type>(v))
+    );
   }
   b_range.swap(b_copy);
 
@@ -658,9 +674,9 @@ void ConstTest() {
   mutable_b.insert(value);
   EXPECT_TRUE(mutable_b.find(KeyGetter::Get(value)) != const_b.end());
   EXPECT_TRUE(const_b.find(KeyGetter::Get(value)) != mutable_b.end());
-  EXPECT_EQ(*const_b.lower_bound(KeyGetter::Get(value)), value);
+  EXPECT_TRUE(equal_value(*const_b.lower_bound(KeyGetter::Get(value)), value));
   EXPECT_TRUE(const_b.upper_bound(KeyGetter::Get(value)) == const_b.end());
-  EXPECT_EQ(*const_b.equal_range(KeyGetter::Get(value)).first, value);
+  EXPECT_TRUE(equal_value(*const_b.equal_range(KeyGetter::Get(value)).first, value));
 
   // We can only create a non-const iterator from a non-const container.
   typename T::iterator mutable_iter(mutable_b.begin());
@@ -721,7 +737,7 @@ void MergeTest(const std::vector<V>& values) {
     auto it     = former.begin();
     auto ans_it = ans_former.begin();
     while (it != former.end()) {
-      EXPECT_EQ(*it, *ans_it);
+      EXPECT_TRUE(equal_value(*it, *ans_it));
       ++it;
       ++ans_it;
     }
@@ -734,7 +750,7 @@ void MergeTest(const std::vector<V>& values) {
     auto it     = later.begin();
     auto ans_it = ans_former.begin();
     while (it != later.end()) {
-      EXPECT_EQ(*it, *ans_it);
+      EXPECT_TRUE(equal_value(*it, *ans_it));
       ++it;
       ++ans_it;
     }
@@ -772,7 +788,7 @@ void MergeTest(const std::vector<V>& values) {
     auto it     = former.begin();
     auto ans_it = ans_former.begin();
     while (it != former.end()) {
-      EXPECT_EQ(*it, *ans_it);
+      EXPECT_TRUE(equal_value(*it, *ans_it));
       ++it;
       ++ans_it;
     }
@@ -782,7 +798,7 @@ void MergeTest(const std::vector<V>& values) {
     auto it     = later.begin();
     auto ans_it = ans_later.begin();
     while (it != later.end()) {
-      EXPECT_EQ(*it, *ans_it);
+      EXPECT_TRUE(equal_value(*it, *ans_it));
       ++it;
       ++ans_it;
     }
@@ -971,10 +987,10 @@ void BtreeMapTest() {
   // Test whether we can use the "->" operator on iterators and
   // reverse_iterators. This stresses the btree_map_params::pair_pointer
   // mechanism.
-  EXPECT_EQ(b.begin()->first, min.first);
-  EXPECT_EQ(b.begin()->second, min.second);
-  EXPECT_EQ(b.rbegin()->first, max.first);
-  EXPECT_EQ(b.rbegin()->second, max.second);
+  EXPECT_EQ((*b.begin()).first, min.first);
+  EXPECT_EQ((*b.begin()).second, min.second);
+  EXPECT_EQ((*b.rbegin()).first, max.first);
+  EXPECT_EQ((*b.rbegin()).second, max.second);
 }
 
 template <typename T>

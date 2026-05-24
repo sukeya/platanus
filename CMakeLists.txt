@@ -32,6 +32,7 @@ project(platanus VERSION 1.1.0 LANGUAGES CXX)
 
 option(PLATANUS_BUILD_TESTS "Build B-tree tests" OFF)
 option(PLATANUS_BUILD_BENCHMARK "Build B-tree benchmark" OFF)
+option(PLATANUS_BENCHMARK_VALUES_SIZE_TEST "Test values sizes of B-tree" OFF)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_OPTIMIZE_DEPENDENCIES ON)

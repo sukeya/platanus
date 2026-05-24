@@ -39,6 +39,7 @@
 #include "internal/btree.hpp"
 #include "internal/btree_container.hpp"
 #include "pmr/polymorphic_allocator.hpp"
+#include "constants.hpp"
 
 namespace platanus {
 
@@ -46,14 +47,14 @@ template <
     typename Key,
     typename Compare   = std::ranges::less,
     typename Alloc     = std::allocator<Key>,
-    int MaxNumOfValues = 64>
+    int MaxNumOfValues = kAutoSize,
+    int NodeByteSize   = 256>
 class btree_set
     : public internal::btree_unique_container<internal::btree<internal::btree_node_and_factory<
-          internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
-  using self_type   = btree_set<Key, Compare, Alloc, MaxNumOfValues>;
-  using params_type = internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
-  using btree_type  = internal::btree<internal::btree_node_and_factory<
-       internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>;
+          internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize>>>> {
+  using self_type   = btree_set<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize>;
+  using params_type = internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize>;
+  using btree_type  = internal::btree<internal::btree_node_and_factory<params_type>>;
   using super_type  = internal::btree_unique_container<btree_type>;
 
  public:
@@ -159,8 +160,8 @@ class btree_set
   using super_type::merge;
 };
 
-template <typename K, typename C, typename A, int N>
-void swap(btree_set<K, C, A, N>& x, btree_set<K, C, A, N>& y) {
+template <typename K, typename C, typename A, int N, int B>
+void swap(btree_set<K, C, A, N, B>& x, btree_set<K, C, A, N, B>& y) {
   x.swap(y);
 }
 
@@ -168,14 +169,14 @@ template <
     typename Key,
     typename Compare   = std::ranges::less,
     typename Alloc     = std::allocator<Key>,
-    int MaxNumOfValues = 64>
+    int MaxNumOfValues = kAutoSize,
+    int NodeByteSize   = 256>
 class btree_multiset
     : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
-          internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>> {
-  using self_type   = btree_multiset<Key, Compare, Alloc, MaxNumOfValues>;
-  using params_type = internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>;
-  using btree_type  = internal::btree<internal::btree_node_and_factory<
-       internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues>>>;
+          internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize>>>> {
+  using self_type   = btree_multiset<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize>;
+  using params_type = internal::btree_set_params<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize>;
+  using btree_type  = internal::btree<internal::btree_node_and_factory<params_type>>;
   using super_type  = internal::btree_multi_container<btree_type>;
 
  public:
@@ -281,21 +282,28 @@ class btree_multiset
   using super_type::merge;
 };
 
-template <typename K, typename C, typename A, int N>
-void swap(btree_multiset<K, C, A, N>& x, btree_multiset<K, C, A, N>& y) {
+template <typename K, typename C, typename A, int N, int B>
+void swap(btree_multiset<K, C, A, N, B>& x, btree_multiset<K, C, A, N, B>& y) {
   x.swap(y);
 }
 
 namespace pmr {
 
-template <typename Key, typename Compare = std::ranges::less, int MaxNumOfValues = 64>
-class btree_set
-    : public internal::btree_unique_container<internal::btree<internal::btree_node_and_factory<
-          internal::
-              btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>>>> {
-  using self_type = btree_set<Key, Compare, MaxNumOfValues>;
-  using params_type =
-      internal::btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
+template <
+    typename Key,
+    typename Compare   = std::ranges::less,
+    int MaxNumOfValues = kAutoSize,
+    int NodeByteSize   = 256>
+class btree_set : public internal::btree_unique_container<
+                      internal::btree<internal::btree_node_and_factory<internal::btree_set_params<
+                          Key,
+                          Compare,
+                          pmr::polymorphic_allocator<>,
+                          MaxNumOfValues,
+                          NodeByteSize>>>> {
+  using self_type   = btree_set<Key, Compare, MaxNumOfValues, NodeByteSize>;
+  using params_type = internal::
+      btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues, NodeByteSize>;
   using btree_type = internal::btree<internal::btree_node_and_factory<params_type>>;
   using super_type = internal::btree_unique_container<btree_type>;
 
@@ -402,19 +410,27 @@ class btree_set
   using super_type::merge;
 };
 
-template <typename K, typename C, int N>
-void swap(btree_set<K, C, N>& x, btree_set<K, C, N>& y) {
+template <typename K, typename C, int N, int B>
+void swap(btree_set<K, C, N, B>& x, btree_set<K, C, N, B>& y) {
   x.swap(y);
 }
 
-template <typename Key, typename Compare = std::ranges::less, int MaxNumOfValues = 64>
+template <
+    typename Key,
+    typename Compare   = std::ranges::less,
+    int MaxNumOfValues = kAutoSize,
+    int NodeByteSize   = 256>
 class btree_multiset
-    : public internal::btree_multi_container<internal::btree<internal::btree_node_and_factory<
-          internal::
-              btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>>>> {
-  using self_type = btree_multiset<Key, Compare, MaxNumOfValues>;
-  using params_type =
-      internal::btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues>;
+    : public internal::btree_multi_container<
+          internal::btree<internal::btree_node_and_factory<internal::btree_set_params<
+              Key,
+              Compare,
+              pmr::polymorphic_allocator<>,
+              MaxNumOfValues,
+              NodeByteSize>>>> {
+  using self_type   = btree_multiset<Key, Compare, MaxNumOfValues, NodeByteSize>;
+  using params_type = internal::
+      btree_set_params<Key, Compare, pmr::polymorphic_allocator<>, MaxNumOfValues, NodeByteSize>;
   using btree_type = internal::btree<internal::btree_node_and_factory<params_type>>;
   using super_type = internal::btree_multi_container<btree_type>;
 
@@ -521,8 +537,8 @@ class btree_multiset
   using super_type::merge;
 };
 
-template <typename K, typename C, int N>
-void swap(btree_multiset<K, C, N>& x, btree_multiset<K, C, N>& y) {
+template <typename K, typename C, int N, int B>
+void swap(btree_multiset<K, C, N, B>& x, btree_multiset<K, C, N, B>& y) {
   x.swap(y);
 }
 }  // namespace pmr

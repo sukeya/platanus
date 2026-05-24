@@ -35,10 +35,11 @@
 #include <utility>
 
 #include "btree_util.hpp"
+#include "../constants.hpp"
 
 namespace platanus::internal {
 
-template <typename Key, typename Compare, typename Alloc, int MaxNumOfValues>
+template <typename Key, typename Compare, typename Alloc, int MaxNumOfValues, int NodeByteSize>
 requires comp_requirement<Key, Compare>
 struct btree_common_params {
   using key_compare = Compare;
@@ -49,21 +50,39 @@ struct btree_common_params {
   using difference_type = std::ptrdiff_t;
 
   using count_type = int;
-
-  static constexpr count_type kMaxNumOfValues = MaxNumOfValues;
 };
 
 // A parameters structure for holding the type parameters for a btree_map.
-template <typename Key, typename Data, typename Compare, typename Alloc, int MaxNumOfValues>
-struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues> {
+template <
+    typename Key,
+    typename Data,
+    typename Compare,
+    typename Alloc,
+    int MaxNumOfValues,
+    int NodeByteSize>
+struct btree_map_params
+    : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize> {
+  using common_params      = btree_common_params<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize>;
   using mapped_type        = Data;
   using value_type         = std::pair<const Key, mapped_type>;
   using mutable_value_type = std::pair<Key, mapped_type>;
 
-  using key_compare =
-      typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
+  using key_compare = typename common_params::key_compare;
+
+  using count_type = typename common_params::count_type;
+
   using reference       = std::pair<const Key&, mapped_type&>;
   using const_reference = std::pair<const Key&, const mapped_type&>;
+
+  static constexpr count_type kMaxNumOfValues = []() {
+    if (MaxNumOfValues == ::platanus::kAutoSize) {
+      return static_cast<count_type>(
+          (NodeByteSize - 2 * sizeof(count_type) - 2 * sizeof(void*)) / sizeof(mutable_value_type)
+      );
+    } else {
+      return MaxNumOfValues;
+    }
+  }();
 
   static const Key& key(const value_type& x) noexcept { return x.first; }
   static const Key& key(const mutable_value_type& x) noexcept { return x.first; }
@@ -72,16 +91,30 @@ struct btree_map_params : public btree_common_params<Key, Compare, Alloc, MaxNum
 };
 
 // A parameters structure for holding the type parameters for a btree_set.
-template <typename Key, typename Compare, typename Alloc, int MaxNumOfValues>
-struct btree_set_params : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues> {
+template <typename Key, typename Compare, typename Alloc, int MaxNumOfValues, int NodeByteSize>
+struct btree_set_params
+    : public btree_common_params<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize> {
+  using common_params      = btree_common_params<Key, Compare, Alloc, MaxNumOfValues, NodeByteSize>;
   using mapped_type        = std::false_type;
   using value_type         = Key;
   using mutable_value_type = value_type;
 
-  using key_compare =
-      typename btree_common_params<Key, Compare, Alloc, MaxNumOfValues>::key_compare;
+  using key_compare = typename common_params::key_compare;
+
+  using count_type = typename common_params::count_type;
+
   using reference       = value_type&;
   using const_reference = const value_type&;
+
+  static constexpr count_type kMaxNumOfValues = []() {
+    if (MaxNumOfValues == ::platanus::kAutoSize) {
+      return static_cast<count_type>(
+          (NodeByteSize - 2 * sizeof(count_type) - 2 * sizeof(void*)) / sizeof(mutable_value_type)
+      );
+    } else {
+      return MaxNumOfValues;
+    }
+  }();
 
   static const Key& key(const value_type& x) noexcept { return x; }
 };

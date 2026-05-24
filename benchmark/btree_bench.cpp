@@ -51,19 +51,6 @@ static_assert(sizeof(std::size_t) == 8, "must fix the bits of mersenne twister e
 // The size of values used in each benchmark.
 static constexpr std::int64_t values_size = 1'000'000;
 
-struct StringComp {
-  std::weak_ordering operator()(const std::string& lhd, const std::string& rhd) const noexcept {
-    auto result = lhd.compare(rhd);
-    if (result < 0) {
-      return std::weak_ordering::less;
-    } else if (result > 0) {
-      return std::weak_ordering::greater;
-    } else {
-      return std::weak_ordering::equivalent;
-    }
-  }
-};
-
 // Benchmark insertion of values into a container.
 template <typename T>
 static void BM_Insert(benchmark::State& state) {
@@ -181,25 +168,11 @@ struct SetCompAndAllocToSet {
 };
 
 template <
-    template <class, class, class, std::int_least16_t> class BTreeContainer,
-    std::int_least16_t N>
-struct SetCompAndAllocToSet<BTreeContainer, std::string, N> {
-  using type = BTreeContainer<std::string, StringComp, std::allocator<std::string>, N>;
-};
-
-template <
     template <class, class, class, class, std::int_least16_t> class BTreeContainer,
     class T,
     std::int_least16_t N>
 struct SetCompAndAllocToMap {
   using type = BTreeContainer<T, T, std::ranges::less, std::allocator<T>, N>;
-};
-
-template <
-    template <class, class, class, class, std::int_least16_t> class BTreeContainer,
-    std::int_least16_t N>
-struct SetCompAndAllocToMap<BTreeContainer, std::string, N> {
-  using type = BTreeContainer<std::string, std::string, StringComp, std::allocator<std::string>, N>;
 };
 
 template <
@@ -210,24 +183,12 @@ struct SetCompToPmrSet {
   using type = BTreeContainer<T, std::ranges::less, N>;
 };
 
-template <template <class, class, std::int_least16_t> class BTreeContainer, std::int_least16_t N>
-struct SetCompToPmrSet<BTreeContainer, std::string, N> {
-  using type = BTreeContainer<std::string, StringComp, N>;
-};
-
 template <
     template <class, class, class, std::int_least16_t> class BTreeContainer,
     class T,
     std::int_least16_t N>
 struct SetCompToPmrMap {
   using type = BTreeContainer<T, T, std::ranges::less, N>;
-};
-
-template <
-    template <class, class, class, std::int_least16_t> class BTreeContainer,
-    std::int_least16_t N>
-struct SetCompToPmrMap<BTreeContainer, std::string, N> {
-  using type = BTreeContainer<std::string, std::string, StringComp, N>;
 };
 
 template <class T, std::int_least16_t N>
@@ -293,7 +254,8 @@ using AbslMultiMap = absl::btree_multimap<T, T, std::less<T>>;
   BENCHMARK(BM_##func<tree<type, 128>>);
 #endif
 
-#define BTREE_64_BENCHMARK(tree, type, func) BENCHMARK(BM_##func<tree<type, 64>>);
+#define BTREE_AUTOSIZE_BENCHMARK(tree, type, func) \
+  BENCHMARK(BM_##func<tree<type, platanus::kAutoSize>>);
 
 #define ABSL_BENCHMARK(container, type, func) BENCHMARK(BM_##func<Absl##container<type>>);
 
@@ -305,7 +267,7 @@ using AbslMultiMap = absl::btree_multimap<T, T, std::less<T>>;
 #define STL_ABSL_AND_BTREE64_BENCHMARK(container, type, func) \
   BENCHMARK(BM_##func<STL##container<type>>);                 \
   ABSL_BENCHMARK(container, type, func);                      \
-  BTREE_64_BENCHMARK(BTree##container, type, func);
+  BTREE_AUTOSIZE_BENCHMARK(BTree##container, type, func);
 
 #ifdef PLATANUS_BENCHMARK_WITH_ABSL
 #define REGISTER_BENCHMARK_FUNCTIONS(container, type)       \

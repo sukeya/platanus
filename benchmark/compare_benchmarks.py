@@ -49,7 +49,7 @@ BENCHMARK_PATTERN = re.compile(
     r"<(?P<impl>STL|Absl|BTree)"
     r"(?P<container>MultiMap|MultiSet|Map|Set)"
     r"<(?P<data_type>std::(?:int32_t|int64_t|string))"
-    r"(?:, (?P<node_size>\d+))?"
+    r"(?:, (?P<node_size>\d+|platanus::kAutoSize))?"
     r">>$"
 )
 
@@ -69,7 +69,10 @@ def parse_benchmark_name(name: str) -> dict[str, str] | None:
         parsed["label"] = "absl"
         return parsed
     if impl == "BTree" and node_size is not None:
-        parsed["label"] = f"platanus({node_size})"
+        if node_size == "platanus::kAutoSize":
+            parsed["label"] = "platanus(auto)"
+        else:
+            parsed["label"] = f"platanus({node_size})"
         return parsed
     return None
 
@@ -84,10 +87,12 @@ def implementation_sort_key(label: str) -> tuple[int, int]:
         return (0, 0)
     if label == "absl":
         return (1, 0)
+    if label == "platanus(auto)":
+        return (2, 0)
     match = re.fullmatch(r"platanus\((\d+)\)", label)
     if match is not None:
-        return (2, int(match.group(1)))
-    return (3, 0)
+        return (3, int(match.group(1)))
+    return (4, 0)
 
 
 IMPLEMENTATION_PALETTE = [

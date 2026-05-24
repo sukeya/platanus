@@ -41,14 +41,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "left",
-        nargs="?",
-        required=True,
         help="First benchmark JSON file.",
     )
     parser.add_argument(
         "right",
-        nargs="?",
-        required=True,
         help="Second benchmark JSON file.",
     )
     parser.add_argument("-o", "--output", default="compared_stats.txt")

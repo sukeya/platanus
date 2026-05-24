@@ -62,14 +62,16 @@
       "inherits": ["benchmark"],
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "g++",
-        "CMAKE_CXX_FLAGS": "-O2 -DNDEBUG"
+        "CMAKE_CXX_FLAGS": "-O2 -DNDEBUG",
+        "PLATANUS_BENCHMARK_WITH_ABSL" : "ON"
       }
     },
     {
       "name": "benchmark_clang",
       "inherits": ["benchmark", "clang"],
       "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O2 -DNDEBUG"
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++ -O2 -DNDEBUG",
+        "PLATANUS_BENCHMARK_WITH_ABSL" : "ON"
       }
     }
   ]

@@ -8,7 +8,8 @@ template <
     typename Value,
     typename Compare           = std::ranges::less,
     typename Alloc             = std::allocator<std::pair<const Key, Value>>,
-    int MaxNumOfValues         = 64>
+    int MaxNumOfValues         = kAutoSize,
+    int NodeByteSize           = 256>
 class btree_multimap;
 }
 ```
@@ -22,7 +23,8 @@ class btree_multimap;
 | `Value` | Type of a value |
 | `Compare` | Type of a func obj comparing two key in a weak order. If Key doesn't implement three-way comparison operator, the default type does using `<` and `=`. |
 | `Alloc` | Type of an allocator. The default is `std::allocator<std::pair<const Key, Value>>`. |
-| `MaxNumOfValues` | The max number of values per node. The default is 64. |
+| `MaxNumOfValues` | The max number of values per node. The default is `platanus::kAutoSize`. |
+| `NodeByteSize` | Target node size in bytes used when computing the automatic number of values per node. The default is `256`. |
 
 
 ## Member types
@@ -326,7 +328,7 @@ Smaller values indicate space wastage.
 ### Swap
 ```cpp
 template <typename K, typename C, typename A, std::int_least16_t N>
-void swap(btree_multimap<K, C, A, N>& x, btree_multimap<K, C, A, N>& y);
+void swap(btree_multimap<K, V, C, A, N, B>& x, btree_multimap<K, V, C, A, N, B>& y);
 ```
 
 Swap `x` for `y` using `std::swap` to swap each member variable of `x` for that of `y`.

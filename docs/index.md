@@ -1,13 +1,12 @@
 # platanus
-`platanus` is a fork of the B-tree library [`cpp-btree`](https://code.google.com/archive/p/cpp-btree/).
+`platanus` is a modern fork of the B-tree library [`cpp-btree`](https://code.google.com/archive/p/cpp-btree/).
 
 
 ## Comparing to STL set/map
 A btree is both smaller and faster than STL set/map.
 The red-black tree implementation of STL set/map has an overhead of 3 pointers (left, right and parent) plus the node color information for each stored value.
 So a `std::set<std::int32_t>` consumes 32 bytes for each value stored.
-This btree implementation stores the fixed number of values on a nodes (usually 64) and doesn't store child
-pointers for leaf nodes.
+This btree implementation stores the fixed number of values on nodes (often around 64 when `MaxNumOfValues` is left at `platanus::kAutoSize`) and doesn't store child pointers for leaf nodes.
 The result is that a `platanus::btree_set<std::int32>` may use much less memory per stored value.
 For the random insertion benchmark, a `platanus::btree_set<std::int32_t>` with 64 values per node uses 4.64 bytes per stored value.
 
@@ -25,9 +24,9 @@ The packing of multiple values into nodes of a btree has another effect besides 
 
 
 ## Performance
-Generally speaking, `platunus` is slower than `cpp-btree` by approximately 13%.
+Generally speaking, `platanus` is slower than `cpp-btree` by approximately 13%.
 
-However, `platunus` is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% (the values are median and the order of B-tree is 65 (default)).
+However, `platanus` is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% in the author's benchmark environment.
 Forwarding an iterator of `platanus` is extremely faster than doing that of STL, while FIFO of `platanus` is slower than that of STL by approximately 19%.
 So, you should select an appropriate one matching your use case.
 
@@ -48,7 +47,7 @@ All functions and classes in this library are not thread-safe.
 
 
 ## Installation
-`platanus` is an header only library, so you don't have to install it.
+`platanus` is a header-only library, so you don't have to install it.
 When using CMake, you only have to link your program to `platanus::platanus`.
 For example, `target_link_libraries(your_program PUBLIC platanus::platanus)`.
 
@@ -66,6 +65,7 @@ If you want to check how much `platanus` is faster than STL, run the following c
 
 ```
 cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --target btree_bench
 cd build/release/benchmark
 ./btree_bench
 ```
@@ -73,7 +73,31 @@ cd build/release/benchmark
 The output has the following form.
 
 ```
-BM_<("STL" or "BTree")(container type)<(value type)[, (the max number of values per node)]>> (average time[ns] per iteration) (average CPU time[ns] per iteration) (the total of iterations)
+BM_<(implementation)(container type)<(value type)[, (the max number of values per node or platanus::kAutoSize)]>>
+  (average time[ns] per iteration)
+  (average CPU time[ns] per iteration)
+  (the total of iterations)
+```
+
+When `PLATANUS_BENCHMARK_WITH_ABSL=ON` (default), benchmark registration switches to comparison mode and the benchmark set becomes:
+
+| implementation | note |
+| --- | --- |
+| `STL` | `std::set`, `std::multiset`, `std::map`, `std::multimap` |
+| `Absl` | `absl::btree_set`, `absl::btree_multiset`, `absl::btree_map`, `absl::btree_multimap` |
+| `BTree(..., 64)` | `platanus` non-`pmr` containers with 64 values per node |
+
+In this comparison mode:
+
+- `BTree(..., 128)` is not registered.
+- `platanus::pmr` benchmark variants are not registered.
+- the intended comparison set is exactly `STL / absl / platanus(64)`.
+
+If you want the old wider benchmark set without `absl`, configure with:
+
+```
+cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DPLATANUS_BENCHMARK_WITH_ABSL=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --target btree_bench
 ```
 
 The test cases are:
@@ -86,13 +110,22 @@ The test cases are:
 | FwdIter | Benchmark iteration (forward) and reference through the container. Note that this benchmark includes a copy constructing of `key_type`. |
 | Merge | Benchmark merging two containers with the same size. |
 
-If you want to know a good size of values per node, run the following comamnd.
+If you want to know a good size of values per node, run the following command.
 
 ```
-cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DPLATANUS_VALUES_SIZE_TEST
+cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DPLATANUS_BENCHMARK_VALUES_SIZE_TEST
+cmake --build build/release --target btree_bench
 cd build/release/benchmark
 ./btree_bench
 ```
+
+For plotting benchmark JSON output, use:
+
+```bash
+python3 benchmark/compare_benchmarks.py left.json right.json -o compared.html
+```
+
+The plotting script understands `STL`, `absl`, `platanus(N)`, and `platanus(auto)` benchmark names and can also render a single JSON file.
 
 
 ## License

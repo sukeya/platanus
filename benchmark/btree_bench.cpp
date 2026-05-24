@@ -38,6 +38,8 @@
 #include <utility>
 #include <vector>
 
+#include "absl/container/btree_map.h"
+#include "absl/container/btree_set.h"
 #include "benchmark/benchmark.h"
 
 #include "platanus/btree_map.hpp"
@@ -48,19 +50,6 @@ static_assert(sizeof(std::size_t) == 8, "must fix the bits of mersenne twister e
 
 // The size of values used in each benchmark.
 static constexpr std::int64_t values_size = 1'000'000;
-
-struct StringComp {
-  std::weak_ordering operator()(const std::string& lhd, const std::string& rhd) const noexcept {
-    auto result = lhd.compare(rhd);
-    if (result < 0) {
-      return std::weak_ordering::less;
-    } else if (result > 0) {
-      return std::weak_ordering::greater;
-    } else {
-      return std::weak_ordering::equivalent;
-    }
-  }
-};
 
 // Benchmark insertion of values into a container.
 template <typename T>
@@ -179,25 +168,11 @@ struct SetCompAndAllocToSet {
 };
 
 template <
-    template <class, class, class, std::int_least16_t> class BTreeContainer,
-    std::int_least16_t N>
-struct SetCompAndAllocToSet<BTreeContainer, std::string, N> {
-  using type = BTreeContainer<std::string, StringComp, std::allocator<std::string>, N>;
-};
-
-template <
     template <class, class, class, class, std::int_least16_t> class BTreeContainer,
     class T,
     std::int_least16_t N>
 struct SetCompAndAllocToMap {
   using type = BTreeContainer<T, T, std::ranges::less, std::allocator<T>, N>;
-};
-
-template <
-    template <class, class, class, class, std::int_least16_t> class BTreeContainer,
-    std::int_least16_t N>
-struct SetCompAndAllocToMap<BTreeContainer, std::string, N> {
-  using type = BTreeContainer<std::string, std::string, StringComp, std::allocator<std::string>, N>;
 };
 
 template <
@@ -208,24 +183,12 @@ struct SetCompToPmrSet {
   using type = BTreeContainer<T, std::ranges::less, N>;
 };
 
-template <template <class, class, std::int_least16_t> class BTreeContainer, std::int_least16_t N>
-struct SetCompToPmrSet<BTreeContainer, std::string, N> {
-  using type = BTreeContainer<std::string, StringComp, N>;
-};
-
 template <
     template <class, class, class, std::int_least16_t> class BTreeContainer,
     class T,
     std::int_least16_t N>
 struct SetCompToPmrMap {
   using type = BTreeContainer<T, T, std::ranges::less, N>;
-};
-
-template <
-    template <class, class, class, std::int_least16_t> class BTreeContainer,
-    std::int_least16_t N>
-struct SetCompToPmrMap<BTreeContainer, std::string, N> {
-  using type = BTreeContainer<std::string, std::string, StringComp, N>;
 };
 
 template <class T, std::int_least16_t N>
@@ -264,7 +227,19 @@ using STLMap = std::map<T, T>;
 template <class T>
 using STLMultiMap = std::multimap<T, T>;
 
-#ifdef PLATANUS_VALUES_SIZE_TEST
+template <class T>
+using AbslSet = absl::btree_set<T, std::less<T>>;
+
+template <class T>
+using AbslMultiSet = absl::btree_multiset<T, std::less<T>>;
+
+template <class T>
+using AbslMap = absl::btree_map<T, T, std::less<T>>;
+
+template <class T>
+using AbslMultiMap = absl::btree_multimap<T, T, std::less<T>>;
+
+#ifdef PLATANUS_BENCHMARK_VALUES_SIZE_TEST
 #define BTREE_BENCHMARK(tree, type, func) \
   BENCHMARK(BM_##func<tree<type, 3>>);    \
   BENCHMARK(BM_##func<tree<type, 8>>);    \
@@ -279,17 +254,36 @@ using STLMultiMap = std::multimap<T, T>;
   BENCHMARK(BM_##func<tree<type, 128>>);
 #endif
 
+#define BTREE_AUTOSIZE_BENCHMARK(tree, type, func) \
+  BENCHMARK(BM_##func<tree<type, platanus::kAutoSize>>);
+
+#define ABSL_BENCHMARK(container, type, func) BENCHMARK(BM_##func<Absl##container<type>>);
+
 #define STL_AND_BTREE_BENCHMARK(container, type, func) \
   BENCHMARK(BM_##func<STL##container<type>>);          \
   BTREE_BENCHMARK(BTree##container, type, func);       \
   BTREE_BENCHMARK(BTreePmr##container, type, func);
 
+#define STL_ABSL_AND_BTREE64_BENCHMARK(container, type, func) \
+  BENCHMARK(BM_##func<STL##container<type>>);                 \
+  ABSL_BENCHMARK(container, type, func);                      \
+  BTREE_AUTOSIZE_BENCHMARK(BTree##container, type, func);
+
+#ifdef PLATANUS_BENCHMARK_WITH_ABSL
+#define REGISTER_BENCHMARK_FUNCTIONS(container, type)       \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, Insert);  \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, Lookup);  \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, Delete);  \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, FwdIter); \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, Merge);
+#else
 #define REGISTER_BENCHMARK_FUNCTIONS(container, type) \
   STL_AND_BTREE_BENCHMARK(container, type, Insert);   \
   STL_AND_BTREE_BENCHMARK(container, type, Lookup);   \
   STL_AND_BTREE_BENCHMARK(container, type, Delete);   \
   STL_AND_BTREE_BENCHMARK(container, type, FwdIter);  \
   STL_AND_BTREE_BENCHMARK(container, type, Merge);
+#endif
 
 #define REGISTER_BENCHMARK_TYPES(container)              \
   REGISTER_BENCHMARK_FUNCTIONS(container, std::int32_t); \

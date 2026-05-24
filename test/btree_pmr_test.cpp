@@ -32,34 +32,46 @@ BTREE_TEST(MultiSetTest, MultiSet)
 BTREE_TEST(MultiMapTest, MultiMap)
 
 TEST(node_factory, leaf_root_node) {
-  auto node_factory = internal::btree_node_factory<
-      internal::
-          btree_set_params<int, std::ranges::less, platanus::pmr::polymorphic_allocator<>, 3>>();
+  auto node_factory = internal::btree_node_factory<internal::btree_set_params<
+      int,
+      std::ranges::less,
+      platanus::pmr::polymorphic_allocator<>,
+      3,
+      256>>();
 
   auto root = node_factory.make_root_node(true);
 }
 
 TEST(node_factory, internal_root_node) {
-  auto node_factory = internal::btree_node_factory<
-      internal::
-          btree_set_params<int, std::ranges::less, platanus::pmr::polymorphic_allocator<>, 3>>();
+  auto node_factory = internal::btree_node_factory<internal::btree_set_params<
+      int,
+      std::ranges::less,
+      platanus::pmr::polymorphic_allocator<>,
+      3,
+      256>>();
 
   auto root = node_factory.make_root_node(false);
 }
 
 TEST(node_factory, leaf_node) {
-  auto node_factory = internal::btree_node_factory<
-      internal::
-          btree_set_params<int, std::ranges::less, platanus::pmr::polymorphic_allocator<>, 3>>();
+  auto node_factory = internal::btree_node_factory<internal::btree_set_params<
+      int,
+      std::ranges::less,
+      platanus::pmr::polymorphic_allocator<>,
+      3,
+      256>>();
 
   auto root = node_factory.make_root_node(false);
   root.get()->set_child(0, node_factory.make_node(true, root.get()));
 }
 
 TEST(node_factory, internal_node) {
-  auto node_factory = internal::btree_node_factory<
-      internal::
-          btree_set_params<int, std::ranges::less, platanus::pmr::polymorphic_allocator<>, 3>>();
+  auto node_factory = internal::btree_node_factory<internal::btree_set_params<
+      int,
+      std::ranges::less,
+      platanus::pmr::polymorphic_allocator<>,
+      3,
+      256>>();
 
   auto root = node_factory.make_root_node(false);
   root.get()->set_child(0, node_factory.make_node(false, root.get()));

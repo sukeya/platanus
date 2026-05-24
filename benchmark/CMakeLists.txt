@@ -28,6 +28,10 @@
 
 add_executable(btree_bench btree_bench.cpp)
 target_link_libraries(btree_bench platanus util benchmark::benchmark)
+if (PLATANUS_BENCHMARK_WITH_ABSL)
+  target_link_libraries(btree_bench absl::btree)
+  target_compile_definitions(btree_bench PRIVATE PLATANUS_BENCHMARK_WITH_ABSL)
+endif()
 if (PLATANUS_BENCHMARK_VALUES_SIZE_TEST)
   target_compile_definitions(btree_bench PRIVATE PLATANUS_BENCHMARK_VALUES_SIZE_TEST)
 endif()

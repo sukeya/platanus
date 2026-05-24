@@ -66,6 +66,7 @@ If you want to check how much `platanus` is faster than STL, run the following c
 
 ```
 cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --target btree_bench
 cd build/release/benchmark
 ./btree_bench
 ```
@@ -74,6 +75,27 @@ The output has the following form.
 
 ```
 BM_<("STL" or "BTree")(container type)<(value type)[, (the max number of values per node)]>> (average time[ns] per iteration) (average CPU time[ns] per iteration) (the total of iterations)
+```
+
+When `PLATANUS_BENCHMARK_WITH_ABSL=ON` (default), benchmark registration switches to comparison mode and the benchmark set becomes:
+
+| implementation | note |
+| --- | --- |
+| `STL` | `std::set`, `std::multiset`, `std::map`, `std::multimap` |
+| `Absl` | `absl::btree_set`, `absl::btree_multiset`, `absl::btree_map`, `absl::btree_multimap` |
+| `BTree(..., 64)` | `platanus` non-`pmr` containers with 64 values per node |
+
+In this comparison mode:
+
+- `BTree(..., 128)` is not registered.
+- `platanus::pmr` benchmark variants are not registered.
+- the intended comparison set is exactly `STL / absl / platanus(64)`.
+
+If you want the old wider benchmark set without `absl`, configure with:
+
+```
+cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DPLATANUS_BENCHMARK_WITH_ABSL=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --target btree_bench
 ```
 
 The test cases are:
@@ -90,9 +112,18 @@ If you want to know a good size of values per node, run the following comamnd.
 
 ```
 cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DPLATANUS_BENCHMARK_VALUES_SIZE_TEST
+cmake --build build/release --target btree_bench
 cd build/release/benchmark
 ./btree_bench
 ```
+
+For plotting benchmark JSON output, use:
+
+```bash
+python3 benchmark/compare_benchmarks.py left.json right.json -o compared.html
+```
+
+The plotting script understands `STL`, `absl`, and `platanus(N)` benchmark names and can also render a single JSON file.
 
 
 ## License

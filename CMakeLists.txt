@@ -33,6 +33,7 @@ project(platanus VERSION 1.1.0 LANGUAGES CXX)
 option(PLATANUS_BUILD_TESTS "Build B-tree tests" OFF)
 option(PLATANUS_BUILD_BENCHMARK "Build B-tree benchmark" OFF)
 option(PLATANUS_BENCHMARK_VALUES_SIZE_TEST "Test values sizes of B-tree" OFF)
+option(PLATANUS_BENCHMARK_WITH_ABSL "Build benchmark in STL/Abseil/platanus(64) comparison mode" ON)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_OPTIMIZE_DEPENDENCIES ON)
@@ -118,6 +119,17 @@ if(PLATANUS_BUILD_BENCHMARK)
     OVERRIDE_FIND_PACKAGE
   )
   FetchContent_MakeAvailable(benchmark)
+
+  if(PLATANUS_BENCHMARK_WITH_ABSL)
+    set(ABSL_PROPAGATE_CXX_STD ON)
+    set(ABSL_BUILD_TESTING OFF)
+    FetchContent_Declare(
+      abseil-cpp
+      URL      https://github.com/abseil/abseil-cpp/releases/download/20260107.1/abseil-cpp-20260107.1.tar.gz
+      OVERRIDE_FIND_PACKAGE
+    )
+    FetchContent_MakeAvailable(abseil-cpp)
+  endif()
 
   add_subdirectory(util)
   add_subdirectory(benchmark)

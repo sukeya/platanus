@@ -38,6 +38,8 @@
 #include <utility>
 #include <vector>
 
+#include "absl/container/btree_map.h"
+#include "absl/container/btree_set.h"
 #include "benchmark/benchmark.h"
 
 #include "platanus/btree_map.hpp"
@@ -264,6 +266,18 @@ using STLMap = std::map<T, T>;
 template <class T>
 using STLMultiMap = std::multimap<T, T>;
 
+template <class T>
+using AbslSet = absl::btree_set<T, std::less<T>>;
+
+template <class T>
+using AbslMultiSet = absl::btree_multiset<T, std::less<T>>;
+
+template <class T>
+using AbslMap = absl::btree_map<T, T, std::less<T>>;
+
+template <class T>
+using AbslMultiMap = absl::btree_multimap<T, T, std::less<T>>;
+
 #ifdef PLATANUS_BENCHMARK_VALUES_SIZE_TEST
 #define BTREE_BENCHMARK(tree, type, func) \
   BENCHMARK(BM_##func<tree<type, 3>>);    \
@@ -279,17 +293,35 @@ using STLMultiMap = std::multimap<T, T>;
   BENCHMARK(BM_##func<tree<type, 128>>);
 #endif
 
+#define BTREE_64_BENCHMARK(tree, type, func) BENCHMARK(BM_##func<tree<type, 64>>);
+
+#define ABSL_BENCHMARK(container, type, func) BENCHMARK(BM_##func<Absl##container<type>>);
+
 #define STL_AND_BTREE_BENCHMARK(container, type, func) \
   BENCHMARK(BM_##func<STL##container<type>>);          \
   BTREE_BENCHMARK(BTree##container, type, func);       \
   BTREE_BENCHMARK(BTreePmr##container, type, func);
 
+#define STL_ABSL_AND_BTREE64_BENCHMARK(container, type, func) \
+  BENCHMARK(BM_##func<STL##container<type>>);                 \
+  ABSL_BENCHMARK(container, type, func);                      \
+  BTREE_64_BENCHMARK(BTree##container, type, func);
+
+#ifdef PLATANUS_BENCHMARK_WITH_ABSL
+#define REGISTER_BENCHMARK_FUNCTIONS(container, type)       \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, Insert);  \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, Lookup);  \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, Delete);  \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, FwdIter); \
+  STL_ABSL_AND_BTREE64_BENCHMARK(container, type, Merge);
+#else
 #define REGISTER_BENCHMARK_FUNCTIONS(container, type) \
   STL_AND_BTREE_BENCHMARK(container, type, Insert);   \
   STL_AND_BTREE_BENCHMARK(container, type, Lookup);   \
   STL_AND_BTREE_BENCHMARK(container, type, Delete);   \
   STL_AND_BTREE_BENCHMARK(container, type, FwdIter);  \
   STL_AND_BTREE_BENCHMARK(container, type, Merge);
+#endif
 
 #define REGISTER_BENCHMARK_TYPES(container)              \
   REGISTER_BENCHMARK_FUNCTIONS(container, std::int32_t); \

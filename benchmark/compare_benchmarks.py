@@ -46,7 +46,7 @@ def build_order(left: dict[str, float], right: dict[str, float]) -> list[str]:
 
 BENCHMARK_PATTERN = re.compile(
     r"^(?P<benchmark>BM_[^<]+)"
-    r"<(?P<impl>STL|BTree)"
+    r"<(?P<impl>STL|Absl|BTree)"
     r"(?P<container>MultiMap|MultiSet|Map|Set)"
     r"<(?P<data_type>std::(?:int32_t|int64_t|string))"
     r"(?:, (?P<node_size>\d+))?"
@@ -65,6 +65,9 @@ def parse_benchmark_name(name: str) -> dict[str, str] | None:
     if impl == "STL":
         parsed["label"] = "STL"
         return parsed
+    if impl == "Absl":
+        parsed["label"] = "absl"
+        return parsed
     if impl == "BTree" and node_size is not None:
         parsed["label"] = f"platanus({node_size})"
         return parsed
@@ -79,10 +82,12 @@ def subplot_title(benchmark: str, data_type: str, container: str) -> str:
 def implementation_sort_key(label: str) -> tuple[int, int]:
     if label == "STL":
         return (0, 0)
+    if label == "absl":
+        return (1, 0)
     match = re.fullmatch(r"platanus\((\d+)\)", label)
     if match is not None:
-        return (1, int(match.group(1)))
-    return (2, 0)
+        return (2, int(match.group(1)))
+    return (3, 0)
 
 
 IMPLEMENTATION_PALETTE = [

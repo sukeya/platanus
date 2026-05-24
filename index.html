@@ -677,13 +677,12 @@
 
 
 <h1 id="platanus">platanus<a class="headerlink" href="#platanus" title="Permanent link">¶</a></h1>
-<p><code>platanus</code> is a fork of the B-tree library <a href="https://code.google.com/archive/p/cpp-btree/"><code>cpp-btree</code></a>.</p>
+<p><code>platanus</code> is a modern fork of the B-tree library <a href="https://code.google.com/archive/p/cpp-btree/"><code>cpp-btree</code></a>.</p>
 <h2 id="comparing-to-stl-setmap">Comparing to STL set/map<a class="headerlink" href="#comparing-to-stl-setmap" title="Permanent link">¶</a></h2>
 <p>A btree is both smaller and faster than STL set/map.
 The red-black tree implementation of STL set/map has an overhead of 3 pointers (left, right and parent) plus the node color information for each stored value.
 So a <code>std::set&lt;std::int32_t&gt;</code> consumes 32 bytes for each value stored.
-This btree implementation stores the fixed number of values on a nodes (usually 64) and doesn't store child
-pointers for leaf nodes.
+This btree implementation stores the fixed number of values on nodes (often around 64 when <code>MaxNumOfValues</code> is left at <code>platanus::kAutoSize</code>) and doesn't store child pointers for leaf nodes.
 The result is that a <code>platanus::btree_set&lt;std::int32&gt;</code> may use much less memory per stored value.
 For the random insertion benchmark, a <code>platanus::btree_set&lt;std::int32_t&gt;</code> with 64 values per node uses 4.64 bytes per stored value.</p>
 <p>The packing of multiple values into nodes of a btree has another effect besides better space utilization: better cache locality due to fewer cache lines being accessed, that is, faster operations.</p>
@@ -698,8 +697,8 @@ For the random insertion benchmark, a <code>platanus::btree_set&lt;std::int32_t&
 <li>supporting <code>std::pmr::polymorphic_allocator</code> (in <code>platanus::pmr</code> namespace).</li>
 </ul>
 <h2 id="performance">Performance<a class="headerlink" href="#performance" title="Permanent link">¶</a></h2>
-<p>Generally speaking, <code>platunus</code> is slower than <code>cpp-btree</code> by approximately 13%.</p>
-<p>However, <code>platunus</code> is faster than <code>std::(multi)set</code> and <code>std::(multi)map</code> by approximately 59% (the values are median and the order of B-tree is 65 (default)).
+<p>Generally speaking, <code>platanus</code> is slower than <code>cpp-btree</code> by approximately 13%.</p>
+<p>However, <code>platanus</code> is faster than <code>std::(multi)set</code> and <code>std::(multi)map</code> by approximately 59% in the author's benchmark environment.
 Forwarding an iterator of <code>platanus</code> is extremely faster than doing that of STL, while FIFO of <code>platanus</code> is slower than that of STL by approximately 19%.
 So, you should select an appropriate one matching your use case.</p>
 <h2 id="limitation-and-caveats">Limitation and caveats<a class="headerlink" href="#limitation-and-caveats" title="Permanent link">¶</a></h2>
@@ -714,7 +713,7 @@ A partial workaround when erasing is available: <code>erase()</code> returns an 
 <h3 id="thread-safety">Thread-safety<a class="headerlink" href="#thread-safety" title="Permanent link">¶</a></h3>
 <p>All functions and classes in this library are not thread-safe.</p>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">¶</a></h2>
-<p><code>platanus</code> is an header only library, so you don't have to install it.
+<p><code>platanus</code> is a header-only library, so you don't have to install it.
 When using CMake, you only have to link your program to <code>platanus::platanus</code>.
 For example, <code>target_link_libraries(your_program PUBLIC platanus::platanus)</code>.</p>
 <h2 id="test">Test<a class="headerlink" href="#test" title="Permanent link">¶</a></h2>
@@ -726,11 +725,48 @@ For example, <code>target_link_libraries(your_program PUBLIC platanus::platanus)
 <h3 id="performance-test">Performance test<a class="headerlink" href="#performance-test" title="Permanent link">¶</a></h3>
 <p>If you want to check how much <code>platanus</code> is faster than STL, run the following commands.</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cd build/release/benchmark
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>./btree_bench
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>cmake --build build/release --target btree_bench
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>cd build/release/benchmark
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>./btree_bench
 </span></code></pre></div>
 <p>The output has the following form.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>BM_&lt;("STL" or "BTree")(container type)&lt;(value type)[, (the max number of values per node)]&gt;&gt; (average time[ns] per iteration) (average CPU time[ns] per iteration) (the total of iterations)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>BM_&lt;(implementation)(container type)&lt;(value type)[, (the max number of values per node or platanus::kAutoSize)]&gt;&gt;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  (average time[ns] per iteration)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  (average CPU time[ns] per iteration)
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  (the total of iterations)
+</span></code></pre></div>
+<p>When <code>PLATANUS_BENCHMARK_WITH_ABSL=ON</code> (default), benchmark registration switches to comparison mode and the benchmark set becomes:</p>
+<table>
+<thead>
+<tr>
+<th>implementation</th>
+<th>note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>STL</code></td>
+<td><code>std::set</code>, <code>std::multiset</code>, <code>std::map</code>, <code>std::multimap</code></td>
+</tr>
+<tr>
+<td><code>Absl</code></td>
+<td><code>absl::btree_set</code>, <code>absl::btree_multiset</code>, <code>absl::btree_map</code>, <code>absl::btree_multimap</code></td>
+</tr>
+<tr>
+<td><code>BTree(..., 64)</code></td>
+<td><code>platanus</code> non-<code>pmr</code> containers with 64 values per node</td>
+</tr>
+</tbody>
+</table>
+<p>In this comparison mode:</p>
+<ul>
+<li><code>BTree(..., 128)</code> is not registered.</li>
+<li><code>platanus::pmr</code> benchmark variants are not registered.</li>
+<li>the intended comparison set is exactly <code>STL / absl / platanus(64)</code>.</li>
+</ul>
+<p>If you want the old wider benchmark set without <code>absl</code>, configure with:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DPLATANUS_BENCHMARK_WITH_ABSL=OFF -DCMAKE_BUILD_TYPE=Release
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>cmake --build build/release --target btree_bench
 </span></code></pre></div>
 <p>The test cases are:</p>
 <table>
@@ -763,11 +799,16 @@ For example, <code>target_link_libraries(your_program PUBLIC platanus::platanus)
 </tr>
 </tbody>
 </table>
-<p>If you want to know a good size of values per node, run the following comamnd.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DPLATANUS_VALUES_SIZE_TEST
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>cd build/release/benchmark
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>./btree_bench
+<p>If you want to know a good size of values per node, run the following command.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>cmake -S . -B build/release -DPLATANUS_BUILD_BENCHMARK=ON -DCMAKE_BUILD_TYPE=Release -DPLATANUS_BENCHMARK_VALUES_SIZE_TEST
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>cmake --build build/release --target btree_bench
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>cd build/release/benchmark
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>./btree_bench
 </span></code></pre></div>
+<p>For plotting benchmark JSON output, use:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python3<span class="w"> </span>benchmark/compare_benchmarks.py<span class="w"> </span>left.json<span class="w"> </span>right.json<span class="w"> </span>-o<span class="w"> </span>compared.html
+</span></code></pre></div>
+<p>The plotting script understands <code>STL</code>, <code>absl</code>, <code>platanus(N)</code>, and <code>platanus(auto)</code> benchmark names and can also render a single JSON file.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">¶</a></h2>
 <p><code>platanus</code> is licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0.txt">Apache License, Version 2.0</a>.</p>
 
@@ -792,7 +833,7 @@ For example, <code>target_link_libraries(your_program PUBLIC platanus::platanus)
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="October 9, 2025 11:47:41 UTC">2025-10-09</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="May 24, 2026 14:45:32 UTC">2026-05-24</span>
   </span>
 
     

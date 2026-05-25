@@ -24,11 +24,13 @@ The packing of multiple values into nodes of a btree has another effect besides 
 
 
 ## Performance
-Generally speaking, `platanus` is slower than `cpp-btree` by approximately 13%.
+In `benchmark/bench_result_with_absl.json`, `platanus(auto)` outperforms STL in 45 out of 60 benchmark groups, with a geometric-mean speedup of `2.301x` over STL.
+The largest wins appear in forward iteration, where `platanus(auto)` is faster in all 12 groups and reaches roughly `18.4x` geometric-mean speedup.
+Insert and lookup are also usually faster than STL, while delete and merge are more mixed and can regress for some string-heavy cases.
 
-However, `platanus` is faster than `std::(multi)set` and `std::(multi)map` by approximately 59% in the author's benchmark environment.
-Forwarding an iterator of `platanus` is extremely faster than doing that of STL, while FIFO of `platanus` is slower than that of STL by approximately 19%.
-So, you should select an appropriate one matching your use case.
+Against `absl`, however, `platanus(auto)` is generally slower in this benchmark set.
+`absl` is the fastest implementation in 53 out of 60 groups, while `platanus(auto)` is the fastest in 1 group.
+So, in the author's current benchmark environment, `platanus` is often a strong improvement over STL, but not a drop-in performance win over `absl`.
 
 
 ## Limitation and caveats

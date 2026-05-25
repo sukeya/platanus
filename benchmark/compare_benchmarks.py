@@ -301,7 +301,7 @@ def main() -> None:
         right_values,
         time_unit if time_unit is not None else "unknown",
     )
-    figure.write_html(output_path, include_plotlyjs=True)
+    figure.write_html(output_path, include_plotlyjs='cdn')
     print(f"Wrote {output_path}")
 
 

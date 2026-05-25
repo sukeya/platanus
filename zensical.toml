@@ -6,6 +6,7 @@ edit_uri = "edit/main/docs/"
 docs_dir = "docs"
 nav = [
   { "Home" = "index.md" },
+  { "Benchmark" = "benchmark.md" },
   { "Reference" = [
     { "btree_set" = "reference/btree_set.md" },
     { "btree_multiset" = "reference/btree_multiset.md" },

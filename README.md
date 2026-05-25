@@ -5,6 +5,13 @@
 ## Documentation
 See [here](https://sukeya.github.io/platanus/).
 
+For local preview and static builds of the documentation site:
+
+```bash
+zensical serve
+zensical build
+```
+
 ## Benchmark
 You can build the benchmark with:
 

@@ -9,6 +9,7 @@ repos:
     -   id: trailing-whitespace
     -   id: check-added-large-files
         exclude: ^docs/platanus\.png$
+        exclude: ^docs/benchmark-assets/bench\_result\_with\_absl\.html$
 -   repo: https://github.com/pre-commit/mirrors-clang-format
     rev: v21.1.0
     hooks:

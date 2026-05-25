@@ -279,7 +279,7 @@ Returns the `key_compare` object used by `*this`.
 
 
 ### non-STL
-<span style="color: red">**[WARNING] The following functions may be suddenly deleted.**</span>
+<span style="color: red"><strong>&#91;WARNING&#93; The following functions may be suddenly deleted.</strong></span>
 
 ```cpp
 // (1)

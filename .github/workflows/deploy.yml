@@ -1,4 +1,4 @@
-name: Deploy
+name: Documentation
 
 on:
   push:
@@ -7,28 +7,48 @@ on:
   pull_request:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          ssh-key: ${{ secrets.CI_DEPLOY }}
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
-      - name: Set up MkDocs
+          python-version: "3.13"
+      - name: Install Zensical
         run: |
           python -m pip install --upgrade pip
-          pip install -r .github/workflows/deploy_requirements.txt
-      - name: Build
-        env:
-          MKDOCS_GIT_COMMITTERS_APIKEY: ${{ secrets.GITHUB_TOKEN }}
-        run: mkdocs build
+          pip install zensical
+      - name: Build docs
+        run: zensical build --clean
+
+  deploy:
+    if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/configure-pages@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install Zensical
+        run: |
+          python -m pip install --upgrade pip
+          pip install zensical
+      - name: Build docs
+        run: zensical build --clean
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
       - name: Deploy
-        if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-        env:
-          MKDOCS_GIT_COMMITTERS_APIKEY: ${{ secrets.GITHUB_TOKEN }}
-        run: mkdocs gh-deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

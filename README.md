@@ -1,4 +1,8 @@
 # platanus
+<p align="center">
+  <img src="docs/platanus.png" alt="platanus logo" width="280">
+</p>
+
 `platanus` is a modern fork of the B-tree library [`cpp-btree`](https://code.google.com/archive/p/cpp-btree/).
 
 
